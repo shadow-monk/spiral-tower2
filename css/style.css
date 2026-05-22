@@ -24,6 +24,14 @@
   min-height:100vh;
   box-sizing:border-box;
   overflow:hidden;
+
+  background-color:#0f172a;
+
+  background-image:
+    linear-gradient(rgba(51,65,85,0.12) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(51,65,85,0.12) 2px, transparent 2px);
+
+  background-size:50px 50px;
 }
 .master-wrapper {
   position:relative;
