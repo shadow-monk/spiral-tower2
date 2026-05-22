@@ -14,3 +14,14 @@
   background-color:#0f172a;
   font-family:'Helvetica Neue',Arial,sans-serif;
 }
+.master-wrapper {
+  position:relative;
+  padding:20px 10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  box-sizing:border-box;
+  overflow:hidden;
+}
