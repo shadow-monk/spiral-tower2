@@ -1,1 +1,9 @@
-
+<style>
+@keyframes floatP { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
+@keyframes floatE { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
+@keyframes enemyAssault { 0% { transform: translateX(0); } 20% { transform: translateX(20px); } 60% { transform: translateX(-140px); } 100% { transform: translateX(0); } }
+@keyframes fireFly { 0% { transform: translate(-140px, 40px) scale(0.5); } 100% { transform: translate(110px, -20px) scale(1.2); } }
+@keyframes holyFly { 0% { transform: translate(-140px, 40px) rotate(0deg); } 100% { transform: translate(110px, -20px) rotate(360deg); } }
+@keyframes enemyMissile { 0% { transform: translate(140px, -20px); } 100% { transform: translate(-110px, 40px); } }
+@keyframes stalkPulse { 0% { transform: scale(0.2); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
+</style>
