@@ -41,3 +41,13 @@
   z-index:1;
   pointer-events:none;
 }
+  .game-container {
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:640px;
+  box-sizing:border-box;
+}
+
+  pointer-events:none;
+}
