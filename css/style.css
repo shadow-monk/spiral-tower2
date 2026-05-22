@@ -30,7 +30,7 @@
   box-sizing: border-box;
   overflow: hidden;
 
-  /* 🧱 外枠の壁：互い違いの群青レンガ */
+  /* 🧱 外枠の壁：互い違いの群青レンガを最優先で適用 */
   background-color: #0f172a;
   background-image: 
     linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px),
@@ -49,7 +49,7 @@
 }
 
 /* ==========================================
-   ⚔️ 3. 戦闘アリーナ（内部レンガ＆黒枠フチ透過消滅）
+   ⚔️ 3. 戦闘アリーナ（レイヤー構造の保護）
    ========================================== */
 #eff-scr {
   position: relative;
@@ -58,15 +58,6 @@
   border: 4px solid #334155;
   overflow: hidden;
   box-sizing: border-box;
-
-  /* 🧱 アリーナ内部の群青レンガ壁 */
-  background-color: #0f172a;
-  background-image: 
-    linear-gradient(90deg, rgba(51, 65, 85, 0.15) 30px, transparent 30px),
-    linear-gradient(90deg, rgba(51, 65, 85, 0.15) 30px, transparent 30px),
-    linear-gradient(0deg, rgba(51, 65, 85, 0.15) 2px, transparent 2px);
-  background-size: 60px 30px;
-  background-position: 0px 0px, 30px 15px, 0px 0px;
 }
 
 /* 🔮 四角いフチ枠を完全に消滅させる透過ブレンドプロテクト */
