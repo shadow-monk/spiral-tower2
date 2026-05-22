@@ -29,9 +29,18 @@
 
   background-image:
     linear-gradient(rgba(51,65,85,0.18) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(51,65,85,0.12) 2px, transparent 2px);
+    linear-gradient(90deg, rgba(51,65,85,0.18) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(51,65,85,0.18) 2px, transparent 2px);
 
- background-size:60px 40px;
+  background-size:
+    60px 40px,
+    60px 40px,
+    60px 40px;
+
+  background-position:
+    0 0,
+    0 0,
+    30px 20px;
 }
 
 .master-wrapper {
