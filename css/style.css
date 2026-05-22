@@ -1,5 +1,5 @@
 /* ==========================================
-   🎮 演出アニメーション
+   🎮 1. 演出アニメーション
    ========================================== */
 @keyframes floatP { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
 @keyframes floatE { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
@@ -10,7 +10,7 @@
 @keyframes stalkPulse { 0% { transform: scale(0.2); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 
 /* ==========================================
-   🧱 全体レイアウト & 究極の群青レンガ背景
+   🧱 2. 全体レイアウト & 外側の群青レンガ背景
    ========================================== */
 .game-body {
   margin: 0;
@@ -30,21 +30,14 @@
   box-sizing: border-box;
   overflow: hidden;
 
-  /* 🧱 CSSグラデーションを3重合成してレンガを表現 */
+  /* 🧱 外枠の壁：互い違いの群青レンガ */
   background-color: #0f172a;
   background-image: 
-    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* 縦線（段1） */
-    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* 縦線（段2） */
-    linear-gradient(0deg, rgba(51, 65, 85, 0.2) 2px, transparent 2px);    /* 横線 */
-  
-  /* レンガ1個のサイズを横86px×縦40pxに設定 */
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px),
+    linear-gradient(0deg, rgba(51, 65, 85, 0.2) 2px, transparent 2px);
   background-size: 86px 40px; 
-  
-  /* 段2の縦線だけを右に43px、下に20pxズラすことで「互い違い」を完全再現 */
-  background-position: 
-    0px 0px, 
-    43px 20px, 
-    0px 0px;
+  background-position: 0px 0px, 43px 20px, 0px 0px;
 }
 
 .game-container {
@@ -53,4 +46,97 @@
   width: 100%;
   max-width: 640px;
   box-sizing: border-box;
+}
+
+/* ==========================================
+   ⚔️ 3. 戦闘アリーナ（内部レンガ＆黒枠フチ透過消滅）
+   ========================================== */
+#eff-scr {
+  position: relative;
+  height: 350px;
+  border-radius: 24px 24px 0 0;
+  border: 4px solid #334155;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  /* 🧱 アリーナ内部の群青レンガ壁 */
+  background-color: #0f172a;
+  background-image: 
+    linear-gradient(90deg, rgba(51, 65, 85, 0.15) 30px, transparent 30px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.15) 30px, transparent 30px),
+    linear-gradient(0deg, rgba(51, 65, 85, 0.15) 2px, transparent 2px);
+  background-size: 60px 30px;
+  background-position: 0px 0px, 30px 15px, 0px 0px;
+}
+
+/* 🔮 四角いフチ枠を完全に消滅させる透過ブレンドプロテクト */
+#spell-effect-layer, #front-effect-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 5;
+  mix-blend-mode: screen !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+#spell-effect-layer img, #front-effect-layer img {
+  mix-blend-mode: screen !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+/* ==========================================
+   🎒 4. インターフェース・コンポーネント（盤面装飾）
+   ========================================== */
+#icon-stage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  gap: 60px;
+}
+
+#p-sprite-container, #e-sprite-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#p-sprite-container img, #e-sprite-container img {
+  image-rendering: pixelated;
+  object-fit: contain;
+}
+
+/* ダメージ数字ポップアップの浮き上がり処理 */
+#dmg-layer div {
+  animation: floatP 0.8s ease-out forwards;
+}
+
+/* デバッグ用ウインドウ */
+#dev-console-window {
+  margin-top: 25px;
+  width: 100%;
+  max-width: 640px;
+  background: #0b0f19;
+  border: 2px solid #334155;
+  border-radius: 16px;
+  padding: 15px;
+  box-sizing: border-box;
+}
+
+#dev-password-input {
+  width: 100%;
+  background: #1e293b;
+  color: #ffffff;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  outline: none;
 }
