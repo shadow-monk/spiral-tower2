@@ -1,4 +1,7 @@
 <style>
+/* ==========================================
+   🎮 演出アニメーション
+   ========================================== */
 @keyframes floatP { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
 @keyframes floatE { 0% { transform: translateY(0px); } 100% { transform: translateY(-10px); } }
 @keyframes enemyAssault { 0% { transform: translateX(0); } 20% { transform: translateX(20px); } 60% { transform: translateX(-140px); } 100% { transform: translateX(0); } }
@@ -6,7 +9,6 @@
 @keyframes holyFly { 0% { transform: translate(-140px, 40px) rotate(0deg); } 100% { transform: translate(110px, -20px) rotate(360deg); } }
 @keyframes enemyMissile { 0% { transform: translate(140px, -20px); } 100% { transform: translate(-110px, 40px); } }
 @keyframes stalkPulse { 0% { transform: scale(0.2); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
-</style>
 
 /* ==========================================
    🧱 全体レイアウト & 究極の群青レンガ背景
@@ -29,17 +31,17 @@
   box-sizing: border-box;
   overflow: hidden;
 
-  /* 🧱 【ここが核心】CSSだけで組む互い違いの群青レンガ柄デザイン */
+  /* 🧱 CSSグラデーションを3重合成してレンガを表現 */
   background-color: #0f172a;
   background-image: 
-    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* レンガの縦線（段1） */
-    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* レンガの縦線（段2） */
-    linear-gradient(0deg, rgba(51, 65, 85, 0.2) 2px, transparent 2px);    /* レンガの横線 */
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* 縦線（段1） */
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* 縦線（段2） */
+    linear-gradient(0deg, rgba(51, 65, 85, 0.2) 2px, transparent 2px);    /* 横線 */
   
-  /* レンガの1ブロックを横 86px × 縦 40px の黄金比ピクセルに設定 */
+  /* レンガ1個のサイズを横86px×縦40pxに設定 */
   background-size: 86px 40px; 
   
-  /* 2つ目の縦線を「右に半分(43px)、下に半分(20px)」完璧にズラすことで、互い違いのレンガを再現 */
+  /* 段2の縦線だけを右に43px、下に20pxズラすことで「互い違い」を完全再現 */
   background-position: 
     0px 0px, 
     43px 20px, 
