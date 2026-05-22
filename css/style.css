@@ -28,11 +28,12 @@
   background-color:#0f172a;
 
   background-image:
-    linear-gradient(rgba(51,65,85,0.12) 2px, transparent 2px),
+    linear-gradient(rgba(51,65,85,0.18) 2px, transparent 2px),
     linear-gradient(90deg, rgba(51,65,85,0.12) 2px, transparent 2px);
 
-  background-size:50px 50px;
+ background-size:60px 40px;
 }
+
 .master-wrapper {
   position:relative;
   padding:20px 10px;
