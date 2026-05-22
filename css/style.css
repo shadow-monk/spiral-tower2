@@ -25,18 +25,18 @@
   box-sizing:border-box;
   overflow:hidden;
 }
-.background-grid {
-  position:absolute;
-  inset:0;
+.master-wrapper {
+  position:relative;
+  padding:20px 10px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+  box-sizing:border-box;
+  overflow:hidden;
 
-  background-image:
-    linear-gradient(rgba(51,65,85,0.1) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(51,65,85,0.1) 2px, transparent 2px);
-
-  background-size:50px 50px;
-
-  z-index:0;
-  pointer-events:none;
+  background-color:#0f172a;
 }
   .game-container {
   position:relative;
