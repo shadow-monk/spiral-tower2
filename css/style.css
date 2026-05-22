@@ -8,61 +8,48 @@
 @keyframes stalkPulse { 0% { transform: scale(0.2); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 </style>
 
+/* ==========================================
+   🧱 全体レイアウト & 究極の群青レンガ背景
+   ========================================== */
 .game-body {
-  margin:0;
-  padding:0;
-  background-color:#0f172a;
-  font-family:'Helvetica Neue',Arial,sans-serif;
-}
-.master-wrapper {
-  position:relative;
-  padding:20px 10px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  box-sizing:border-box;
-  overflow:hidden;
-
-  background-color:#0f172a;
-
-  background-image:
-    linear-gradient(rgba(51,65,85,0.18) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(51,65,85,0.18) 2px, transparent 2px),
-    linear-gradient(90deg, rgba(51,65,85,0.18) 2px, transparent 2px);
-
-  background-size:
-    60px 40px,
-    60px 40px,
-    60px 40px;
-
-  background-position:
-    0 0,
-    0 0,
-    30px 20px;
+  margin: 0;
+  padding: 0;
+  background-color: #0f172a;
+  font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
 .master-wrapper {
-  position:relative;
-  padding:20px 10px;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  min-height:100vh;
-  box-sizing:border-box;
-  overflow:hidden;
+  position: relative;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
 
-  background-color:#0f172a;
-}
-  .game-container {
-  position:relative;
-  z-index:2;
-  width:100%;
-  max-width:640px;
-  box-sizing:border-box;
+  /* 🧱 【ここが核心】CSSだけで組む互い違いの群青レンガ柄デザイン */
+  background-color: #0f172a;
+  background-image: 
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* レンガの縦線（段1） */
+    linear-gradient(90deg, rgba(51, 65, 85, 0.2) 43px, transparent 43px), /* レンガの縦線（段2） */
+    linear-gradient(0deg, rgba(51, 65, 85, 0.2) 2px, transparent 2px);    /* レンガの横線 */
+  
+  /* レンガの1ブロックを横 86px × 縦 40px の黄金比ピクセルに設定 */
+  background-size: 86px 40px; 
+  
+  /* 2つ目の縦線を「右に半分(43px)、下に半分(20px)」完璧にズラすことで、互い違いのレンガを再現 */
+  background-position: 
+    0px 0px, 
+    43px 20px, 
+    0px 0px;
 }
 
-  pointer-events:none;
+.game-container {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 640px;
+  box-sizing: border-box;
 }
