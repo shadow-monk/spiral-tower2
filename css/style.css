@@ -7,3 +7,10 @@
 @keyframes enemyMissile { 0% { transform: translate(140px, -20px); } 100% { transform: translate(-110px, 40px); } }
 @keyframes stalkPulse { 0% { transform: scale(0.2); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1.5); opacity: 0; } }
 </style>
+
+.game-body {
+  margin:0;
+  padding:0;
+  background-color:#0f172a;
+  font-family:'Helvetica Neue',Arial,sans-serif;
+}
