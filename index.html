@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<link rel="stylesheet" href="css/style.css?v=6">
+<link rel="stylesheet" href="css/style.css?v=7">
 </head>
 <body class="game-body">
 
@@ -121,8 +121,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.00（🌐URL自動結合・CSS汎用変数基盤化）</span>
-        <span>Update: 2026.05.23 09:02:29</span>
+        <span>改訂 V5.10（🛡️フリーズバグ完全治療・アセット正規化適応版）</span>
+        <span>Update: 2026.05.23 09:13:19</span>
     </div>
 </div>
 
@@ -144,14 +144,13 @@ function checkDevPassword() {
 }
 
 // ==========================================
-// 🧱 1. 製品化・配布を見据えたアセットベースパス群の一元管理
+// 🧱 1. 製品化・配布を見据えたアセット一元管理
 // ==========================================
 const BASE_ASSETS = {
     repo1: "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/",
     repo2: "https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/"
 };
 
-// パス動的自動結合関数（安全弁内蔵）
 function getAssetPath(category, filename) {
     try {
         if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
@@ -167,7 +166,7 @@ function getAssetPath(category, filename) {
     }
 }
 
-// データベース構造の正規化
+// ✨ 改良：ディレクターが正規化してくれた新規連番形式に完全適合
 const ANIMS_SLIME = [1,2,3,4,5,6].map(n => getAssetPath('enemy_legacy', `imagesX/Slime%20(${n}).png`));
 const ANIMS_SPIDER = [1,2,3,4,5,6,7].map(n => getAssetPath('enemy_legacy', `spider/spider%20(${n}).png`));
 const ANIMS_SKELTON = [1,2,3,4,5,6,7,8,9].map(n => getAssetPath('enemy_legacy', `monster2/skeleton/skeleton%20(${n}).png`));
@@ -177,8 +176,8 @@ const ANIMS_PHANTOM = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `phantom/p
 const ANIMS_DRAGON = [1,2,3].map(n => getAssetPath('enemy_legacy', `doragon/A_dragon%20(${n}).png`));
 
 const ANIMS_EYES = [1,2,3,4,5,6].map(n => getAssetPath('enemy_new', `eyes/eyes_0${n}.png`));
-const ANIMS_GARGOIL = [1,2,3,4,5,6,7].map(n => getAssetPath('enemy_new', `gargoil/gargoill_0${n}.png`));
-const ANIMS_MAICONID = [1,2,3,4,5,6,7,8,9,10].map(n => getAssetPath('enemy_new', `maiconid/maiconidl_${n<10?'0'+n:n}.png`));
+const ANIMS_GARGOIL = [1,2,3,4,5,6,7,8,9].map(n => getAssetPath('enemy_new', `gargoyle/gargoyle_0${n}.png`));
+const ANIMS_MAICONID = [1,2,3,4,5,6,7,8,9,10].map(n => getAssetPath('enemy_new', `maiconid/maiconid_${n<10?'0'+n:n}.png`));
 
 const MASTER_ANIM_MAP = { 
     slime: ANIMS_SLIME, spider: ANIMS_SPIDER, skelton: ANIMS_SKELTON, 
@@ -186,7 +185,6 @@ const MASTER_ANIM_MAP = {
     mush: ANIMS_MAICONID, phantom: ANIMS_PHANTOM, eyes: ANIMS_EYES, dragon: ANIMS_DRAGON 
 };
 
-// 効果音・BGM
 const SOUND_FIRE = getAssetPath('sound', 'se_fire.mp3'); 
 const SOUND_ICE = getAssetPath('sound', 'se_ice.mp3');   
 const SOUND_HOLY = getAssetPath('sound', 'se_holy.mp3'); 
@@ -194,19 +192,14 @@ const SOUND_DEAD = getAssetPath('sound', 'se_dead.mp3');
 
 const BGM_PEACE_FANTASY = getAssetPath('music', 'peace_bgm_fantasy14.mp3');
 const BGM_BATTLE_LIST = [
-    getAssetPath('music', 'tactics12.mp3'),
-    getAssetPath('music', 'Darkbattrey09.mp3'),
-    getAssetPath('music', 'arch_battrey03.mp3'),
-    getAssetPath('music', 'pianobattre11.mp3'),
-    getAssetPath('music', 'runningbattre15.mp3'),
-    getAssetPath('music', 'senritsu04.mp3')
+    getAssetPath('music', 'tactics12.mp3'), getAssetPath('music', 'Darkbattrey09.mp3'),
+    getAssetPath('music', 'arch_battrey03.mp3'), getAssetPath('music', 'pianobattre11.mp3'),
+    getAssetPath('music', 'runningbattre15.mp3'), getAssetPath('music', 'senritsu04.mp3')
 ];
 
-// 暫定エフェクト用参照保持
 const ANIMS_EFFECT_ICE = [getAssetPath('effect', 'ICE/ICE%20(1).png')];
 const ANIMS_EFFECT_CROSS = [getAssetPath('effect', 'cross/cross%20(1).png')];
 
-// プレースホルダー（次ステップでCSS変数クラスへ統合）
 const MISSILE_EFFECTS = {
   fire: `<div style="position:absolute; width:60px; height:60px; background:#ef4444; border-radius:50%; left:160px; top:160px; animation:fireFly 0.4s forwards; box-shadow:0 0 30px #f97316;"></div>`,
   ice: `<img src="${ANIMS_EFFECT_ICE[0]}" style="position:absolute; width:160px; height:160px; left:400px; top:120px; animation:stalkPulse 0.4s forwards;">`,
@@ -231,7 +224,7 @@ const STAGES = [
   { floor: 7,  name: "マイコニド",           hp: 230, atk: 30, weak: "fire", type: "mush",    glow: "rgba(168,85,247,0.4)",  txt: "7階。歩行キノコ。胞子による腐食に注意せよ！" },
   { floor: 8,  name: "ファントム",           hp: 280, atk: 35, weak: "holy", type: "phantom", glow: "rgba(125,211,252,0.4)", txt: "8階。霧のように形を変えて浮遊する亡霊。周囲を覆う腐食ガスを突破せよ！" },
   { floor: 9,  name: "イビルアイ",           hp: 360, atk: 42, weak: "holy", type: "eyes",    glow: "rgba(219,39,119,0.5)",  txt: "9階。狂気に満ちた視線を放つ巨大魔眼。死の光の空間出現をかわせ！" },
-  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級の【ホーリー】で挑め！" }
+  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級 of 【ホーリー】で挑め！" }
 ];
 
 let curIdx = -1; let pMaxHp = 100, pHp = 100, eHp = 100, eMaxHp = 100, mana = 1.0; let isBusy = false, isMuted = false;
@@ -284,7 +277,7 @@ function closeItemBag() { document.getElementById('item-bag-panel').style.displa
 
 function useItem(itemType) {
     if (isBusy || itemInventory[itemType] <= 0) return;
-    itemInventory[itemType]--; closeItemBag();
+    isBusy = true; itemInventory[itemType]--; closeItemBag();
     document.getElementById('spell-effect-layer').innerHTML = "";
     if (itemType === 'potion') { pHp = Math.min(pMaxHp, pHp + 50); document.getElementById('battle-log').innerText = "🎒 回復薬を使用！HPが50回復！"; } 
     else { isAmuletActive = 3; document.getElementById('item-badge').style.display = "block"; document.getElementById('battle-log').innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; }
@@ -305,7 +298,6 @@ function startBattle() {
   const eContainer = document.getElementById('e-sprite-container');
   if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
   
-  // 🧙‍♂️ プレイヤー初期グラフィックを安全結合
   const pGraphic = document.getElementById('p-sprite-graphic');
   if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
 
@@ -330,6 +322,7 @@ function createDmgPop(dmg, isPlayer) {
     document.getElementById("dmg-layer").appendChild(pop); setTimeout(() => pop.remove(), 800);
 }
 
+// 🛠️ 治療：ターン進行、タイマー競合、フラグ管理の完全クリーンアップ
 function turn(playerMove) {
   if (isBusy || pHp <= 0 || eHp <= 0) return; isBusy = true;
   if (isPlayerStunned) { isPlayerStunned = false; document.getElementById('battle-log').innerText = "🚨 麻痺して動けない！"; setTimeout(enemyTurnAction, 1000); return; }
@@ -343,14 +336,14 @@ function turn(playerMove) {
   const effLayer = document.getElementById('spell-effect-layer');
   if (effLayer) effLayer.innerHTML = ""; isEnemyShieldActive = false;
 
-  // 🛠️ 演出再生時のフリーズをガードする try-catch 安全弁
   try {
       if (playerMove === 'fire') { playSE(SOUND_FIRE); if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire; } 
       else if (playerMove === 'ice') { playSE(SOUND_ICE); if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.ice; } 
       else if (playerMove === 'holy') { playSE(SOUND_HOLY); if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.holy; } 
       else if (playerMove === 'def') {
           document.getElementById('battle-log').innerText = "🛡 シールドを展開！防御姿勢をとった。";
-          setTimeout(() => { enemyTurnAction(true); }, 800); mana = 1.0; document.getElementById('charge-badge').style.display = "none"; return;
+          mana = 1.0; document.getElementById('charge-badge').style.display = "none";
+          setTimeout(() => { enemyTurnAction(true); }, 800); return;
       } else if (playerMove === 'chg') {
           mana = 2.5; document.getElementById('charge-badge').style.display = "block"; document.getElementById('battle-log').innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
           setTimeout(() => { enemyTurnAction(false); }, 800); return;
@@ -359,17 +352,21 @@ function turn(playerMove) {
       console.error("Effect Playback Error Safety Catch:", e);
   }
 
-  // ターン進行保障（演出が詰まっても必ず確実にダメージ判定へ移る）
+  // タイムアウトをネストせず一本化し、確実に次ターンへバトンを渡す
   setTimeout(() => {
       eHp = Math.max(0, eHp - dmg); updateHpUI(); createDmgPop(dmg, false);
       document.getElementById('battle-log').innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
       mana = 1.0; document.getElementById('charge-badge').style.display = "none";
-      setTimeout(() => { if (!checkBattleEnd()) enemyTurnAction(); }, 800);
+      
+      setTimeout(() => { 
+          if (!checkBattleEnd()) enemyTurnAction(); 
+      }, 800);
   }, 400);
 }
 
 function enemyTurnAction(isPlayerDefending = false) {
-    if (eHp <= 0 || pHp <= 0) return; const data = STAGES[curIdx];
+    if (eHp <= 0 || pHp <= 0) { isBusy = false; return; } 
+    const data = STAGES[curIdx];
     let isSpecial = (Math.random() < 0.4);
     let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
     dmg = Math.floor(dmg * enemyMana); enemyMana = 1.0;
@@ -396,7 +393,6 @@ function enemyTurnAction(isPlayerDefending = false) {
         if (data.type === 'spider') isPlayerStunned = true;
         document.getElementById('battle-log').innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        // 🛠️ 突進アニメーションの距離をCSS変数で制御
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
             eContainer.style.setProperty('--assaultX', '-140px');
@@ -414,7 +410,12 @@ function enemyTurnAction(isPlayerDefending = false) {
 
 function postEnemyTurnCleanup() {
     if (isAmuletActive > 0) { isAmuletActive--; if (isAmuletActive <= 0) document.getElementById('item-badge').style.display = "none"; }
-    setTimeout(() => { checkBattleEnd(); }, 800);
+    setTimeout(() => { 
+        if (!checkBattleEnd()) {
+            isBusy = false; // ✨ 治療：敵のターンが正常終了した瞬間に確実にロックを全面開放
+            document.getElementById('battle-log').innerText = "コマンドを選択せよ。";
+        }
+    }, 800);
 }
 
 function checkBattleEnd() {
@@ -436,14 +437,14 @@ function transitionToResult() {
     const rTitle = document.getElementById('res-title'); const rText = document.getElementById('res-text'); const rBtn = document.getElementById('res-btn');
     if (eHp <= 0) {
         if (curIdx === STAGES.length - 1) {
-            rTitle.innerText = "GRAND END"; rText.innerText = "最上階的暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; rBtn.innerText = "タイトルへ戻る"; startBGM("grand_end");
+            rTitle.innerText = "GRAND END"; rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; rBtn.innerText = "タイトルへ戻る"; startBGM("grand_end");
         } else {
             rTitle.innerText = "VICTORY"; rText.innerText = `${STAGES[curIdx].name}を撃破した！次の階層への扉が開く。`; rBtn.innerText = "次へ進む";
         }
     } else {
         rTitle.innerText = "DEFEATED"; rText.innerText = "目の前が真っ暗になった..."; rBtn.innerText = "タイトルへ戻る"; curIdx = -1;
     }
-    isBusy = false;
+    isBusy = false; // ✨ 治療：リザルト突入時にも安全のためロックを全面開放
 }
 
 function resetGame() { if(!isDebugUnlocked) { pMaxHp = 100; pHp = 100; } else { pMaxHp = 8000; pHp = 8000; } mana = 1.0; curIdx = -1; isBusy = false; itemInventory={potion:1,amulet:1}; isAmuletActive=0; stopBGM(); stopSlimeAnimation(); }
