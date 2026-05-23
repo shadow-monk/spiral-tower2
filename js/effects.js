@@ -1,33 +1,12 @@
-// グローバル状態管理変数
-let animeTimeout = null; 
-let currentFrameIdx = 0;
-
 // ==========================================
-// ⚙️ 2. モンスターアニメーション制御マシン
+// ✨ js/effects.js（純粋エフェクト管理専用・クリーン版）
 // ==========================================
-function startCustomAnimation(type) {
-    stopSlimeAnimation();
-    const graphicEl = document.getElementById("e-sprite-graphic"); 
-    if (!graphicEl) return;
-    
-    function step() {
-        if (window.curIdx < 0 || !STAGES[window.curIdx]) return;
-        let cType = STAGES[window.curIdx].type;
-        let dynamicArr = MASTER_ANIM_MAP[cType] || ANIMS_SLIME;
-        
-        currentFrameIdx = (currentFrameIdx + 1) % dynamicArr.length;
-        graphicEl.src = dynamicArr[currentFrameIdx];
-        
-        // 各モンスターの重量感・世界観に合わせた最適なスピード（FPS）設定
-        let fps = (cType === 'slime') ? 130 : (cType === 'phantom' ? 160 : (cType === 'dragon' ? 120 : 140));
-        animeTimeout = setTimeout(step, fps); 
-    }
-    step();
-}
 
-function stopSlimeAnimation() { 
-    if (animeTimeout) { 
-        clearTimeout(animeTimeout); 
-        animeTimeout = null; 
-    } 
-}
+// ⚠️ モンスター画像・アニメーション（ANIMS_SLIMEやstartCustomAnimation等）の記述は、
+// 2重衝突エラーを防ぐため、ここからは完全に除去されました（enemies.jsへ完全集約）。
+
+console.log("effects.js: モンスター関連の競合コードの除去が完了しました。エフェクトシステム正常起動。");
+
+// ※ 以下に、もしゲームで使用している「ダメージエフェクト」や「画面のフラッシュ効果」などの
+// 純粋なエフェクト用関数が元々あれば、それらだけをこの下に残してください。
+// 現時点でモンスターの二重宣言エラーを消し去るため、上部はこれで完全にクリーンです。
