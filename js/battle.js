@@ -1,8 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-// 部分調整でもブラウザが最新版を読み込んだか一目でわかるように、ロード時にログを吐き出します。
-console.log("%c🔄 [BATTLE SYSTEMS] 最新の調整版（2026.05.23 23:00版）が正常にリロードされました！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 最新の調整版（2026.05.23 23:30版）画像同期の修正完了！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -22,10 +21,9 @@ window.isPlayerStunned = false;
 window.enemyMana = 1.0; 
 window.isEnemyShieldActive = false;
 
-// 🚨 エラー解消：HTML側の turn() 呼び出しと衝突しないよう、変数名を別名で確実隔離
+// 変数名を完全に隔離して安全を確保
 window.battleTurnCount = 1; 
 
-// 🚨 エラー解消：HTML側の「turn()」という関数呼び出しを受け止めるためのダミー関数を設置して即死を回避
 function turn() {
     console.log("turn() function triggered by UI. Current TurnCount:", window.battleTurnCount);
 }
@@ -87,8 +85,6 @@ function startBattle() {
     window.isAmuletActive = 0; 
     window.enemyMana = 1.0; 
     window.isEnemyShieldActive = false;
-    
-    // ターン数を初期化
     window.battleTurnCount = 1; 
 
     const eContainer = document.getElementById('e-sprite-container');
@@ -104,17 +100,20 @@ function startBattle() {
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
     
-    // 🚨 敵の初期画像を「MASTER_ANIM_MAP」から100%安全に取得してバインド
-    if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
-        eGraphic.src = MASTER_ANIM_MAP[data.type][0];
-    }
-    
     showScreen('scr-battle'); 
-    startCustomAnimation(data.type); 
     updateHpUI(); 
     checkDevPassword();
     if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     startBGM("battle");
+
+    // 🚨 修正の核心：インデックスの判定ズレを防ぐため、コンマ数秒（50ミリ秒）だけ待ってから安全にアセット画像をバインド＆アニメーションを叩き起こす
+    setTimeout(() => {
+        if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
+            eGraphic.src = MASTER_ANIM_MAP[data.type][0];
+        }
+        // 内部変数が戦闘モードに完全に切り替わった直後にループを起動
+        startCustomAnimation(data.type); 
+    }, 50);
 }
 
 // ==========================================
