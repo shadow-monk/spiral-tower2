@@ -1,6 +1,5 @@
-https://github.com/shadow-monk/spiral-tower/tree/main/js
 // ==========================================
-// 🔊 3. サウンドアセットマッピング（実名完全直結）
+// 🔊 3. サウンドアセットマッピング
 // ==========================================
 const SOUND_FIRE = getAssetPath('se_clean', 'se_fire_hit.mp3'); 
 const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');   
@@ -17,14 +16,14 @@ const BGM_BATTLE_PLAYLIST = [
 ];
 const BGM_PEACE_GRAND_END = getAssetPath('bgm_clean', 'bgm_peace_fantasy14.mp3');
 
-// グローバル状態管理変数（コアシステム用）
-let isMuted = false;
-let currentAudioBgm = null;
+window.isMuted = false;
+window.currentAudioBgm = null;
 
 // ==========================================
 // 🔊 4. オーディオシステム制御ロジック
 // ==========================================
 function triggerFirstAudio() { 
+    // ユーザーがボタンをクリックしたこの瞬間にBGMを開始することで、ブラウザの音制限を完全回避
     startBGM("title"); 
 }
 
@@ -33,7 +32,7 @@ function playSE(url) {
     try { 
         const se = new Audio(url); 
         se.volume = 0.5; 
-        se.play().catch(e => console.log("SE deferred:", e)); 
+        se.play().catch(e => console.log("SE blocked/deferred:", e)); 
     } catch(e){}
 }
 
@@ -52,7 +51,7 @@ function startBGM(mode) {
             currentAudioBgm = new Audio(url); 
             currentAudioBgm.loop = (mode !== "grand_end"); 
             currentAudioBgm.volume = 0.33; 
-            currentAudioBgm.play().catch(e=>console.log("BGM deferred:", e)); 
+            currentAudioBgm.play().catch(e=>console.log("BGM blocked/deferred:", e)); 
         } catch(e){}
     }
 }
@@ -67,11 +66,11 @@ function toggleMute() {
     isMuted = !isMuted; 
     const muteBtn = document.getElementById('btn-mute');
     if (muteBtn) muteBtn.innerText = isMuted ? "🔇 OFF" : "🔊 ON"; 
-    
     if (isMuted) {
         stopBGM(); 
     } else {
-        const isBattleScreen = (document.getElementById('scr-battle') && document.getElementById('scr-battle').style.display === 'block');
+        const battleScr = document.getElementById('scr-battle');
+        const isBattleScreen = (battleScr && battleScr.style.display === 'block');
         startBGM(isBattleScreen ? 'battle' : 'title');
     }
 }
