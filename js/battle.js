@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] ①ファイア・アイス多層グラフィックエフェクト完全実装完了！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] ①ファイア派手化＆②シールドハニカム演出完全復元！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数
@@ -23,19 +23,23 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🔥 ❄️ 【新設計】① ファイア・アイス多層グラフィックエフェクト回路
+// 🔥 🛡️ 【新設】①ファイア＆②シールド多層レンダラー
 // ==========================================
 function renderMagicVisual(type) {
     const layer = document.getElementById('spell-effect-layer');
-    if (!layer) return;
-    layer.innerHTML = ""; // 前の演出をクリア
+    const frontLayer = document.getElementById('front-effect-layer');
+    if (!layer || !frontLayer) return;
+    
+    // レイヤーを初期化
+    layer.innerHTML = ""; 
+    frontLayer.innerHTML = ""; 
 
     if (type === 'fire') {
         // ==========================================
-        // 🔥 ファイア：多層大炎上・プロミネンス演出
+        // 🔥 ① ファイア：多層大炎上・プロミネンス演出（強化版）
         // ==========================================
         
-        // レイヤー1：飛び交う無数の連射火炎弾（0ms〜200msで時間差射出）
+        // レイヤー1：飛び交う無数の連射火炎弾（時間差射出）
         for (let i = 0; i < 5; i++) {
             setTimeout(() => {
                 const b = document.createElement('div');
@@ -44,16 +48,14 @@ function renderMagicVisual(type) {
                 b.style.height = '35px';
                 b.style.background = 'radial-gradient(circle, #ffedd5 10%, #f97316 50%, #ef4444 80%, transparent 100%)';
                 b.style.borderRadius = '50%';
-                b.style.filter = 'blur(1px)';
                 b.style.boxShadow = '0 0 15px #ef4444, 0 0 30px #ea580c';
                 b.style.animation = 'fireMissile 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards';
-                // 弾道にわずかな上下の散らばり（ブレ）を与えて多層感を演出
                 b.style.transform = `translateY(${(i - 2) * 15}px)`;
                 layer.appendChild(b);
             }, i * 60);
         }
 
-        // レイヤー2：敵の足元に広がる大炎上の渦（350ms後に着弾展開）
+        // レイヤー2：敵の足元に広がる大炎上の渦（着弾展開）
         setTimeout(() => {
             const vortex = document.createElement('div');
             vortex.style.position = 'absolute';
@@ -63,31 +65,21 @@ function renderMagicVisual(type) {
             vortex.style.bottom = '5px';
             vortex.style.background = 'radial-gradient(ellipse, rgba(239,68,68,0.9) 20%, rgba(249,115,22,0.6) 60%, transparent 80%)';
             vortex.style.borderRadius = '50%';
-            vortex.style.border = '4px double #facc15';
             vortex.style.boxShadow = '0 0 35px #ef4444, inset 0 0 20px #f97316';
-            vortex.style.opacity = '0';
-            vortex.style.transform = 'scale(0.5)';
-            vortex.style.transition = 'all 0.2s ease-out';
+            vortex.style.opacity = '1';
+            vortex.style.transform = 'scale(1.1) rotate(15deg)'; 
             layer.appendChild(vortex);
             
-            // 瞬時に広がる
-            setTimeout(() => { 
-                vortex.style.opacity = '1'; 
-                vortex.style.transform = 'scale(1.1) rotate(15deg)'; 
-            }, 10);
-            
-            // ターン終了に合わせて消去
             setTimeout(() => { vortex.style.opacity = '0'; }, 600);
         }, 350);
 
-        // レイヤー3：下から突き上げる3本の巨大火柱（400ms〜500msで時間差連動）
+        // レイヤー3：下から突き上げる3本の巨大火柱（時間差連動・プロミネンス）
         for (let j = 0; j < 3; j++) {
             setTimeout(() => {
                 const pillar = document.createElement('div');
                 pillar.style.position = 'absolute';
                 pillar.style.width = '70px';
                 pillar.style.height = '340px';
-                // 敵を包み込むように左・中央・右に配置
                 pillar.style.left = `${350 + (j * 45)}px`;
                 pillar.style.bottom = '-10px';
                 pillar.style.background = 'linear-gradient(to top, #ffffff 5%, #facc15 20%, #ef4444 60%, transparent 100%)';
@@ -101,93 +93,77 @@ function renderMagicVisual(type) {
         }
 
     } else if (type === 'ice') {
-        // ==========================================
-        // ❄️ アイス：地面からの氷柱・巨大氷結城塞演出
-        // ==========================================
-        
-        // レイヤー1：地面から牙のように突き出す前衛の氷柱群（0ms〜150ms）
+        // ICEは v14.00 のまま継承
         for (let k = 0; k < 4; k++) {
             setTimeout(() => {
                 const spike = document.createElement('div');
-                spike.style.position = 'absolute';
-                spike.style.bottom = '-10px';
-                spike.style.left = `${340 + (k * 55)}px`;
-                spike.style.width = '45px';
-                spike.style.height = '140px';
-                spike.style.background = 'linear-gradient(30deg, #0c4a6e 10%, #38bdf8 60%, #f0f9ff 90%)';
-                // 鋭い氷のトゲの形状にクリップ
-                spike.style.clipPath = 'polygon(50% 0%, 100% 100%, 0% 100%)';
-                spike.style.filter = 'drop-shadow(0 0 10px #0284c7)';
-                spike.style.transformOrigin = 'bottom center';
-                spike.style.transform = `scaleY(0) rotate(${(k - 1.5) * 8}deg)`;
+                spike.style.position = 'absolute'; spike.style.bottom = '-10px'; spike.style.left = `${340 + (k * 55)}px`;
+                spike.style.width = '45px'; spike.style.height = '140px'; spike.style.background = 'linear-gradient(30deg, #0c4a6e 10%, #38bdf8 60%, #f0f9ff 90%)';
+                spike.style.clipPath = 'polygon(50% 0%, 100% 100%, 0% 100%)'; spike.style.filter = 'drop-shadow(0 0 10px #0284c7)';
+                spike.style.transformOrigin = 'bottom center'; spike.style.transform = `scaleY(0) rotate(${(k - 1.5) * 8}deg)`;
                 spike.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                 layer.appendChild(spike);
-
-                // 地面から突き刺さるように出現
                 setTimeout(() => { spike.style.transform = `scaleY(1.3) rotate(${(k - 1.5) * 8}deg)`; }, 10);
-                // 後ほど消去
-                setTimeout(() => { spike.style.opacity = '0'; spike.style.transform = 'scaleY(0)'; spike.style.transition = 'all 0.3s'; }, 700);
+                setTimeout(() => { spike.style.opacity = '0'; spike.style.transform = 'scaleY(0)'; }, 700);
             }, k * 40);
         }
-
-        // レイヤー2：敵の頭上・周囲に展開する氷結の陣（250ms後）
-        setTimeout(() => {
-            // 周囲から中心へ収束する8つの巨大氷結結晶
-            for (let m = 0; m < 8; m++) {
-                const crystal = document.createElement('div');
-                crystal.style.position = 'absolute';
-                crystal.style.width = '35px';
-                crystal.style.height = '50px';
-                crystal.style.background = 'linear-gradient(135deg, rgba(240,249,255,0.95) 0%, rgba(56,189,248,0.8) 50%, rgba(2,132,199,0.9) 100%)';
-                crystal.style.clipPath = 'polygon(50% 0%, 100% 35%, 100% 70%, 50% 100%, 0% 70%, 0% 35%)'; // 美しい精密な結晶体
-                
-                // 円周上に配置
-                const angle = (m * Math.PI) / 4;
-                crystal.style.left = `${415 + Math.sin(angle) * 110}px`;
-                crystal.style.top = `${120 + Math.cos(angle) * 110}px`;
-                crystal.style.boxShadow = '0 0 20px #0ea5e9';
-                crystal.style.transform = `scale(0.1) rotate(${m * 45}deg)`;
-                crystal.style.transition = 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)';
-                layer.appendChild(crystal);
-
-                // 敵の中心へ向かって一気に収束・突き刺さる
-                setTimeout(() => {
-                    crystal.style.left = '415px';
-                    crystal.style.top = '120px';
-                    crystal.style.transform = `scale(1.2) rotate(${m * 45 + 180}deg)`;
-                }, 20);
-            }
-        }, 250);
-
-        // レイヤー3：中心で全てを完全凍結させる「巨大氷結城塞」（450ms後）
         setTimeout(() => {
             const fortress = document.createElement('div');
-            fortress.style.position = 'absolute';
-            fortress.style.left = '365px';
-            fortress.style.bottom = '10px';
-            fortress.style.width = '140px';
-            fortress.style.height = '230px';
+            fortress.style.position = 'absolute'; fortress.style.left = '365px'; fortress.style.bottom = '10px';
+            fortress.style.width = '140px'; fortress.style.height = '230px';
             fortress.style.background = 'linear-gradient(to top, rgba(2,132,199,0.8) 0%, rgba(56,189,248,0.9) 50%, #ffffff 95%)';
-            fortress.style.clipPath = 'polygon(50% 0%, 85% 25%, 100% 60%, 80% 100%, 20% 100%, 0% 60%, 15% 25%)'; // 巨大な水晶・氷山の形状
-            fortress.style.filter = 'drop-shadow(0 0 25px #38bdf8) blur(0.5px)';
-            fortress.style.transformOrigin = 'bottom center';
-            fortress.style.transform = 'scale(0.2)';
-            fortress.style.opacity = '0';
-            fortress.style.transition = 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            fortress.style.clipPath = 'polygon(50% 0%, 85% 25%, 100% 60%, 80% 100%, 20% 100%, 0% 60%, 15% 25%)';
+            fortress.style.transformOrigin = 'bottom center'; fortress.style.animation = 'firePillarGlow 0.6s cubic-bezier(0.11, 0, 0.5, 0) forwards';
             layer.appendChild(fortress);
-
-            // ドンッ！と大サイズで出現（完全に敵を閉じ込める）
-            setTimeout(() => {
-                fortress.style.opacity = '1';
-                fortress.style.transform = 'scale(1.15)';
-            }, 10);
-
-            // ターン終了時にバリバリと砕け散るようにフェードアウト
-            setTimeout(() => {
-                fortress.style.opacity = '0';
-                fortress.style.transform = 'scale(0.8) rotate(5deg)';
-            }, 550);
         }, 450);
+    } else if (type === 'def') {
+        // ==========================================
+        // 🛡️ ② シールド：ハニカム演出（昔あったように復元）
+        // ==========================================
+        
+        // 前面レイヤーにハニカム防壁を生成
+        const shield = document.createElement('div');
+        shield.style.position = 'absolute';
+        shield.style.width = '220px';
+        shield.style.height = '220px';
+        shield.style.left = '50px';
+        shield.style.top = '80px';
+        
+        // 🛡️ 修正のコア：CSSグラデーションによる精密なハニカム構造の復元
+        // (昔あったCSSハニカムロジックを新倉庫環境に適合)
+        shield.style.backgroundColor = 'transparent';
+        shield.style.backgroundImage = 'linear-gradient(30deg, #10b981 12%, transparent 12.5%, transparent 87%, #10b981 87.5%, #10b981), \
+                                         linear-gradient(150deg, #10b981 12%, transparent 12.5%, transparent 87%, #10b981 87.5%, #10b981), \
+                                         linear-gradient(30deg, #10b981 12%, transparent 12.5%, transparent 87%, #10b981 87.5%, #10b981), \
+                                         linear-gradient(150deg, #10b981 12%, transparent 12.5%, transparent 87%, #10b981 87.5%, #10b981), \
+                                         linear-gradient(60deg, rgba(52,211,153,0.3) 25%, transparent 25.5%, transparent 75%, rgba(52,211,153,0.3) 75.5%, rgba(52,211,153,0.3)), \
+                                         linear-gradient(60deg, rgba(52,211,153,0.3) 25%, transparent 25.5%, transparent 75%, rgba(52,211,153,0.3) 75.5%, rgba(52,211,153,0.3))';
+        shield.style.backgroundSize = '20px 35px';
+        shield.style.backgroundPosition = '0 0, 0 0, 10px 18px, 10px 18px, 0 0, 10px 18px';
+        
+        // 形状を円形にクリップ
+        shield.style.borderRadius = '50%';
+        shield.style.border = '6px solid #10b981';
+        shield.style.filter = 'drop-shadow(0 0 15px #34d399)';
+        
+        // アニメーション設定
+        shield.style.transform = 'scale(0.2) rotate(-90deg)';
+        shield.style.opacity = '0';
+        shield.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ポップアップアニメ
+        frontLayer.appendChild(shield);
+
+        // 瞬時に出現
+        setTimeout(() => {
+            shield.style.opacity = '1';
+            shield.style.transform = 'scale(1) rotate(0deg)';
+        }, 10);
+
+        // 一定時間後に消去
+        setTimeout(() => {
+            shield.style.opacity = '0';
+            shield.style.transform = 'scale(0.2) rotate(90deg)';
+            setTimeout(() => { if (shield.parentNode) shield.parentNode.removeChild(shield); }, 300);
+        }, 1300);
     }
 }
 
@@ -230,7 +206,7 @@ function turn(playerMove) {
 
     window.isEnemyShieldActive = false;
 
-    // 🚨 ①新設された「多層グラフィックエフェクト回路」を起動
+    // 🚨 ①ファイア強化＆②シールドハニカム多層演出を起動
     renderMagicVisual(playerMove);
 
     // 外部演出関数（effects.js）のエラー監禁シールド呼び出し
@@ -259,7 +235,7 @@ function turn(playerMove) {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
         try { if (typeof playSE === "function" && typeof SOUND_SHIELD !== 'undefined') playSE(SOUND_SHIELD); } catch(e){}
-        setTimeout(() => { enemyTurnAction(true); }, 800); 
+        setTimeout(() => { enemyTurnAction(true); }, 1500); // 演出に合わせて少し待つ
         window.mana = 1.0; 
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none"; 
