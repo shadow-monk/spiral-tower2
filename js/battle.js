@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終決定版：エラー完全監禁シールド展開・無限連打ループ完全開通！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終決定版：エネミーAI完全クリーン化・無限連打完全開通！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -66,8 +66,7 @@ function turn(playerMove) {
     if (effLayer) effLayer.innerHTML = ""; 
     window.isEnemyShieldActive = false;
 
-    // 🛡️ 修正のコア：プレイヤー側演出エラー監禁シールド
-    // effects.js側の演出コードが内部でクラッシュしても、バトルJSのドミノは絶対に止めない
+    // 🧙‍♂️ プレイヤー側演出エラー監禁シールド
     try {
         if (typeof startSpellEffect === "function") {
             startSpellEffect(playerMove);
@@ -78,18 +77,22 @@ function turn(playerMove) {
         console.warn("⚠️ プレイヤー魔法演出内でエラーを検知（隔離済）:", spellError);
     }
 
-    // 魔法効果音（SE）の出力
-    if (typeof playSE === "function") {
-        if (playerMove === 'fire') playSE(SOUND_FIRE);
-        else if (playerMove === 'ice') playSE(SOUND_ICE);
-        else if (playerMove === 'holy') playSE(SOUND_HOLY);
+    // 魔法効果音（SE）の出力（未定義時のクラッシュを防ぐため存在チェック付き）
+    try {
+        if (typeof playSE === "function") {
+            if (playerMove === 'fire' && typeof SOUND_FIRE !== 'undefined') playSE(SOUND_FIRE);
+            else if (playerMove === 'ice' && typeof SOUND_ICE !== 'undefined') playSE(SOUND_ICE);
+            else if (playerMove === 'holy' && typeof SOUND_HOLY !== 'undefined') playSE(SOUND_HOLY);
+        }
+    } catch (seError) {
+        console.warn("⚠️ 効果音再生エラー（隔離済）:", seError);
     }
 
     // 補助コマンドの処理
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
-        if (typeof playSE === "function") playSE(SOUND_SHIELD);
+        try { if (typeof playSE === "function" && typeof SOUND_SHIELD !== 'undefined') playSE(SOUND_SHIELD); } catch(e){}
         setTimeout(() => { enemyTurnAction(true); }, 800); 
         window.mana = 1.0; 
         const chargeBadge = document.getElementById('charge-badge');
@@ -101,7 +104,7 @@ function turn(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "block"; 
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "⚡ パワーをチャージした！次回魔法威力2.5倍！";
-        if (typeof playSE === "function") playSE(SOUND_CHARGE);
+        try { if (typeof playSE === "function" && typeof SOUND_CHARGE !== 'undefined') playSE(SOUND_CHARGE); } catch(e){}
         setTimeout(() => { enemyTurnAction(false); }, 800); 
         return;
     }
@@ -142,13 +145,13 @@ function useItem(itemType) {
     if (itemType === 'potion') { 
         window.pHp = Math.min(window.pMaxHp, window.pHp + 50); 
         if (logEl) logEl.innerText = "🎒 回復薬を使用！HPが50回復！"; 
-        if (typeof playSE === "function") playSE(SOUND_HEAL);
+        try { if (typeof playSE === "function" && typeof SOUND_HEAL !== 'undefined') playSE(SOUND_HEAL); } catch(e){}
     } else { 
         window.isAmuletActive = 3; 
         const badge = document.getElementById('item-badge');
         if (badge) badge.style.display = "block"; 
         if (logEl) logEl.innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; 
-        if (typeof playSE === "function") playSE(SOUND_SHIELD);
+        try { if (typeof playSE === "function" && typeof SOUND_SHIELD !== 'undefined') playSE(SOUND_SHIELD); } catch(e){}
     }
     updateHpUI(); 
     setTimeout(enemyTurnAction, 1000);
@@ -225,15 +228,15 @@ function startBattle() {
 }
 
 // ==========================================
-// 👹 4. エネミーターン行動AI・エラー完全監禁ロジック
+// 👹 4. エネミーターン行動AI・完全安全一本道ロジック
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
     const data = STAGES[window.curIdx];
     const logEl = document.getElementById('battle-log');
     
+    // 🛡️ 鉄壁の防衛線：未定義の定数や内部クラッシュを回避するため、敵の行動ロジックを100%安全な一本道にクリーンアップ
     let isSpecial = false;
-    // 2ターン目以降かつ40%の確率で特殊行動を発動
     if (window.battleTurnCount > 1 && Math.random() < 0.4) {
         isSpecial = true;
     }
@@ -249,46 +252,41 @@ function enemyTurnAction(isPlayerDefending = false) {
     const effLayer = document.getElementById('spell-effect-layer'); 
     if (effLayer) effLayer.innerHTML = "";
 
-    // 通常攻撃か特殊行動かで分岐処理
+    // ログ演出とエフェクトの安全呼び出し（エラーが起きてもメイン進行は絶対に殺さない）
     if (isSpecial) {
-        // 🛡️ 修正のコア：敵側カウンター演出のエラー監禁シールド
-        // triggerEnemyEffectが中身ごと大爆発しても、戦闘の進行（ドミノ）だけは絶対に完走させる！
         if (data.type === 'slime') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【緑の液体投げ】！`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
-            if (typeof playSE === "function") playSE(SOUND_FIRE); 
-            dmg = Math.floor(dmg * 1.3); 
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
         } 
         else if (data.type === 'spider') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【粘着糸吐き】！`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
-            if (typeof playSE === "function") playSE(SOUND_ICE); 
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
             window.isPlayerStunned = true; 
         } 
         else if (data.type === 'harpy') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【雷光急襲】！⚡`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
-            if (typeof playSE === "function") playSE(SOUND_HOLY); 
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
             window.isPlayerStunned = (Math.random() < 0.5); 
         }
         else if (data.type === 'dragon') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【滅びの烈火】！🔥`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
-            if (typeof playSE === "function") playSE(SOUND_FIRE);
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
             dmg = Math.floor(dmg * 1.5); 
         }
     } else {
-        // 通常の突進攻撃
-        if (logEl) logEl.innerText = `${data.name}の突進攻撃！`;
-        if (typeof playSE === "function") playSE(SOUND_ATTACK || 1);
+        if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】のダメージ！`;
+        
+        // アニメーションID存在チェック付き安全制御
         const eContainer = document.getElementById('e-sprite-container');
-        if (eContainer) eContainer.style.animation = "enemyAssault 0.45s forwards";
-        setTimeout(() => { 
-            if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
-        }, 460);
+        if (eContainer) {
+            eContainer.style.animation = "enemyAssault 0.45s forwards";
+            setTimeout(() => { 
+                if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
+            }, 460);
+        }
     }
 
-    // ダメージ適用
+    // プレイヤーへのダメージ適用
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
     
@@ -309,7 +307,7 @@ function postEnemyTurnCleanup() {
         }
     }
     
-    // 🛡️ 絶対安全防衛線：何があっても、演出がバグろうが、タイマーの最後で「必ず」ロックを完全解除する
+    // 🛡️ 絶対不壊の防衛線：何が起きても、800ms後に「必ず」ロックフラグを解除してプレイヤーに入力権を返す！
     setTimeout(() => { 
         window.isBusy = false;
         checkBattleEnd(); 
@@ -326,7 +324,7 @@ function checkBattleEnd() {
             stopSlimeAnimation();
         }
         if (window.eHp <= 0) {
-            if (typeof playSE === "function") playSE(SOUND_FREEZE_DEAD);
+            try { if (typeof playSE === "function" && typeof SOUND_FREEZE_DEAD !== 'undefined') playSE(SOUND_FREEZE_DEAD); } catch(e){}
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
             setTimeout(() => { transitionToResult(); }, 800);
