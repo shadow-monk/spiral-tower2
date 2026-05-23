@@ -1,39 +1,32 @@
 // ==========================================
-// ⚔️ 1. グローバル戦闘ステータス管理変数
+// ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
 // ==========================================
-let curIdx = -1; 
-let pMaxHp = 100; 
-let pHp = 100; 
-let eHp = 100; 
-let eMaxHp = 100; 
-let mana = 1.0; 
-let isBusy = false;
+window.curIdx = -1; 
+window.pMaxHp = 100; 
+window.pHp = 100; 
+window.eHp = 100; 
+window.eMaxHp = 100; 
+window.mana = 1.0; 
+window.isBusy = false;
 
-let itemInventory = { potion: 1, amulet: 1 }; 
-let isAmuletActive = 0; 
-let isPlayerStunned = false;
+window.itemInventory = { potion: 1, amulet: 1 }; 
+window.isAmuletActive = 0; 
+window.isPlayerStunned = false;
 
-let enemyMana = 1.0; 
-let isEnemyShieldActive = false;
+window.enemyMana = 1.0; 
+window.isEnemyShieldActive = false;
 
 // ==========================================
 // 🧙‍♂️ 2. プレイヤー行動・アイテムロジック
 // ==========================================
-
-/**
- * アイテム（回復薬・お守り）を使用し、効果を反映して敵のターンへ移行する関数
- */
 function useItem(itemType) {
     if (isBusy || itemInventory[itemType] <= 0) return;
     isBusy = true; 
     itemInventory[itemType]--; 
     closeItemBag();
-    
     const effLayer = document.getElementById('spell-effect-layer');
     if (effLayer) effLayer.innerHTML = "";
-    
     const logEl = document.getElementById('battle-log');
-    
     if (itemType === 'potion') { 
         pHp = Math.min(pMaxHp, pHp + 50); 
         if (logEl) logEl.innerText = "🎒 回復薬を使用！HPが50回復！"; 
@@ -43,51 +36,28 @@ function useItem(itemType) {
         if (badge) badge.style.display = "block"; 
         if (logEl) logEl.innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; 
     }
-    
     updateHpUI(); 
     setTimeout(enemyTurnAction, 1000);
 }
 
-/**
- * 次のステージ（階層）をセットアップし、導入画面を表示する関数
- */
 function nextStage() {
     closeItemBag(); 
     curIdx++;
-    
-    if (curIdx >= STAGES.length) { 
-        resetGame(); 
-        showScreen('scr-start'); 
-        const indicator = document.getElementById('floor-indicator');
-        if (indicator) indicator.style.visibility = 'hidden'; 
-        startBGM("title"); 
-        return; 
-    }
-    
+    if (curIdx >= STAGES.length) { resetGame(); showScreen('scr-start'); const indicator = document.getElementById('floor-indicator'); if (indicator) indicator.style.visibility = 'hidden'; startBGM("title"); return; }
     const data = STAGES[curIdx]; 
-    if (!isDebugUnlocked) { pMaxHp = 100; pHp = 100; }
-    
+    if (!window.isDebugUnlocked) { pMaxHp = 100; pHp = 100; }
     const indicator = document.getElementById('floor-indicator');
-    if (indicator) {
-        indicator.style.visibility = 'visible'; 
-        indicator.innerText = `${data.floor}階`;
-    }
-    
+    if (indicator) { indicator.style.visibility = 'visible'; indicator.innerText = `${data.floor}階`; }
     const chNum = document.getElementById('intro-ch-num');
     const chTitle = document.getElementById('intro-ch-title');
     const introTxt = document.getElementById('intro-text');
-    
     if (chNum) chNum.innerText = `FLOOR 0${data.floor}`; 
     if (chTitle) chTitle.innerText = data.name; 
     if (introTxt) introTxt.innerText = data.txt;
-    
     showScreen('scr-intro'); 
     stopBGM();
 }
 
-/**
- * バトル画面の各種数値を初期化し、戦闘を開始する関数
- */
 function startBattle() {
     const data = STAGES[curIdx]; 
     eHp = eMaxHp = data.hp; 
@@ -96,40 +66,30 @@ function startBattle() {
     isAmuletActive = 0; 
     enemyMana = 1.0; 
     isEnemyShieldActive = false;
-    
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
-    
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
-
     const itemBadge = document.getElementById('item-badge');
     const chargeBadge = document.getElementById('charge-badge');
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
     const logEl = document.getElementById('battle-log');
-    
     if (itemBadge) itemBadge.style.display = "none"; 
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
     if (eGraphic) eGraphic.src = MASTER_ANIM_MAP[data.type][0];
-    
     showScreen('scr-battle'); 
     startCustomAnimation(data.type); 
     updateHpUI(); 
     checkDevPassword();
-    
     if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     startBGM("battle");
 }
 
 // ==========================================
-// 💥 3. 勝敗判定・ゲームリセットロジック
+// 💥 3. 勝敗判定・ゲームリresetロジック
 // ==========================================
-
-/**
- * プレイヤーまたは敵の死亡を検知し、戦闘終了処理を行う関数
- */
 function checkBattleEnd() {
     if (pHp <= 0 || eHp <= 0) { 
         stopBGM(); 
@@ -147,15 +107,11 @@ function checkBattleEnd() {
     return false;
 }
 
-/**
- * 戦闘結果（勝利・敗北・グランドエンド）に応じてリザルト画面を構築する関数
- */
 function transitionToResult() {
     showScreen('scr-result');
     const rTitle = document.getElementById('res-title'); 
     const rText = document.getElementById('res-text'); 
     const rBtn = document.getElementById('res-btn');
-    
     if (eHp <= 0) {
         if (curIdx === STAGES.length - 1) {
             if (rTitle) rTitle.innerText = "GRAND END"; 
@@ -176,11 +132,8 @@ function transitionToResult() {
     isBusy = false;
 }
 
-/**
- * ゲームデータを初期状態（デバッグ状態を考慮）に完全リセットする関数
- */
 function resetGame() { 
-    if (!isDebugUnlocked) { pMaxHp = 100; pHp = 100; } else { pMaxHp = 8000; pHp = 8000; } 
+    if (!window.isDebugUnlocked) { pMaxHp = 100; pHp = 100; } else { pMaxHp = 8000; pHp = 8000; } 
     mana = 1.0; 
     curIdx = -1; 
     isBusy = false; 
