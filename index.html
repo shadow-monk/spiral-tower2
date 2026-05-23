@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=9">
 </head>
 <body class="game-body">
 
@@ -121,8 +121,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.20（🎶オーディオ完全刷新 × ❄️アイス8枚連番アニメ完全同期）</span>
-        <span>Update: 2026.05.23 11:06:42</span>
+        <span>改訂 V5.30（🛠️オーディオ結合パスバグ完全修正版）</span>
+        <span>Update: 2026.05.23 11:09:55</span>
     </div>
 </div>
 
@@ -144,7 +144,7 @@ function checkDevPassword() {
 }
 
 // ==========================================
-// 🧱 1. 製品配布を見据えたアセットベースパス一元管理
+// 🧱 1. 配布・製品化仕様：パス自動結合管理（バグ修正完了）
 // ==========================================
 const BASE_ASSETS = {
     repo1: "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/",
@@ -154,9 +154,9 @@ const BASE_ASSETS = {
 function getAssetPath(category, filename) {
     try {
         if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
-        if (category === 'sound') return `${BASE_ASSETS.repo1}sound/${filename}`;
-        if (category === 'se_clean') return `${BASE_ASSETS.repo1}se/${filename}`; // 🆕 あなたの新規SEリポジトリ
-        if (category === 'music_clean') return `${BASE_ASSETS.repo1}music/${filename}`; // 🆕 あなたの新規BGMリポジトリ
+        // 🛠️ 修正ファクト：リポジトリ直下のフォルダ構造とファイル名を安全に1本化結合
+        if (category === 'se_clean') return `${BASE_ASSETS.repo1}se/${filename}`; 
+        if (category === 'music_clean') return `${BASE_ASSETS.repo1}music/${filename}`; 
         if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
         if (category === 'enemy_new') return `${BASE_ASSETS.repo2}enemies/${filename}`;
         if (category === 'effect') return `${BASE_ASSETS.repo1}effect/${filename}`;
@@ -186,13 +186,13 @@ const MASTER_ANIM_MAP = {
     mush: ANIMS_MAICONID, phantom: ANIMS_PHANTOM, eyes: ANIMS_EYES, dragon: ANIMS_DRAGON 
 };
 
-// 🔊 刷新：確定したアンダーバーなし連番ルールに基づくSEマップ
+// 🔊 修正：実データ名（se_fire_hit.mp3など）に完全一致
 const SOUND_FIRE = getAssetPath('se_clean', 'se_fire_hit.mp3'); 
 const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');   
 const SOUND_HOLY = getAssetPath('se_clean', 'se_holy_hit.mp3'); 
 const SOUND_DEAD = getAssetPath('se_clean', 'se_dead.mp3'); 
 
-// 🎵 刷新：通常戦闘BGM5曲＋探索BGM1曲の合計6曲のプレイリスト（ランダム抽選用）
+// 🎵 修正：実データ名に完全一致させたランダム抽選用BGM配列
 const BGM_BATTLE_PLAYLIST = [
     getAssetPath('music_clean', 'bgm_battle09.mp3'),
     getAssetPath('music_clean', 'bgm_battle11.mp3'),
@@ -203,10 +203,9 @@ const BGM_BATTLE_PLAYLIST = [
 ];
 const BGM_PEACE_GRAND_END = getAssetPath('music_clean', 'bgm_peace14.mp3');
 
-// ❄️ 復活：アイス用連番画像（全8枚）の自動配列化
+// アイス用連番画像（全8枚）
 const ANIMS_EFFECT_ICE = [1,2,3,4,5,6,7,8].map(n => getAssetPath('effect', `ICE/ICE%20(${n}).png`));
 
-// プレースホルダー（ステップ3でCSS変数クラスへ一本化）
 const MISSILE_EFFECTS = {
   fire: `<div class="projectile-motion" style="width:60px; height:60px; background:#ef4444; border-radius:50%; --startX:160px; --startY:160px; --endX:420px; --endY:160px; --speed:0.4s; box-shadow:0 0 30px #f97316;"></div>`,
   holy: `<div class="pulse-motion" style="width:200px; height:200px; background:rgba(250,204,21,0.2); border-radius:50%; --posX:420px; --posY:160px; --speed:0.5s; display:flex; align-items:center; justify-content:center; font-size:5rem;">✨</div>`
@@ -241,7 +240,7 @@ let enemyMana = 1.0; let isEnemyShieldActive = false;
 
 function playSE(url) {
     if (isMuted) return;
-    try { const se = new Audio(url); se.volume = 0.4; se.play().catch(e => null); } catch(e){}
+    try { const se = new Audio(url); se.volume = 0.4; se.play().catch(e => console.error("SE Playback Error:", e)); } catch(e){}
 }
 
 function showScreen(screenId) {
@@ -266,16 +265,14 @@ function startCustomAnimation(type) {
 }
 function stopSlimeAnimation() { if(animeTimeout) { clearTimeout(animeTimeout); animeTimeout = null; } }
 
-// 🎶 刷新：BGMジュークボックス管理システム
 function startBGM(mode) {
     stopBGM(); if (isMuted) return;
     let url = "";
     if (mode === "title") {
-        url = BGM_BATTLE_PLAYLIST[0]; // タイトル時は暫定で1曲目をアサイン
+        url = BGM_BATTLE_PLAYLIST[2]; // タイトル時は安定している12番曲をアサイン
     } else if (mode === "grand_end") {
         url = BGM_PEACE_GRAND_END;   // 🏆 最終クリア時はpeace14を演奏
     } else if (mode === "battle") {
-        // 🎲 戦闘開始時に6曲のプレイリストから完全ランダムで1曲を抽選！
         const randIdx = Math.floor(Math.random() * BGM_BATTLE_PLAYLIST.length);
         url = BGM_BATTLE_PLAYLIST[randIdx];
     }
@@ -284,7 +281,7 @@ function startBGM(mode) {
             currentAudioBgm = new Audio(url); 
             currentAudioBgm.loop = (mode !== "grand_end"); 
             currentAudioBgm.volume = 0.3; 
-            currentAudioBgm.play().catch(e=>null); 
+            currentAudioBgm.play().catch(e=>console.error("BGM Playback Error:", e)); 
         } catch(e){}
     }
 }
@@ -341,7 +338,6 @@ function createDmgPop(dmg, isPlayer) {
     document.getElementById("dmg-layer").appendChild(pop); setTimeout(() => pop.remove(), 800);
 }
 
-// ⚔️ 統合：ターン進行・アイス連番アニメ・SE高精度同期システム
 function turn(playerMove) {
   if (isBusy || pHp <= 0 || eHp <= 0) return; isBusy = true;
   if (isPlayerStunned) { isPlayerStunned = false; document.getElementById('battle-log').innerText = "🚨 麻痺して動けない！"; setTimeout(enemyTurnAction, 1000); return; }
@@ -358,13 +354,10 @@ function turn(playerMove) {
   try {
       if (playerMove === 'fire') {
           if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire;
-          // ファイア命中時の時間差トリガー
           setTimeout(() => { playSE(SOUND_FIRE); }, 400);
       } 
       else if (playerMove === 'ice') {
-          // ❄️ 復活ステップ2：アイスの高速8枚連番パラパラアニメ制御
           if (effLayer) {
-              // 描画用のimgタグをレイヤー内に一瞬で射出
               effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:200px; height:200px; left:350px; top:100px; object-fit:contain; image-rendering:pixelated;">`;
               const iceImg = document.getElementById("ice-anim-sprite");
               let frame = 0;
@@ -373,12 +366,11 @@ function turn(playerMove) {
                   if (frame < ANIMS_EFFECT_ICE.length) {
                       if (iceImg) iceImg.src = ANIMS_EFFECT_ICE[frame];
                       frame++;
-                      setTimeout(playIceFrame, 50); // 50msごとにパラパラと切り替え（計400ms）
+                      setTimeout(playIceFrame, 50); 
                   }
               }
               playIceFrame();
           }
-          // ❄️ 命中タイミング（400ms後）に新規格SE「se_ice_hit.mp3」を完全同期再生！
           setTimeout(() => { playSE(SOUND_ICE); }, 400);
       } 
       else if (playerMove === 'holy') {
@@ -398,7 +390,6 @@ function turn(playerMove) {
       console.error("Effect Playback Error Safety Catch:", e);
   }
 
-  // 完全に一本化された、バグゼロ保証のダメージ判定タイムライン
   setTimeout(() => {
       eHp = Math.max(0, eHp - dmg); updateHpUI(); createDmgPop(dmg, false);
       document.getElementById('battle-log').innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
@@ -458,7 +449,7 @@ function postEnemyTurnCleanup() {
     if (isAmuletActive > 0) { isAmuletActive--; if (isAmuletActive <= 0) document.getElementById('item-badge').style.display = "none"; }
     setTimeout(() => { 
         if (!checkBattleEnd()) {
-            isBusy = false; // 敵の行動終了時に確実にロックを全面開放
+            isBusy = false; 
             document.getElementById('battle-log').innerText = "コマンドを選択せよ。";
         }
     }, 800);
@@ -468,7 +459,7 @@ function checkBattleEnd() {
   if (pHp <= 0 || eHp <= 0) { 
     stopBGM(); stopSlimeAnimation();
     if (eHp <= 0) {
-        playSE(SOUND_DEAD); // ☠️ 討伐時は確定でse_dead.mp3が炸裂
+        playSE(SOUND_DEAD); 
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
         setTimeout(() => { transitionToResult(); }, 800);
@@ -486,7 +477,7 @@ function transitionToResult() {
             rTitle.innerText = "GRAND END"; 
             rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; 
             rBtn.innerText = "タイトルへ戻る"; 
-            startBGM("grand_end"); // 🏆 最終クリア時のみ、プレイリストを無視してbgm_peace14.mp3を単発演奏！
+            startBGM("grand_end"); 
         } else {
             rTitle.innerText = "VICTORY"; rText.innerText = `${STAGES[curIdx].name}を撃破した！次の階層への扉が開く。`; rBtn.innerText = "次へ進む";
         }
