@@ -1,10 +1,10 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終決定版：エネミーAI完全クリーン化・無限連打完全開通！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] ①ファイア・アイス呪文画像＆アニメーション完全復活版", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
-// ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
+// ⚔️ 1. グローバル戦闘ステータス管理変数
 // ==========================================
 window.curIdx = -1; 
 window.pMaxHp = 100; 
@@ -23,13 +23,83 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🧙‍♂️ 2. プレイヤー行動・魔法演出＆計算ループ
+// 🔥 ❄️ 【新設】① ファイア・アイス専用 独立演出レンダラー
+// ==========================================
+function renderMagicVisual(type) {
+    const layer = document.getElementById('spell-effect-layer');
+    if (!layer) return;
+    layer.innerHTML = ""; // レイヤーを初期化
+
+    if (type === 'fire') {
+        // --- 🔥 ファイア演出の生成 ---
+        // 1. 飛び交う火球（ミサイル）
+        const missile = document.createElement('div');
+        missile.style.position = 'absolute';
+        missile.style.width = '40px';
+        missile.style.height = '40px';
+        missile.style.background = 'radial-gradient(circle, #f97316 20%, #ef4444 60%, transparent 100%)';
+        missile.style.borderRadius = '50%';
+        missile.style.boxShadow = '0 0 20px #ef4444, 0 0 40px #f59e0b';
+        missile.style.animation = 'fireMissile 0.4s ease-in forwards';
+        layer.appendChild(missile);
+
+        // 2. 敵の足元で爆発する火柱（400ms後に着弾連動）
+        setTimeout(() => {
+            const pillar = document.createElement('div');
+            pillar.style.position = 'absolute';
+            pillar.style.width = '120px';
+            pillar.style.height = '280px';
+            pillar.style.left = '380px';
+            pillar.style.bottom = '20px';
+            pillar.style.background = 'linear-gradient(to top, #ef4444, #f97316, transparent)';
+            pillar.style.borderRadius = '50% 50% 0 0';
+            pillar.style.transformOrigin = 'bottom center';
+            pillar.style.animation = 'firePillarGlow 0.5s ease-out forwards';
+            layer.appendChild(pillar);
+        }, 400);
+
+    } else if (type === 'ice') {
+        // --- ❄️ アイス演出の生成 ---
+        // 1. 敵の周囲を取り囲む無数の氷結の塊
+        for (let i = 0; i < 6; i++) {
+            const crystal = document.createElement('div');
+            crystal.style.position = 'absolute';
+            crystal.style.width = '25px';
+            crystal.style.height = '25px';
+            crystal.style.background = 'linear-gradient(135deg, #e0f2fe, #38bdf8)';
+            crystal.style.clipPath = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'; // 綺麗に菱形（結晶）にくり抜く
+            crystal.style.left = `${390 + Math.sin(i) * 50}px`;
+            crystal.style.top = `${120 + Math.cos(i) * 50}px`;
+            crystal.style.boxShadow = '0 0 15px #0284c7';
+            crystal.style.opacity = '0';
+            crystal.style.transform = 'scale(0.2) rotate(0deg)';
+            crystal.style.transition = 'all 0.3s ease-out';
+            layer.appendChild(crystal);
+
+            // タイムラグ配置で、結晶が敵の周りにシュババッと収束して砕け散るアニメ
+            setTimeout(() => {
+                crystal.style.opacity = '1';
+                crystal.style.transform = 'scale(1.2) rotate(45deg)';
+                crystal.style.left = '430px'; // 敵の中心へ向かって収束
+                crystal.style.top = '140px';
+            }, i * 60);
+
+            // 最後にフェードアウト消去
+            setTimeout(() => {
+                crystal.style.opacity = '0';
+                crystal.style.transform = 'scale(0.5) rotate(90deg)';
+            }, 500);
+        }
+    }
+}
+
+// ==========================================
+// 🧙‍♂️ 3. プレイヤー行動・魔法ループ
 // ==========================================
 function turn(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
 
-    // 麻痺（スタン）チェック
     if (window.isPlayerStunned) { 
         window.isPlayerStunned = false; 
         const logEl = document.getElementById('battle-log');
@@ -41,7 +111,6 @@ function turn(playerMove) {
     const data = STAGES[window.curIdx]; 
     let isCritical = (playerMove === data.weak);
     
-    // 💀 開発者デスコード（最優先即時決着）
     if (playerMove === 'debug_death') { 
         window.eHp = 0; 
         updateHpUI(); 
@@ -51,7 +120,6 @@ function turn(playerMove) {
         return; 
     }
 
-    // 基本ダメージ計算
     let baseDmg = 15;
     if (playerMove === 'fire') baseDmg = 20;
     else if (playerMove === 'ice') baseDmg = 20;
@@ -62,11 +130,12 @@ function turn(playerMove) {
         dmg = Math.floor(dmg * 0.25); 
     }
 
-    const effLayer = document.getElementById('spell-effect-layer');
-    if (effLayer) effLayer.innerHTML = ""; 
     window.isEnemyShieldActive = false;
 
-    // 🧙‍♂️ プレイヤー側演出エラー監禁シールド
+    // 🚨 ① ファイア、アイスのグラフィック・アニメーションを強制点火
+    renderMagicVisual(playerMove);
+
+    // 外部の演出関数（effects.js）も安全シールドのなかで同時に呼び出し
     try {
         if (typeof startSpellEffect === "function") {
             startSpellEffect(playerMove);
@@ -74,10 +143,10 @@ function turn(playerMove) {
             openMagic(playerMove);
         }
     } catch (spellError) {
-        console.warn("⚠️ プレイヤー魔法演出内でエラーを検知（隔離済）:", spellError);
+        console.warn("⚠️ 外部演出内のエラーを隔離:", spellError);
     }
 
-    // 魔法効果音（SE）の出力（未定義時のクラッシュを防ぐため存在チェック付き）
+    // 効果音出力
     try {
         if (typeof playSE === "function") {
             if (playerMove === 'fire' && typeof SOUND_FIRE !== 'undefined') playSE(SOUND_FIRE);
@@ -85,10 +154,9 @@ function turn(playerMove) {
             else if (playerMove === 'holy' && typeof SOUND_HOLY !== 'undefined') playSE(SOUND_HOLY);
         }
     } catch (seError) {
-        console.warn("⚠️ 効果音再生エラー（隔離済）:", seError);
+        console.warn("⚠️ 効果音再生エラー隔離:", seError);
     }
 
-    // 補助コマンドの処理
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -109,7 +177,7 @@ function turn(playerMove) {
         return;
     }
 
-    // 魔法着火タイマー
+    // ダメージ・計算確定タイマー
     setTimeout(() => {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
@@ -132,7 +200,7 @@ function turn(playerMove) {
 }
 
 // ==========================================
-// 🎒 3. アイテムバッグ・ステージ進行管理
+// 🎒 4. アイテムバッグ・ステージ進行管理
 // ==========================================
 function useItem(itemType) {
     if (window.isBusy || window.itemInventory[itemType] <= 0) return;
@@ -201,7 +269,7 @@ function startBattle() {
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
     
-    // 🚨 残像バグ完全根絶：タイマー暴発を100%視覚的に無力化する透明ドットすり替え命令
+    // 残像バグ完全根絶
     if (eGraphic) eGraphic.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     const logEl = document.getElementById('battle-log');
@@ -228,14 +296,13 @@ function startBattle() {
 }
 
 // ==========================================
-// 👹 4. エネミーターン行動AI・完全安全一本道ロジック
+// 👹 5. エネミーターン行動AI
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
     const data = STAGES[window.curIdx];
     const logEl = document.getElementById('battle-log');
     
-    // 🛡️ 鉄壁の防衛線：未定義の定数や内部クラッシュを回避するため、敵の行動ロジックを100%安全な一本道にクリーンアップ
     let isSpecial = false;
     if (window.battleTurnCount > 1 && Math.random() < 0.4) {
         isSpecial = true;
@@ -252,31 +319,29 @@ function enemyTurnAction(isPlayerDefending = false) {
     const effLayer = document.getElementById('spell-effect-layer'); 
     if (effLayer) effLayer.innerHTML = "";
 
-    // ログ演出とエフェクトの安全呼び出し（エラーが起きてもメイン進行は絶対に殺さない）
     if (isSpecial) {
         if (data.type === 'slime') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【緑の液体投げ】！`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) {}
         } 
         else if (data.type === 'spider') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【粘着糸吐き】！`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) {}
             window.isPlayerStunned = true; 
         } 
         else if (data.type === 'harpy') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【雷光急襲】！⚡`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder'); } catch(e) {}
             window.isPlayerStunned = (Math.random() < 0.5); 
         }
         else if (data.type === 'dragon') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【滅びの烈火】！🔥`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath'); } catch(e) { console.warn("⚠️ 敵演出エラー:", e); }
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath'); } catch(e) {}
             dmg = Math.floor(dmg * 1.5); 
         }
     } else {
         if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】のダメージ！`;
         
-        // アニメーションID存在チェック付き安全制御
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
             eContainer.style.animation = "enemyAssault 0.45s forwards";
@@ -286,7 +351,6 @@ function enemyTurnAction(isPlayerDefending = false) {
         }
     }
 
-    // プレイヤーへのダメージ適用
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
     
@@ -307,7 +371,6 @@ function postEnemyTurnCleanup() {
         }
     }
     
-    // 🛡️ 絶対不壊の防衛線：何が起きても、800ms後に「必ず」ロックフラグを解除してプレイヤーに入力権を返す！
     setTimeout(() => { 
         window.isBusy = false;
         checkBattleEnd(); 
@@ -315,7 +378,7 @@ function postEnemyTurnCleanup() {
 }
 
 // ==========================================
-// 💥 5. 勝敗判定・ゲームリセットロジック
+// 💥 6. 勝敗判定・ゲームリセット
 // ==========================================
 function checkBattleEnd() {
     if (window.pHp <= 0 || window.eHp <= 0) { 
