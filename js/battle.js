@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 最新の調整版（2026.05.23 23:55版）基本魔法＆開発者デス完全開通！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 最終決定版（2026.05.24 00:10版）全システム完全開通！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -40,6 +40,7 @@ function turn(playerMove) {
     const data = STAGES[window.curIdx]; 
     let isCritical = (playerMove === data.weak);
     
+    // 💀 開発者デスコード
     if (playerMove === 'debug_death') { 
         window.eHp = 0; 
         updateHpUI(); 
@@ -80,7 +81,6 @@ function turn(playerMove) {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
         
-        // 🚨 存在チェックを入れて気絶を完全に防止
         if (typeof createDmgPop === "function") {
             createDmgPop(dmg, false);
         }
@@ -99,7 +99,95 @@ function turn(playerMove) {
 }
 
 // ==========================================
-// 👹 3. エネミーターン行動AIロジック
+// 🎒 3. アイテムバッグ・ステージ進行管理（完全復元）
+// ==========================================
+function useItem(itemType) {
+    if (window.isBusy || window.itemInventory[itemType] <= 0) return;
+    window.isBusy = true; 
+    window.itemInventory[itemType]--; 
+    closeItemBag();
+    const effLayer = document.getElementById('spell-effect-layer');
+    if (effLayer) effLayer.innerHTML = "";
+    const logEl = document.getElementById('battle-log');
+    if (itemType === 'potion') { 
+        window.pHp = Math.min(window.pMaxHp, window.pHp + 50); 
+        if (logEl) logEl.innerText = "🎒 回復薬を使用！HPが50回復！"; 
+    } else { 
+        window.isAmuletActive = 3; 
+        const badge = document.getElementById('item-badge');
+        if (badge) badge.style.display = "block"; 
+        if (logEl) logEl.innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; 
+    }
+    updateHpUI(); 
+    setTimeout(enemyTurnAction, 1000);
+}
+
+function nextStage() {
+    if (typeof closeItemBag === "function") closeItemBag(); 
+    window.curIdx++;
+    if (window.curIdx >= STAGES.length) { 
+        resetGame(); 
+        showScreen('scr-start'); 
+        const indicator = document.getElementById('floor-indicator'); 
+        if (indicator) indicator.style.visibility = 'hidden'; 
+        startBGM("title"); 
+        return; 
+    }
+    const data = STAGES[window.curIdx]; 
+    if (!window.isDebugUnlocked) { window.pMaxHp = 100; window.pHp = 100; }
+    const indicator = document.getElementById('floor-indicator');
+    if (indicator) { indicator.style.visibility = 'visible'; indicator.innerText = `${data.floor}階`; }
+    const chNum = document.getElementById('intro-ch-num');
+    const chTitle = document.getElementById('intro-ch-title');
+    const introTxt = document.getElementById('intro-text');
+    if (chNum) chNum.innerText = `FLOOR 0${data.floor}`; 
+    if (chTitle) chTitle.innerText = data.name; 
+    if (introTxt) introTxt.innerText = data.txt;
+    showScreen('scr-intro'); 
+    if (typeof stopBGM === "function") stopBGM();
+}
+
+function startBattle() {
+    const data = STAGES[window.curIdx]; 
+    window.eHp = window.eMaxHp = data.hp; 
+    window.isBusy = false; 
+    window.isPlayerStunned = false; 
+    window.isAmuletActive = 0; 
+    window.enemyMana = 1.0; 
+    window.isEnemyShieldActive = false;
+    window.battleTurnCount = 1; 
+
+    const eContainer = document.getElementById('e-sprite-container');
+    if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
+    const pGraphic = document.getElementById('p-sprite-graphic');
+    if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
+    const itemBadge = document.getElementById('item-badge');
+    const chargeBadge = document.getElementById('charge-badge');
+    const eName = document.getElementById('e-name');
+    const eGraphic = document.getElementById('e-sprite-graphic');
+    const logEl = document.getElementById('battle-log');
+    if (itemBadge) itemBadge.style.display = "none"; 
+    if (chargeBadge) chargeBadge.style.display = "none";
+    if (eName) eName.innerText = data.name;
+    
+    showScreen('scr-battle'); 
+    updateHpUI(); 
+    checkDevPassword();
+    if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
+    if (typeof startBGM === "function") startBGM("battle");
+
+    setTimeout(() => {
+        if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
+            eGraphic.src = MASTER_ANIM_MAP[data.type][0];
+        }
+        if (typeof startCustomAnimation === "function") {
+            startCustomAnimation(data.type); 
+        }
+    }, 50);
+}
+
+// ==========================================
+// 👹 4. エネミーターン行動AIロジック
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
@@ -128,7 +216,6 @@ function enemyTurnAction(isPlayerDefending = false) {
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
     
-    // 🚨 修正：ここが気絶の最大の原因！関数がなくても安全にスルーさせるガード文に変更
     if (typeof createDmgPop === "function") {
         createDmgPop(dmg, true);
     }
@@ -136,19 +223,29 @@ function enemyTurnAction(isPlayerDefending = false) {
     window.battleTurnCount++;
     postEnemyTurnCleanup();
 }
- 
+
+function postEnemyTurnCleanup() {
+    if (window.isAmuletActive > 0) { 
+        window.isAmuletActive--; 
+        if (window.isAmuletActive <= 0) {
+            const badge = document.getElementById('item-badge');
+            if (badge) badge.style.display = "none";
+        }
+    }
+    setTimeout(() => { checkBattleEnd(); }, 800);
+}
 
 // ==========================================
-// 💥 4. 勝敗判定・ゲームリセットロジック
+// 💥 5. 勝敗判定・ゲームリセットロジック
 // ==========================================
 function checkBattleEnd() {
     if (window.pHp <= 0 || window.eHp <= 0) { 
-        stopBGM(); 
+        if (typeof stopBGM === "function") stopBGM(); 
         if (typeof stopSlimeAnimation === "function") {
             stopSlimeAnimation();
         }
         if (window.eHp <= 0) {
-            playSE(SOUND_FREEZE_DEAD);
+            if (typeof playSE === "function") playSE(SOUND_FREEZE_DEAD);
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
             setTimeout(() => { transitionToResult(); }, 800);
@@ -170,7 +267,7 @@ function transitionToResult() {
             if (rTitle) rTitle.innerText = "GRAND END"; 
             if (rText) rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; 
             if (rBtn) rBtn.innerText = "タイトルへ戻る"; 
-            startBGM("grand_end"); 
+            if (typeof startBGM === "function") startBGM("grand_end"); 
         } else {
             if (rTitle) rTitle.innerText = "VICTORY"; 
             if (rText) rText.innerText = `${STAGES[window.curIdx].name}を撃破した！次の階層への扉が開く。`; 
@@ -192,7 +289,7 @@ function resetGame() {
     window.isBusy = false; 
     window.itemInventory = { potion: 1, amulet: 1 }; 
     window.isAmuletActive = 0; 
-    stopBGM(); 
+    if (typeof stopBGM === "function") stopBGM(); 
     if (typeof stopSlimeAnimation === "function") {
         stopSlimeAnimation(); 
     }
