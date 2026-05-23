@@ -23,14 +23,12 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🧙‍♂️ 2. プレイヤー行動・基本戦闘ループ（エラー元凶完全除去版）
+// 🧙‍♂️ 2. プレイヤー行動・基本戦闘ループ
 // ==========================================
 function turn(playerMove) {
-    // プレイヤーが行動中、または戦闘が終了している場合は入力を弾く
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
 
-    // 麻痺（スタン）チェックロジック
     if (window.isPlayerStunned) { 
         window.isPlayerStunned = false; 
         const logEl = document.getElementById('battle-log');
@@ -42,7 +40,6 @@ function turn(playerMove) {
     const data = STAGES[window.curIdx]; 
     let isCritical = (playerMove === data.weak);
     
-    // 💀 開発者デスコード（最優先処理：これ以下の未定義エラーに巻き込まれる前に即座に安全決着）
     if (playerMove === 'debug_death') { 
         window.eHp = 0; 
         updateHpUI(); 
@@ -52,19 +49,15 @@ function turn(playerMove) {
         return; 
     }
 
-    // ダメージ計算ロジック（ホーリーは35、その他は15ベース。弱点時は2.2倍）
     let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
     if (window.isEnemyShieldActive) { 
         dmg = Math.floor(dmg * 0.25); 
     }
 
-    // 🛠️ 修正の核心：即死の元凶だった「未定義の〇〇_EFFECTS」へのアクセスをすべて削除！
-    // これによりエラーが一切出なくなり、計算処理が100%最後まで流れるようになります。
     const effLayer = document.getElementById('spell-effect-layer');
     if (effLayer) effLayer.innerHTML = ""; 
     window.isEnemyShieldActive = false;
 
-    // 補助コマンドの処理
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -83,11 +76,14 @@ function turn(playerMove) {
         return;
     }
 
-    // 魔法ヒット処理（400msディレイ）
     setTimeout(() => {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
-        createDmgPop(dmg, false);
+        
+        // 🚨 存在チェックを入れて気絶を完全に防止
+        if (typeof createDmgPop === "function") {
+            createDmgPop(dmg, false);
+        }
         
         const logEl = document.getElementById('battle-log');
         if (logEl) {
@@ -102,99 +98,13 @@ function turn(playerMove) {
     }, 400);
 }
 
-function useItem(itemType) {
-    if (window.isBusy || window.itemInventory[itemType] <= 0) return;
-    window.isBusy = true; 
-    window.itemInventory[itemType]--; 
-    closeItemBag();
-    const effLayer = document.getElementById('spell-effect-layer');
-    if (effLayer) effLayer.innerHTML = "";
-    const logEl = document.getElementById('battle-log');
-    if (itemType === 'potion') { 
-        window.pHp = Math.min(window.pMaxHp, window.pHp + 50); 
-        if (logEl) logEl.innerText = "🎒 回復薬を使用！HPが50回復！"; 
-    } else { 
-        window.isAmuletActive = 3; 
-        const badge = document.getElementById('item-badge');
-        if (badge) badge.style.display = "block"; 
-        if (logEl) logEl.innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; 
-    }
-    updateHpUI(); 
-    setTimeout(enemyTurnAction, 1000);
-}
-
-function nextStage() {
-    closeItemBag(); 
-    window.curIdx++;
-    if (window.curIdx >= STAGES.length) { 
-        resetGame(); 
-        showScreen('scr-start'); 
-        const indicator = document.getElementById('floor-indicator'); 
-        if (indicator) indicator.style.visibility = 'hidden'; 
-        startBGM("title"); 
-        return; 
-    }
-    const data = STAGES[window.curIdx]; 
-    if (!window.isDebugUnlocked) { window.pMaxHp = 100; window.pHp = 100; }
-    const indicator = document.getElementById('floor-indicator');
-    if (indicator) { indicator.style.visibility = 'visible'; indicator.innerText = `${data.floor}階`; }
-    const chNum = document.getElementById('intro-ch-num');
-    const chTitle = document.getElementById('intro-ch-title');
-    const introTxt = document.getElementById('intro-text');
-    if (chNum) chNum.innerText = `FLOOR 0${data.floor}`; 
-    if (chTitle) chTitle.innerText = data.name; 
-    if (introTxt) introTxt.innerText = data.txt;
-    showScreen('scr-intro'); 
-    stopBGM();
-}
-
-function startBattle() {
-    const data = STAGES[window.curIdx]; 
-    window.eHp = window.eMaxHp = data.hp; 
-    window.isBusy = false; 
-    window.isPlayerStunned = false; 
-    window.isAmuletActive = 0; 
-    window.enemyMana = 1.0; 
-    window.isEnemyShieldActive = false;
-    window.battleTurnCount = 1; 
-
-    const eContainer = document.getElementById('e-sprite-container');
-    if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
-    const pGraphic = document.getElementById('p-sprite-graphic');
-    if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
-    const itemBadge = document.getElementById('item-badge');
-    const chargeBadge = document.getElementById('charge-badge');
-    const eName = document.getElementById('e-name');
-    const eGraphic = document.getElementById('e-sprite-graphic');
-    const logEl = document.getElementById('battle-log');
-    if (itemBadge) itemBadge.style.display = "none"; 
-    if (chargeBadge) chargeBadge.style.display = "none";
-    if (eName) eName.innerText = data.name;
-    
-    showScreen('scr-battle'); 
-    updateHpUI(); 
-    checkDevPassword();
-    if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
-    startBGM("battle");
-
-    setTimeout(() => {
-        if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
-            eGraphic.src = MASTER_ANIM_MAP[data.type][0];
-        }
-        if (typeof startCustomAnimation === "function") {
-            startCustomAnimation(data.type); 
-        }
-    }, 50);
-}
-
 // ==========================================
-// 👹 3. エネミーターン行動AIロジック（安定突進固定版）
+// 👹 3. エネミーターン行動AIロジック
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
     const data = STAGES[window.curIdx];
     
-    // シールド防御時はダメージを15%に軽減
     let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
     dmg = Math.floor(dmg * window.enemyMana); 
     window.enemyMana = 1.0; 
@@ -206,7 +116,6 @@ function enemyTurnAction(isPlayerDefending = false) {
     const effLayer = document.getElementById('spell-effect-layer'); 
     if (effLayer) effLayer.innerHTML = "";
 
-    // 通常の突進突撃アニメーション演出に一本化してエラーを根絶
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) eContainer.style.animation = "enemyAssault 0.45s forwards";
     setTimeout(() => { 
@@ -218,22 +127,16 @@ function enemyTurnAction(isPlayerDefending = false) {
 
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
-    createDmgPop(dmg, true);
+    
+    // 🚨 修正：ここが気絶の最大の原因！関数がなくても安全にスルーさせるガード文に変更
+    if (typeof createDmgPop === "function") {
+        createDmgPop(dmg, true);
+    }
     
     window.battleTurnCount++;
     postEnemyTurnCleanup();
 }
-
-function postEnemyTurnCleanup() {
-    if (window.isAmuletActive > 0) { 
-        window.isAmuletActive--; 
-        if (window.isAmuletActive <= 0) {
-            const badge = document.getElementById('item-badge');
-            if (badge) badge.style.display = "none";
-        }
-    }
-    setTimeout(() => { checkBattleEnd(); }, 800);
-}
+ 
 
 // ==========================================
 // 💥 4. 勝敗判定・ゲームリセットロジック
