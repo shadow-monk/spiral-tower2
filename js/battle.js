@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終決定版：残痕根絶・全魔法演出・敵特殊行動AI完全復元！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終決定版：エラー完全監禁シールド展開・無限連打ループ完全開通！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -66,14 +66,19 @@ function turn(playerMove) {
     if (effLayer) effLayer.innerHTML = ""; 
     window.isEnemyShieldActive = false;
 
-    // ⚡ ②魔法イラスト・演出エフェクトの復活（effects.js側関数の安全呼び出し）
-    if (typeof startSpellEffect === "function") {
-        startSpellEffect(playerMove);
-    } else if (typeof openMagic === "function") {
-        openMagic(playerMove);
+    // 🛡️ 修正のコア：プレイヤー側演出エラー監禁シールド
+    // effects.js側の演出コードが内部でクラッシュしても、バトルJSのドミノは絶対に止めない
+    try {
+        if (typeof startSpellEffect === "function") {
+            startSpellEffect(playerMove);
+        } else if (typeof openMagic === "function") {
+            openMagic(playerMove);
+        }
+    } catch (spellError) {
+        console.warn("⚠️ プレイヤー魔法演出内でエラーを検知（隔離済）:", spellError);
     }
 
-    // ②魔法効果音（SE）の復活
+    // 魔法効果音（SE）の出力
     if (typeof playSE === "function") {
         if (playerMove === 'fire') playSE(SOUND_FIRE);
         else if (playerMove === 'ice') playSE(SOUND_ICE);
@@ -193,7 +198,7 @@ function startBattle() {
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
     
-    // 🚨 ①対策：タイマー暴発と競合するアドレスクリアを廃止。ブラウザが絶対にエラーを起こさず、かつ画面上完全に消去できる「1pxの透明画像」にすり替える！
+    // 🚨 残像バグ完全根絶：タイマー暴発を100%視覚的に無力化する透明ドットすり替え命令
     if (eGraphic) eGraphic.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     const logEl = document.getElementById('battle-log');
@@ -220,7 +225,7 @@ function startBattle() {
 }
 
 // ==========================================
-// 👹 4. エネミーターン行動AI・特殊攻撃復元ロジック
+// 👹 4. エネミーターン行動AI・エラー完全監禁ロジック
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
@@ -228,7 +233,7 @@ function enemyTurnAction(isPlayerDefending = false) {
     const logEl = document.getElementById('battle-log');
     
     let isSpecial = false;
-    // ③敵の特殊攻撃判定：2ターン目以降かつ40%の確率で特殊行動を発動
+    // 2ターン目以降かつ40%の確率で特殊行動を発動
     if (window.battleTurnCount > 1 && Math.random() < 0.4) {
         isSpecial = true;
     }
@@ -246,30 +251,31 @@ function enemyTurnAction(isPlayerDefending = false) {
 
     // 通常攻撃か特殊行動かで分岐処理
     if (isSpecial) {
-        // ③敵ごとの特殊エフェクトアニメーション＆効果音の復元
+        // 🛡️ 修正のコア：敵側カウンター演出のエラー監禁シールド
+        // triggerEnemyEffectが中身ごと大爆発しても、戦闘の進行（ドミノ）だけは絶対に完走させる！
         if (data.type === 'slime') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【緑の液体投げ】！`;
-            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid');
-            if (typeof playSE === "function") playSE(SOUND_FIRE); // 液体着弾音
-            dmg = Math.floor(dmg * 1.3); // 威力が少し高い
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
+            if (typeof playSE === "function") playSE(SOUND_FIRE); 
+            dmg = Math.floor(dmg * 1.3); 
         } 
         else if (data.type === 'spider') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【粘着糸吐き】！`;
-            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web');
-            if (typeof playSE === "function") playSE(SOUND_ICE); // 糸の拘束音
-            window.isPlayerStunned = true; // 次のターン行動不能
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
+            if (typeof playSE === "function") playSE(SOUND_ICE); 
+            window.isPlayerStunned = true; 
         } 
         else if (data.type === 'harpy') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【雷光急襲】！⚡`;
-            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder');
-            if (typeof playSE === "function") playSE(SOUND_HOLY); // 雷撃爆発音
-            window.isPlayerStunned = (Math.random() < 0.5); // 50%で麻痺
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
+            if (typeof playSE === "function") playSE(SOUND_HOLY); 
+            window.isPlayerStunned = (Math.random() < 0.5); 
         }
         else if (data.type === 'dragon') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【滅びの烈火】！🔥`;
-            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath');
+            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath'); } catch(e) { console.warn("⚠️ 敵演出エラー隔離:", e); }
             if (typeof playSE === "function") playSE(SOUND_FIRE);
-            dmg = Math.floor(dmg * 1.5); // 大ダメージ
+            dmg = Math.floor(dmg * 1.5); 
         }
     } else {
         // 通常の突進攻撃
@@ -303,7 +309,7 @@ function postEnemyTurnCleanup() {
         }
     }
     
-    // ①対策：何があっても最後に確実に busy を false にしてプレイヤーに入力を明け渡す
+    // 🛡️ 絶対安全防衛線：何があっても、演出がバグろうが、タイマーの最後で「必ず」ロックを完全解除する
     setTimeout(() => { 
         window.isBusy = false;
         checkBattleEnd(); 
