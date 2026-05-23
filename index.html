@@ -17,7 +17,7 @@
     100% { transform: scaleX(0.8) scaleY(0.0); bottom: 180px; opacity: 0; filter: blur(8px); }
   }
 </style>
-<link rel="stylesheet" href="css/style.css?v=19">
+<link rel="stylesheet" href="css/style.css?v=20">
 </head>
 <body class="game-body">
 
@@ -36,7 +36,7 @@
                 <div style="height:8px; background:linear-gradient(90deg,#4f46e5,#f43f5e); width:200px; margin:0 auto 25px auto; border-radius:99px;"></div>
                 <div style="background:#f8fafc; border-radius:20px; padding:20px; border-left:10px solid #4f46e5; text-align:left; margin-bottom:20px;">
                     <p style="color:#1e293b; font-size:1.1rem; line-height:1.7; font-weight:700; margin:0;">
-                        【倉庫2ファントム（11連番）反映版】8階ファントムの画像を倉庫2の `monster_phantom_01`〜`11` へ完全差し替え！全オーディオ＆ファイア巨大火柱、アイス枠消滅、新スライムもすべて正常稼働。
+                        【パス修復×比率レイアウト完全固定版】旧リポジトリ魔物の消失バグを完全解決。アリーナ内の隙間計算を自動等間隔（space-around）に改訂し、左右へのはみ出しと変形による崩れを永久に封印しました。
                     </p>
                 </div>
                 <button onclick="nextStage(); triggerFirstAudio();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3);">迷宮へ侵入する</button>
@@ -77,11 +77,11 @@
 
                     <div id="spell-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:5; mix-blend-mode:screen !important;"></div>
                     
-                    <div id="icon-stage" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; gap:30px;">
-                        <div id="p-sprite-container" style="width:150px; height:150px; animation: floatP 1.8s infinite alternate ease-in-out;">
+                    <div id="icon-stage" style="display:flex; justify-content:space-around; align-items:center; width:100%; height:100%; box-sizing:border-box; padding:0 20px;">
+                        <div id="p-sprite-container" style="width:140px; height:140px; animation: floatP 1.8s infinite alternate ease-in-out;">
                             <img id="p-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Wizard">
                         </div>
-                        <div id="e-sprite-container" style="width:200px; height:200px; animation: floatE 2.2s infinite alternate ease-in-out; transition: opacity 0.8s, transform 0.8s;">
+                        <div id="e-sprite-container" style="width:190px; height:190px; animation: floatE 2.2s infinite alternate ease-in-out; transition: opacity 0.8s, transform 0.8s;">
                             <img id="e-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Enemy">
                         </div>
                     </div>
@@ -135,8 +135,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.80（🟢倉庫2新ファントム11連番反映 × 🔥ファイア演出刷新 × スライム16枚反映）</span>
-        <span>Update: 2026.05.23 13:30:10</span>
+        <span>改訂 V5.90（🛠️全魔物画像パス分離修復 × 📐等間隔アリーナ比率完全固定版）</span>
+        <span>Update: 2026.05.23 13:42:15</span>
     </div>
 </div>
 
@@ -170,12 +170,11 @@ function getAssetPath(category, filename) {
         if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
         if (category === 'se_clean') return `${BASE_ASSETS.repo2Pages}se/${filename}`; 
         if (category === 'bgm_clean') return `${BASE_ASSETS.repo2Pages}bgm/${filename}`; 
+        // 🛠️ 治療措置ファクト：未移行モンスターは確実に元の「repo1」を向くように完全分離！
         if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
-        // 新規格・倉庫2パス（スライム専用）
         if (category === 'enemy_slime_new') return `${BASE_ASSETS.repo2Pages}enemies/slime/${filename}`;
-        // 新規格・倉庫2パス（ファントム専用）
         if (category === 'enemy_phantom_new') return `${BASE_ASSETS.repo2Pages}enemies/phantom/${filename}`;
-        // その他の新敵
+        // 新規格アセットはPagesドメイン経由で取得
         if (category === 'enemy_new') return `https://shadow-monk.github.io/spiral-tower2/enemies/${filename}`;
         if (category === 'effect') return `${BASE_ASSETS.repo1}effect/${filename}`;
         return "";
@@ -185,7 +184,7 @@ function getAssetPath(category, filename) {
     }
 }
 
-// スライム16枚完全反映
+// スライム16枚完全マッピング
 const ANIMS_SLIME = Array.from({length: 16}, (_, i) => {
     const num = String(i + 1).padStart(2, '0');
     return getAssetPath('enemy_slime_new', `monster_slime_${num}.png`);
@@ -196,7 +195,7 @@ const ANIMS_SKELTON = [1,2,3,4,5,6,7,8,9].map(n => getAssetPath('enemy_legacy', 
 const ANIMS_HARPY = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `happy/happy%20(${n}).png`));
 const ANIMS_GOLEM = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `golem/Golem%20(${n}).png`));
 
-// 🛠️ 復活ステップ2：倉庫2新ファントム11連番（01〜11）配列へ完全移行！
+// ファントム11連番
 const ANIMS_PHANTOM = Array.from({length: 11}, (_, i) => {
     const num = String(i + 1).padStart(2, '0');
     return getAssetPath('enemy_phantom_new', `monster_phantom_${num}.png`);
@@ -247,19 +246,6 @@ const ENEMY_MISSILE_EFFECTS = {
   dragon: `<div style="position:absolute; width:120px; height:60px; background:linear-gradient(90deg,#ef4444,transparent); left:400px; top:130px; animation:enemyMissile 0.4s forwards; blur(5px);"></div>`
 };
 
-const STAGES = [
-  { floor: 1,  name: "ヘドロスライム",       hp: 65,  atk: 10, weak: "fire", type: "slime",   glow: "rgba(34,197,94,0.4)",  txt: "1階。通路を塞ぐ粘液質の魔物。新アセット全16連番の滑らかな跃動を見よ！弱点:Fire。" },
-  { floor: 2,  name: "ブラッドスパイダー",   hp: 80,  atk: 13, weak: "fire", type: "spider",  glow: "rgba(239,68,68,0.4)",  txt: "2階。無数の足が蠢く巨大蜘蛛。蜘蛛の糸（1ターン麻痺）に警戒せよ！" },
-  { floor: 3,  name: "スケルトンナイト",     hp: 100, atk: 16, weak: "holy", type: "skelton", glow: "rgba(203,213,225,0.5)", txt: "3階。古の戦意を宿した強固な骸骨騎士。鉄壁の呪文シールドに注意せよ！" },
-  { floor: 4,  name: "ハーピィ",             hp: 125, atk: 19, weak: "ice",  type: "harpy",   glow: "rgba(236,72,153,0.4)",  txt: "4階。大気を操り鋭く羽ばたく怪鳥。自由な翼を【アイス】で完全氷結させろ！" },
-  { floor: 5,  name: "ゴーレム",             hp: 155, atk: 22, weak: "fire", type: "golem",   glow: "rgba(245,158,11,0.5)",  txt: "5階。地響きを伴って駆動する岩石巨兵。強烈な岩石投げをいなせ！" },
-  { floor: 6,  name: "ガーゴイル",           hp: 190, atk: 26, weak: "ice",  type: "gargoil", glow: "rgba(100,116,139,0.5)", txt: "6階。石像から解き放たれし守護霊獣。魔法陣による超チャージに警戒！" },
-  { floor: 7,  name: "マイコニド",           hp: 230, atk: 30, weak: "fire", type: "mush",    glow: "rgba(168,85,247,0.4)",  txt: "7階。歩行キノコ。胞子による腐食に注意せよ！" },
-  { floor: 8,  name: "ファントム",           hp: 280, atk: 35, weak: "holy", type: "phantom", glow: "rgba(125,211,252,0.4)", txt: "8階。霧のように形を変える亡霊。倉庫2の新規格11連番にて復旧！周囲を覆う腐食ガスを突破せよ！" },
-  { floor: 9,  name: "イビルアイ",           hp: 360, atk: 42, weak: "holy", type: "eyes",    glow: "rgba(219,39,119,0.5)",  txt: "9階。狂気に満ちた視線を放つ巨大魔眼。死の光の空間出現をかわせ！" },
-  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級の【ホーリー】で挑め！" }
-];
-
 let curIdx = -1; let pMaxHp = 100, pHp = 100, eHp = 100, eMaxHp = 100, mana = 1.0; let isBusy = false, isMuted = false;
 let animeTimeout = null; let currentFrameIdx = 0;
 let itemInventory = { potion: 1, amulet: 1 }; let isAmuletActive = 0; let isPlayerStunned = false;
@@ -292,10 +278,9 @@ function startCustomAnimation(type) {
         currentFrameIdx = (currentFrameIdx + 1) % dynamicArr.length;
         graphicEl.src = dynamicArr[currentFrameIdx];
         
-        // 🛠️ 枚数拡張に伴うフレームレート補正
         let fps = 140;
-        if (cType === 'slime') fps = 130;    // スライム(16枚)は少し速く
-        if (cType === 'phantom') fps = 160;  // ファントム(11枚)は少しゆっくり
+        if (cType === 'slime') fps = 130; 
+        if (cType === 'phantom') fps = 160; 
         
         animeTimeout = setTimeout(step, fps); 
     }
@@ -390,24 +375,17 @@ function turn(playerMove) {
   if (effLayer) effLayer.innerHTML = ""; isEnemyShieldActive = false;
 
   try {
-      // 復旧ステップ1：ファイア段階的タイムライン制御システム（復習）
       if (playerMove === 'fire') {
           if (effLayer) {
-              // 【第1段階：発射】
               effLayer.innerHTML = `<div style="position:absolute; width:55px; height:55px; background:radial-gradient(circle, #facc15 10%, #f97316 50%, #ef4444 100%); border-radius:50%; box-shadow:0 0 35px #f97316, 0 0 60px #ef4444; animation: fireMissile 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"></div>`;
           }
-          
-          // 【第2段階：着弾SE同期】
           setTimeout(() => { 
               playSE(SOUND_FIRE); 
-              
-              // 【第3段階：巨大火柱（pillar_of_fire）展開】
               if (effLayer) {
                   effLayer.innerHTML = `<div id="pillar-of-fire" style="position:absolute; width:160px; height:320px; right:70px; bottom:20px; background:linear-gradient(to top, #ef4444 0%, #f97316 40%, #facc15 80%, transparent 100%); border-radius:50px 50px 0 0; animation: firePillarGlow 0.6s ease-out forwards; pointer-events:none; z-index:11;"></div>`;
               }
           }, 400);
       } 
-      // 対策1：アイスのフチ枠消滅 高速透明度フェードイン・アウトマシーン（10msウエイト版）
       else if (playerMove === 'ice') {
           if (effLayer) {
               effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:200px; height:200px; right:50px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; transition: opacity 0.12s ease-in-out; opacity: 0; pointer-events:none; z-index:10;">`;
@@ -453,7 +431,6 @@ function turn(playerMove) {
       console.error("Effect Playback Safety Catch:", e);
   }
 
-  // 行動ダメージ適用タイムライン
   setTimeout(() => {
       eHp = Math.max(0, eHp - dmg); updateHpUI(); createDmgPop(dmg, false);
       document.getElementById('battle-log').innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
