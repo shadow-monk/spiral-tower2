@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終版：連打ロック解除・画像割れ残像撲滅・呪文結合完了！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終決定版：残痕根絶・全魔法演出・敵特殊行動AI完全復元！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -23,17 +23,18 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🧙‍♂️ 2. プレイヤー行動・基本戦闘ループ
+// 🧙‍♂️ 2. プレイヤー行動・魔法演出＆計算ループ
 // ==========================================
 function turn(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
 
+    // 麻痺（スタン）チェック
     if (window.isPlayerStunned) { 
         window.isPlayerStunned = false; 
         const logEl = document.getElementById('battle-log');
-        if (logEl) logEl.innerText = "🚨 麻痺して動けない！"; 
-        setTimeout(enemyTurnAction, 1000); 
+        if (logEl) logEl.innerHTML = "🚨 <span style='color: #f59e0b; font-weight: bold;'>体が痺れて動けない！ ターンがスキップされた！</span>"; 
+        setTimeout(() => { enemyTurnAction(); }, 1200); 
         return; 
     }
   
@@ -50,7 +51,13 @@ function turn(playerMove) {
         return; 
     }
 
-    let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
+    // 基本ダメージ計算
+    let baseDmg = 15;
+    if (playerMove === 'fire') baseDmg = 20;
+    else if (playerMove === 'ice') baseDmg = 20;
+    else if (playerMove === 'holy') baseDmg = 35;
+
+    let dmg = Math.floor(baseDmg * (isCritical ? 2.2 : 1) * window.mana);
     if (window.isEnemyShieldActive) { 
         dmg = Math.floor(dmg * 0.25); 
     }
@@ -59,16 +66,25 @@ function turn(playerMove) {
     if (effLayer) effLayer.innerHTML = ""; 
     window.isEnemyShieldActive = false;
 
-    // ⚡ 懸念点対処：ファイア、アイスのエフェクト関数（effects.js側）を安全に叩き起こす
+    // ⚡ ②魔法イラスト・演出エフェクトの復活（effects.js側関数の安全呼び出し）
     if (typeof startSpellEffect === "function") {
         startSpellEffect(playerMove);
     } else if (typeof openMagic === "function") {
         openMagic(playerMove);
     }
 
+    // ②魔法効果音（SE）の復活
+    if (typeof playSE === "function") {
+        if (playerMove === 'fire') playSE(SOUND_FIRE);
+        else if (playerMove === 'ice') playSE(SOUND_ICE);
+        else if (playerMove === 'holy') playSE(SOUND_HOLY);
+    }
+
+    // 補助コマンドの処理
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
+        if (typeof playSE === "function") playSE(SOUND_SHIELD);
         setTimeout(() => { enemyTurnAction(true); }, 800); 
         window.mana = 1.0; 
         const chargeBadge = document.getElementById('charge-badge');
@@ -79,11 +95,13 @@ function turn(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "block"; 
         const logEl = document.getElementById('battle-log');
-        if (logEl) logEl.innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
+        if (logEl) logEl.innerText = "⚡ パワーをチャージした！次回魔法威力2.5倍！";
+        if (typeof playSE === "function") playSE(SOUND_CHARGE);
         setTimeout(() => { enemyTurnAction(false); }, 800); 
         return;
     }
 
+    // 魔法着火タイマー
     setTimeout(() => {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
@@ -94,7 +112,7 @@ function turn(playerMove) {
         
         const logEl = document.getElementById('battle-log');
         if (logEl) {
-            logEl.innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
+            logEl.innerHTML = isCritical ? `💥 弱点直撃！敵に <span style='color: #ef4444; font-weight: bold;'>${dmg}</span> ダメージ！` : `敵に ${dmg} ダメージ！`;
         }
         
         window.mana = 1.0; 
@@ -119,11 +137,13 @@ function useItem(itemType) {
     if (itemType === 'potion') { 
         window.pHp = Math.min(window.pMaxHp, window.pHp + 50); 
         if (logEl) logEl.innerText = "🎒 回復薬を使用！HPが50回復！"; 
+        if (typeof playSE === "function") playSE(SOUND_HEAL);
     } else { 
         window.isAmuletActive = 3; 
         const badge = document.getElementById('item-badge');
         if (badge) badge.style.display = "block"; 
         if (logEl) logEl.innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; 
+        if (typeof playSE === "function") playSE(SOUND_SHIELD);
     }
     updateHpUI(); 
     setTimeout(enemyTurnAction, 1000);
@@ -137,7 +157,7 @@ function nextStage() {
         showScreen('scr-start'); 
         const indicator = document.getElementById('floor-indicator'); 
         if (indicator) indicator.style.visibility = 'hidden'; 
-        startBGM("title"); 
+        if (typeof startBGM === "function") startBGM("title"); 
         return; 
     }
     const data = STAGES[window.curIdx]; 
@@ -173,8 +193,8 @@ function startBattle() {
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
     
-    // 🚨 対策③：画像割れバツマーク（NO IMAGE）を絶対に出さないため、アドレスクリアではなくCSSで「一時的に完全隠蔽」する
-    if (eGraphic) eGraphic.style.visibility = "hidden";
+    // 🚨 ①対策：タイマー暴発と競合するアドレスクリアを廃止。ブラウザが絶対にエラーを起こさず、かつ画面上完全に消去できる「1pxの透明画像」にすり替える！
+    if (eGraphic) eGraphic.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
     const logEl = document.getElementById('battle-log');
     if (itemBadge) itemBadge.style.display = "none"; 
@@ -192,8 +212,6 @@ function startBattle() {
 
         if (eGraphic && MASTER_ANIM_MAP[folderType]) { 
             eGraphic.src = MASTER_ANIM_MAP[folderType][0];
-            // 🚨 新しいアセット画像がHTMLに完全にバインドされたこの瞬間に、隠蔽を解除して表示させる！これで残骸も画像割れも100%消滅
-            eGraphic.style.visibility = "visible";
         }
         if (typeof startCustomAnimation === "function") {
             startCustomAnimation(folderType); 
@@ -202,12 +220,19 @@ function startBattle() {
 }
 
 // ==========================================
-// 👹 4. エネミーターン行動AIロジック
+// 👹 4. エネミーターン行動AI・特殊攻撃復元ロジック
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
     const data = STAGES[window.curIdx];
+    const logEl = document.getElementById('battle-log');
     
+    let isSpecial = false;
+    // ③敵の特殊攻撃判定：2ターン目以降かつ40%の確率で特殊行動を発動
+    if (window.battleTurnCount > 1 && Math.random() < 0.4) {
+        isSpecial = true;
+    }
+
     let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
     dmg = Math.floor(dmg * window.enemyMana); 
     window.enemyMana = 1.0; 
@@ -219,15 +244,45 @@ function enemyTurnAction(isPlayerDefending = false) {
     const effLayer = document.getElementById('spell-effect-layer'); 
     if (effLayer) effLayer.innerHTML = "";
 
-    const eContainer = document.getElementById('e-sprite-container');
-    if (eContainer) eContainer.style.animation = "enemyAssault 0.45s forwards";
-    setTimeout(() => { 
-        if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
-    }, 460);
-    
-    const logEl = document.getElementById('battle-log');
-    if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】ダメージ！`;
+    // 通常攻撃か特殊行動かで分岐処理
+    if (isSpecial) {
+        // ③敵ごとの特殊エフェクトアニメーション＆効果音の復元
+        if (data.type === 'slime') {
+            if (logEl) logEl.innerHTML = `👹 ${data.name}の【緑の液体投げ】！`;
+            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid');
+            if (typeof playSE === "function") playSE(SOUND_FIRE); // 液体着弾音
+            dmg = Math.floor(dmg * 1.3); // 威力が少し高い
+        } 
+        else if (data.type === 'spider') {
+            if (logEl) logEl.innerHTML = `👹 ${data.name}の【粘着糸吐き】！`;
+            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web');
+            if (typeof playSE === "function") playSE(SOUND_ICE); // 糸の拘束音
+            window.isPlayerStunned = true; // 次のターン行動不能
+        } 
+        else if (data.type === 'harpy') {
+            if (logEl) logEl.innerHTML = `👹 ${data.name}の【雷光急襲】！⚡`;
+            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder');
+            if (typeof playSE === "function") playSE(SOUND_HOLY); // 雷撃爆発音
+            window.isPlayerStunned = (Math.random() < 0.5); // 50%で麻痺
+        }
+        else if (data.type === 'dragon') {
+            if (logEl) logEl.innerHTML = `👹 ${data.name}の【滅びの烈火】！🔥`;
+            if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath');
+            if (typeof playSE === "function") playSE(SOUND_FIRE);
+            dmg = Math.floor(dmg * 1.5); // 大ダメージ
+        }
+    } else {
+        // 通常の突進攻撃
+        if (logEl) logEl.innerText = `${data.name}の突進攻撃！`;
+        if (typeof playSE === "function") playSE(SOUND_ATTACK || 1);
+        const eContainer = document.getElementById('e-sprite-container');
+        if (eContainer) eContainer.style.animation = "enemyAssault 0.45s forwards";
+        setTimeout(() => { 
+            if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
+        }, 460);
+    }
 
+    // ダメージ適用
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
     
@@ -248,8 +303,7 @@ function postEnemyTurnCleanup() {
         }
     }
     
-    // 🚨 対策①：何が起きてもタイマー処理の最後で「必ず」行動中フラグをfalseにしてプレイヤーにターンを返す
-    // これにより、1行動でゲームが永久ロックされるバグが完全に消滅します。
+    // ①対策：何があっても最後に確実に busy を false にしてプレイヤーに入力を明け渡す
     setTimeout(() => { 
         window.isBusy = false;
         checkBattleEnd(); 
