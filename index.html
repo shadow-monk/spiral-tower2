@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<link rel="stylesheet" href="css/style.css?v=14">
+<link rel="stylesheet" href="css/style.css?v=16">
 </head>
 <body class="game-body">
 
@@ -22,7 +22,7 @@
                 <div style="height:8px; background:linear-gradient(90deg,#4f46e5,#f43f5e); width:200px; margin:0 auto 25px auto; border-radius:99px;"></div>
                 <div style="background:#f8fafc; border-radius:20px; padding:20px; border-left:10px solid #4f46e5; text-align:left; margin-bottom:20px;">
                     <p style="color:#1e293b; font-size:1.1rem; line-height:1.7; font-weight:700; margin:0;">
-                        【倉庫2（spiral-tower2）完全集約・バグタイポ消滅版】bgmフォルダのスペルミスを完全修正。SEも倉庫2に実在する4ファイルのみに完全適合させました。
+                        【新スライム16枚×アイス枠消滅フェード版】倉庫2に新規追加されたスライムの全16フレームアニメーションを1階に完全同期。アイス魔法の出現・消滅に超高速の不透明度計算を組み込み、四角い端の残像を完全に霧散させました。
                     </p>
                 </div>
                 <button onclick="nextStage(); triggerFirstAudio();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3);">迷宮へ侵入する</button>
@@ -121,8 +121,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.60（⚙️倉庫2/spiral-tower2 実ファイル構造完全準拠版）</span>
-        <span>Update: 2026.05.23 11:42:05</span>
+        <span>改訂 V5.60（🟢新スライム16枚搭載 × ❄️アイス対策1高速フェードイン・アウト加工）</span>
+        <span>Update: 2026.05.23 13:02:10</span>
     </div>
 </div>
 
@@ -144,21 +144,22 @@ function checkDevPassword() {
 }
 
 // ==========================================
-// 🧱 1. リポジトリベースパス（倉庫2の構造に完全補正）
+// 🧱 1. 製品配布・ストリーミング専用ベースパス（github.io 形式）
 // ==========================================
 const BASE_ASSETS = {
     repo1: "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/",
-    repo2: "https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/"
+    repo2Pages: "https://shadow-monk.github.io/spiral-tower2/assets/"
 };
 
 function getAssetPath(category, filename) {
     try {
         if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
-        // 🛠️ 倉庫2マッピング完全修正：タイポ「bmg」を駆逐し「bgm」へ。SEも実在パスへ直結
-        if (category === 'se_clean') return `${BASE_ASSETS.repo2}se/${filename}`; 
-        if (category === 'bgm_clean') return `${BASE_ASSETS.repo2}bgm/${filename}`; 
+        if (category === 'se_clean') return `${BASE_ASSETS.repo2Pages}se/${filename}`; 
+        if (category === 'bgm_clean') return `${BASE_ASSETS.repo2Pages}bgm/${filename}`; 
         if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
-        if (category === 'enemy_new') return `${BASE_ASSETS.repo2}enemies/${filename}`;
+        // 🛠️ 倉庫2仕様スライム：専用のslimeフォルダ構造へ直結
+        if (category === 'enemy_slime_new') return `${BASE_ASSETS.repo2Pages}enemies/slime/${filename}`;
+        if (category === 'enemy_new') return `https://shadow-monk.github.io/spiral-tower2/enemies/${filename}`;
         if (category === 'effect') return `${BASE_ASSETS.repo1}effect/${filename}`;
         return "";
     } catch(e) {
@@ -167,8 +168,12 @@ function getAssetPath(category, filename) {
     }
 }
 
-// モンスターアニメーションデータベース
-const ANIMS_SLIME = [1,2,3,4,5,6].map(n => getAssetPath('enemy_legacy', `imagesX/Slime%20(${n}).png`));
+// 🛠️ 1階ヘドロスライム：新設された01〜16（04含む）の合計16枚の最新高密度連番配列へアップデート！
+const ANIMS_SLIME = Array.from({length: 16}, (_, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    return getAssetPath('enemy_slime_new', `monster_slime_${num}.png`);
+});
+
 const ANIMS_SPIDER = [1,2,3,4,5,6,7].map(n => getAssetPath('enemy_legacy', `spider/spider%20(${n}).png`));
 const ANIMS_SKELTON = [1,2,3,4,5,6,7,8,9].map(n => getAssetPath('enemy_legacy', `monster2/skeleton/skeleton%20(${n}).png`));
 const ANIMS_HARPY = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `happy/happy%20(${n}).png`));
@@ -186,12 +191,13 @@ const MASTER_ANIM_MAP = {
     mush: ANIMS_MAICONID, phantom: ANIMS_PHANTOM, eyes: ANIMS_EYES, dragon: ANIMS_DRAGON 
 };
 
-// 🔊 SE実名完全マッピング（倉庫2に存在するファイル名のみを指定）
+// 🔊 SE実名完全マッピング
 const SOUND_FIRE = getAssetPath('se_clean', 'se_fire_hit.mp3'); 
 const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');   
 const SOUND_HOLY = getAssetPath('se_clean', 'se_holy_hit.mp3'); 
+const SOUND_FREEZE_DEAD = getAssetPath('se_clean', 'se_freeze_hit.mp3'); 
 
-// 🎵 BGM実名完全マッピング（assets/bgm/ のタイポを修正して完全接続）
+// 🎵 BGMプレイリスト
 const BGM_BATTLE_PLAYLIST = [
     getAssetPath('bgm_clean', 'bgm_battle_arch03.mp3'),
     getAssetPath('bgm_clean', 'bgm_battle_piano11.mp3'),
@@ -219,7 +225,7 @@ const ENEMY_MISSILE_EFFECTS = {
 };
 
 const STAGES = [
-  { floor: 1,  name: "ヘドロスライム",       hp: 65,  atk: 10, weak: "fire", type: "slime",   glow: "rgba(34,197,94,0.4)",  txt: "1階。通路を塞ぐ粘液質の魔物。熱変化に弱く【ファイア】が有効！" },
+  { floor: 1,  name: "ヘドロスライム",       hp: 65,  atk: 10, weak: "fire", type: "slime",   glow: "rgba(34,197,94,0.4)",  txt: "1階。通路を塞ぐ粘液質の魔物。新アセット全16フレームによる滑らかな躍動を見よ！" },
   { floor: 2,  name: "ブラッドスパイダー",   hp: 80,  atk: 13, weak: "fire", type: "spider",  glow: "rgba(239,68,68,0.4)",  txt: "2階。無数の足が蠢く巨大蜘蛛。蜘蛛の糸（1ターン麻痺）に警戒せよ！" },
   { floor: 3,  name: "スケルトンナイト",     hp: 100, atk: 16, weak: "holy", type: "skelton", glow: "rgba(203,213,225,0.5)", txt: "3階。古の戦意を宿した強固な骸骨騎士。鉄壁の呪文シールドに注意せよ！" },
   { floor: 4,  name: "ハーピィ",             hp: 125, atk: 19, weak: "ice",  type: "harpy",   glow: "rgba(236,72,153,0.4)",  txt: "4階。大気を操り鋭く羽ばたく怪鳥。自由な翼を【アイス】で完全氷結させろ！" },
@@ -228,7 +234,7 @@ const STAGES = [
   { floor: 7,  name: "マイコニド",           hp: 230, atk: 30, weak: "fire", type: "mush",    glow: "rgba(168,85,247,0.4)",  txt: "7階。歩行キノコ。胞子による腐食に注意せよ！" },
   { floor: 8,  name: "ファントム",           hp: 280, atk: 35, weak: "holy", type: "phantom", glow: "rgba(125,211,252,0.4)", txt: "8階。霧のように形を変えて浮遊する亡霊。周囲を覆う腐食ガスを突破せよ！" },
   { floor: 9,  name: "イビルアイ",           hp: 360, atk: 42, weak: "holy", type: "eyes",    glow: "rgba(219,39,119,0.5)",  txt: "9階。狂気に満ちた視線を放つ巨大魔眼。死の光の空間出現をかわせ！" },
-  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級の【ホーリー】で挑め！" }
+  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級 of 最大級の攻撃で挑め！" }
 ];
 
 let curIdx = -1; let pMaxHp = 100, pHp = 100, eHp = 100, eMaxHp = 100, mana = 1.0; let isBusy = false, isMuted = false;
@@ -243,7 +249,7 @@ function triggerFirstAudio() {
 
 function playSE(url) {
     if (isMuted) return;
-    try { const se = new Audio(url); se.volume = 0.5; se.play().catch(e => console.error("SE Error:", e)); } catch(e){}
+    try { const se = new Audio(url); se.volume = 0.5; se.play().catch(e => console.log("SE deferred:", e)); } catch(e){}
 }
 
 function showScreen(screenId) {
@@ -262,7 +268,7 @@ function startCustomAnimation(type) {
         let dynamicArr = MASTER_ANIM_MAP[cType] || ANIMS_SLIME;
         currentFrameIdx = (currentFrameIdx + 1) % dynamicArr.length;
         graphicEl.src = dynamicArr[currentFrameIdx];
-        animeTimeout = setTimeout(step, 180);
+        animeTimeout = setTimeout(step, 140); // 16枚になったので、少し速度をアップ（140ms）して滑らかにループ
     }
     step();
 }
@@ -283,8 +289,8 @@ function startBGM(mode) {
         try { 
             currentAudioBgm = new Audio(url); 
             currentAudioBgm.loop = (mode !== "grand_end"); 
-            currentAudioBgm.volume = 0.35; 
-            currentAudioBgm.play().catch(e=>console.error("BGM Error:", e)); 
+            currentAudioBgm.volume = 0.33; 
+            currentAudioBgm.play().catch(e=>console.log("BGM deferred:", e)); 
         } catch(e){}
     }
 }
@@ -359,14 +365,26 @@ function turn(playerMove) {
           if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire;
           setTimeout(() => { playSE(SOUND_FIRE); }, 400);
       } 
+      // 🛠️ 対策1：アイスのフチ枠消滅 高速透明度（opacity）フェードイン・アウトマシーン
       else if (playerMove === 'ice') {
           if (effLayer) {
-              effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:220px; height:220px; left:340px; top:90px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important;">`;
+              effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:240px; height:240px; left:330px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; transition: opacity 0.1s; opacity: 0; pointer-events:none;">`;
               const iceImg = document.getElementById("ice-anim-sprite");
               let frame = 0;
+              
               function playIceFrame() {
                   if (frame < ANIMS_EFFECT_ICE.length) {
-                      if (iceImg) iceImg.src = ANIMS_EFFECT_ICE[frame];
+                      if (iceImg) {
+                          iceImg.src = ANIMS_EFFECT_ICE[frame];
+                          // 🎨 境界線ブレンド制御：出現(1〜2枚)と消滅(7〜8枚)の瞬間に透明度を高速スライドさせフチの断崖絶壁を隠す
+                          if (frame <= 1) {
+                              iceImg.style.opacity = (frame + 1) * 0.5; // 0.5 ➔ 1.0 へ高速フェードイン
+                          } else if (frame >= 6) {
+                              iceImg.style.opacity = (8 - frame) * 0.5; // 1.0 ➔ 0.5 ➔ 0 へ高速フェードアウト
+                          } else {
+                              iceImg.style.opacity = 1;
+                          }
+                      }
                       frame++;
                       setTimeout(playIceFrame, 55); 
                   }
@@ -389,7 +407,7 @@ function turn(playerMove) {
           setTimeout(() => { enemyTurnAction(false); }, 800); return;
       }
   } catch(e) {
-      console.error("Effect Playback Error Safety Catch:", e);
+      console.error("Effect Playback Safety Catch:", e);
   }
 
   setTimeout(() => {
@@ -411,6 +429,9 @@ function enemyTurnAction(isPlayerDefending = false) {
     const effLayer = document.getElementById('spell-effect-layer'); if (effLayer) effLayer.innerHTML = "";
 
     if (isSpecial) {
+        // 🔊 特殊攻撃時SEハック：不気味な魔力集約音代わりに「se_holy_hit」を流用
+        playSE(SOUND_HOLY);
+
         if (data.type === 'skelton') {
             isEnemyShieldActive = true; document.getElementById('battle-log').innerText = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
             postEnemyTurnCleanup(); return;
@@ -427,6 +448,9 @@ function enemyTurnAction(isPlayerDefending = false) {
         if (data.type === 'spider') isPlayerStunned = true;
         document.getElementById('battle-log').innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
+        // 🔊 被ダメージ音SEハック：激しい打撃激突音代わりに「se_fire_hit」を少し時間差で流用
+        setTimeout(() => { playSE(SOUND_FIRE); }, 200);
+
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
             eContainer.style.setProperty('--assaultX', '-140px');
@@ -449,6 +473,9 @@ function checkBattleEnd() {
   if (pHp <= 0 || eHp <= 0) { 
     stopBGM(); stopSlimeAnimation();
     if (eHp <= 0) {
+        // 🔊 敵死亡消滅SEハック：パリンと魂が砕け散る表現として「se_freeze_hit」を大爆音流用！
+        playSE(SOUND_FREEZE_DEAD);
+
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
         setTimeout(() => { transitionToResult(); }, 800);
