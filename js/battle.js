@@ -1,4 +1,10 @@
 // ==========================================
+// 🕒 🔄 更新検知・タイムスタンプ刻印システム
+// ==========================================
+// 部分調整でもブラウザが最新版を読み込んだか一目でわかるように、ロード時にログを吐き出します。
+console.log("%c🔄 [BATTLE SYSTEMS] 最新の調整版（2026.05.23 23:00版）が正常にリロードされました！", "color: #00ff00; font-weight: bold;");
+
+// ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
 // ==========================================
 window.curIdx = -1; 
@@ -16,8 +22,13 @@ window.isPlayerStunned = false;
 window.enemyMana = 1.0; 
 window.isEnemyShieldActive = false;
 
-// 🚨 今回の補填箇所：戦闘全体のターン数を管理する基本変数
-window.turn = 1; 
+// 🚨 エラー解消：HTML側の turn() 呼び出しと衝突しないよう、変数名を別名で確実隔離
+window.battleTurnCount = 1; 
+
+// 🚨 エラー解消：HTML側の「turn()」という関数呼び出しを受け止めるためのダミー関数を設置して即死を回避
+function turn() {
+    console.log("turn() function triggered by UI. Current TurnCount:", window.battleTurnCount);
+}
 
 // ==========================================
 // 🧙‍♂️ 2. プレイヤー行動・アイテムロジック
@@ -77,8 +88,8 @@ function startBattle() {
     window.enemyMana = 1.0; 
     window.isEnemyShieldActive = false;
     
-    // 🚨 今回の補填箇所：戦闘開始時にターン数を「1」に初期化
-    window.turn = 1; 
+    // ターン数を初期化
+    window.battleTurnCount = 1; 
 
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
@@ -92,7 +103,12 @@ function startBattle() {
     if (itemBadge) itemBadge.style.display = "none"; 
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
-    if (eGraphic) eGraphic.src = MASTER_ANIM_MAP[data.type][0];
+    
+    // 🚨 敵の初期画像を「MASTER_ANIM_MAP」から100%安全に取得してバインド
+    if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
+        eGraphic.src = MASTER_ANIM_MAP[data.type][0];
+    }
+    
     showScreen('scr-battle'); 
     startCustomAnimation(data.type); 
     updateHpUI(); 
@@ -102,19 +118,16 @@ function startBattle() {
 }
 
 // ==========================================
-// 👹 4. 今回の最重要補填：エネミーターン行動AIロジック
+// 👹 4. エネミーターン行動AIロジック
 // ==========================================
 function enemyTurnAction() {
-    // すでに勝敗が決まっていれば処理しない
     if (checkBattleEnd()) return;
 
     const logEl = document.getElementById('battle-log');
     const data = STAGES[window.curIdx];
     
-    // 基本の敵攻撃力（ステージデータから取得、なければ基本値15）
     let damage = data.atk || 15;
 
-    // お守りが発動している場合は、プレイヤーへの被ダメージを半分にする
     if (window.isAmuletActive > 0) {
         damage = Math.floor(damage / 2);
         window.isAmuletActive--;
@@ -124,7 +137,6 @@ function enemyTurnAction() {
         }
     }
 
-    // プレイヤーのHPを減算し、UIを更新
     window.pHp = Math.max(0, window.pHp - damage);
     updateHpUI();
 
@@ -132,13 +144,11 @@ function enemyTurnAction() {
         logEl.innerText = `💥 ${data.name}の攻撃！ プレイヤーは ${damage} のダメージを受けた！`;
     }
 
-    // ターン数を進める
-    window.turn++;
+    window.battleTurnCount++;
 
-    // 敵の攻撃のあと、プレイヤーが死んでいなければ、プレイヤーの行動を解放する
     setTimeout(() => {
         if (!checkBattleEnd()) {
-            window.isBusy = false; // ビジー状態を解除してプレイヤーの手番へ
+            window.isBusy = false; 
             if (logEl) logEl.innerText = "🧙‍♂️ プレイヤーのターンです。行動を選択してください。";
         }
     }, 1000);
