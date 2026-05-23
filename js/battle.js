@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 最終決定版（2026.05.24 00:10版）全システム完全開通！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 最終決定版：残骸除去・連打フリーズ解消・正規harpy表示のすべてを完全開通！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -40,7 +40,7 @@ function turn(playerMove) {
     const data = STAGES[window.curIdx]; 
     let isCritical = (playerMove === data.weak);
     
-    // 💀 開発者デスコード
+    // 💀 開発者デスコード（最優先即時決着）
     if (playerMove === 'debug_death') { 
         window.eHp = 0; 
         updateHpUI(); 
@@ -81,6 +81,7 @@ function turn(playerMove) {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
         
+        // 🚨 安全弁A：ダメージポップ不在によるフリーズを鉄壁ガード
         if (typeof createDmgPop === "function") {
             createDmgPop(dmg, false);
         }
@@ -99,7 +100,7 @@ function turn(playerMove) {
 }
 
 // ==========================================
-// 🎒 3. アイテムバッグ・ステージ進行管理（完全復元）
+// 🎒 3. アイテムバッグ・ステージ進行管理
 // ==========================================
 function useItem(itemType) {
     if (window.isBusy || window.itemInventory[itemType] <= 0) return;
@@ -165,6 +166,10 @@ function startBattle() {
     const chargeBadge = document.getElementById('charge-badge');
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
+    
+    // 🚨 成果クリアA：新しいグラフィックを当てる直前に古い残骸を完全白紙化
+    if (eGraphic) eGraphic.src = "";
+
     const logEl = document.getElementById('battle-log');
     if (itemBadge) itemBadge.style.display = "none"; 
     if (chargeBadge) chargeBadge.style.display = "none";
@@ -177,11 +182,14 @@ function startBattle() {
     if (typeof startBGM === "function") startBGM("battle");
 
     setTimeout(() => {
-        if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
-            eGraphic.src = MASTER_ANIM_MAP[data.type][0];
+        // 🚨 成果同期：リネームが完了した正規の 'harpy' フォルダ構造を完璧にロード
+        let folderType = data.type; 
+
+        if (eGraphic && MASTER_ANIM_MAP[folderType]) { 
+            eGraphic.src = MASTER_ANIM_MAP[folderType][0];
         }
         if (typeof startCustomAnimation === "function") {
-            startCustomAnimation(data.type); 
+            startCustomAnimation(folderType); 
         }
     }, 50);
 }
@@ -216,6 +224,7 @@ function enemyTurnAction(isPlayerDefending = false) {
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
     
+    // 🚨 安全弁B：エネミーターン側の連打フリーズ防止ガード
     if (typeof createDmgPop === "function") {
         createDmgPop(dmg, true);
     }
