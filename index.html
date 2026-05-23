@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body class="game-body">
 
@@ -65,7 +65,7 @@
                     
                     <div id="icon-stage" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; gap:40px;">
                         <div id="p-sprite-container" style="width:190px; height:190px; animation: floatP 1.8s infinite alternate ease-in-out;">
-                            <img src="https://raw.githubusercontent.com/shadow-monk/game1/main/assets/hero/Wizard.png" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Wizard">
+                            <img id="p-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Wizard">
                         </div>
                         <div id="e-sprite-container" style="width:240px; height:240px; animation: floatE 2.2s infinite alternate ease-in-out; transition: opacity 0.8s, transform 0.8s;">
                             <img id="e-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Enemy">
@@ -121,8 +121,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V4.15（🛡️アセット連番アニメーション完全復旧版）</span>
-        <span>Update: 2026.05.23 02:10:00</span>
+        <span>改訂 V5.00（🌐URL自動結合・CSS汎用変数基盤化）</span>
+        <span>Update: 2026.05.23 09:02:29</span>
     </div>
 </div>
 
@@ -133,33 +133,52 @@ function checkDevPassword() {
     const inputField = document.getElementById("dev-password-input");
     const badge = document.getElementById("dev-status-badge");
     const debugBtn = document.getElementById("btn-debug-death");
-    if (inputField.value === "1192") { 
+    if (inputField && inputField.value === "1192") { 
         badge.innerText = "UNLOCKED"; badge.style.color = '#10b981'; isDebugUnlocked = true;
         pMaxHp = 8000; pHp = 8000; updateHpUI();
         if (debugBtn) debugBtn.style.display = "block";
-    } else { 
+    } else if (badge && debugBtn) { 
         badge.innerText = "LOCKED"; badge.style.color = '#ef4444'; isDebugUnlocked = false;
         if (debugBtn) debugBtn.style.display = "none";
     }
 }
 
 // ==========================================
-// 📦 アセットデータベース (画像パス更新)
+// 🧱 1. 製品化・配布を見据えたアセットベースパス群の一元管理
 // ==========================================
-const BASE_PATH = "https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/enemies/";
+const BASE_ASSETS = {
+    repo1: "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/",
+    repo2: "https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/"
+};
 
-const ANIMS_SLIME = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/imagesX/Slime%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/imagesX/Slime%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/imagesX/Slime%20(3).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/imagesX/Slime%20(4).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/imagesX/Slime%20(5).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/imagesX/Slime%20(6).png"];
-const ANIMS_SPIDER = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(3).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(4).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(5).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(6).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/spider/spider%20(7).png"];
-const ANIMS_SKELTON = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(3).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(4).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(5).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(6).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(7).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(8).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/monster2/skeleton/skeleton%20(9).png"];
-const ANIMS_HARPY = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/happy/happy%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/happy/happy%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/happy/happy%20(3).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/happy/happy%20(4).png"];
-const ANIMS_GOLEM = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/golem/Golem%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/golem/Golem%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/golem/Golem%20(3).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/golem/Golem%20(4).png"];
-const ANIMS_PHANTOM = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/phantom/phantom%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/phantom/phantom%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/phantom/phantom%20(3).png"];
-const ANIMS_DRAGON = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/doragon/A_dragon%20(1).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/doragon/A_dragon%20(2).png","https://raw.githubusercontent.com/shadow-monk/game1/main/assets/doragon/A_dragon%20(3).png"];
+// パス動的自動結合関数（安全弁内蔵）
+function getAssetPath(category, filename) {
+    try {
+        if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
+        if (category === 'sound') return `${BASE_ASSETS.repo1}sound/${filename}`;
+        if (category === 'music') return `${BASE_ASSETS.repo1}music/${filename}`;
+        if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
+        if (category === 'enemy_new') return `${BASE_ASSETS.repo2}enemies/${filename}`;
+        if (category === 'effect') return `${BASE_ASSETS.repo1}effect/${filename}`;
+        return "";
+    } catch(e) {
+        console.error("Path Resolution Error:", e);
+        return "";
+    }
+}
 
-// 🆕 エビルアイ、ガーゴイル、マイコニドの新パス設定
-const ANIMS_EYES = [1,2,3,4,5,6].map(n => `${BASE_PATH}eyes/eyes_0${n}.png`);
-const ANIMS_GARGOIL = [1,2,3,4,5,6,7].map(n => `${BASE_PATH}gargoil/gargoill_0${n}.png`);
-const ANIMS_MAICONID = [1,2,3,4,5,6,7,8,9,10].map(n => `${BASE_PATH}maiconid/maiconidl_${n<10?'0'+n:n}.png`);
+// データベース構造の正規化
+const ANIMS_SLIME = [1,2,3,4,5,6].map(n => getAssetPath('enemy_legacy', `imagesX/Slime%20(${n}).png`));
+const ANIMS_SPIDER = [1,2,3,4,5,6,7].map(n => getAssetPath('enemy_legacy', `spider/spider%20(${n}).png`));
+const ANIMS_SKELTON = [1,2,3,4,5,6,7,8,9].map(n => getAssetPath('enemy_legacy', `monster2/skeleton/skeleton%20(${n}).png`));
+const ANIMS_HARPY = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `happy/happy%20(${n}).png`));
+const ANIMS_GOLEM = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `golem/Golem%20(${n}).png`));
+const ANIMS_PHANTOM = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `phantom/phantom%20(${n}).png`));
+const ANIMS_DRAGON = [1,2,3].map(n => getAssetPath('enemy_legacy', `doragon/A_dragon%20(${n}).png`));
+
+const ANIMS_EYES = [1,2,3,4,5,6].map(n => getAssetPath('enemy_new', `eyes/eyes_0${n}.png`));
+const ANIMS_GARGOIL = [1,2,3,4,5,6,7].map(n => getAssetPath('enemy_new', `gargoil/gargoill_0${n}.png`));
+const ANIMS_MAICONID = [1,2,3,4,5,6,7,8,9,10].map(n => getAssetPath('enemy_new', `maiconid/maiconidl_${n<10?'0'+n:n}.png`));
 
 const MASTER_ANIM_MAP = { 
     slime: ANIMS_SLIME, spider: ANIMS_SPIDER, skelton: ANIMS_SKELTON, 
@@ -167,15 +186,27 @@ const MASTER_ANIM_MAP = {
     mush: ANIMS_MAICONID, phantom: ANIMS_PHANTOM, eyes: ANIMS_EYES, dragon: ANIMS_DRAGON 
 };
 
-// 効果音
-const SOUND_FIRE = "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/sound/se_fire.mp3"; 
-const SOUND_ICE = "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/sound/se_ice.mp3";   
-const SOUND_HOLY = "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/sound/se_holy.mp3"; 
-const SOUND_DEAD = "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/sound/se_dead.mp3"; 
+// 効果音・BGM
+const SOUND_FIRE = getAssetPath('sound', 'se_fire.mp3'); 
+const SOUND_ICE = getAssetPath('sound', 'se_ice.mp3');   
+const SOUND_HOLY = getAssetPath('sound', 'se_holy.mp3'); 
+const SOUND_DEAD = getAssetPath('sound', 'se_dead.mp3'); 
 
-const ANIMS_EFFECT_ICE = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/effect/ICE/ICE%20(1).png"];
-const ANIMS_EFFECT_CROSS = ["https://raw.githubusercontent.com/shadow-monk/game1/main/assets/effect/cross/cross%20(1).png"];
+const BGM_PEACE_FANTASY = getAssetPath('music', 'peace_bgm_fantasy14.mp3');
+const BGM_BATTLE_LIST = [
+    getAssetPath('music', 'tactics12.mp3'),
+    getAssetPath('music', 'Darkbattrey09.mp3'),
+    getAssetPath('music', 'arch_battrey03.mp3'),
+    getAssetPath('music', 'pianobattre11.mp3'),
+    getAssetPath('music', 'runningbattre15.mp3'),
+    getAssetPath('music', 'senritsu04.mp3')
+];
 
+// 暫定エフェクト用参照保持
+const ANIMS_EFFECT_ICE = [getAssetPath('effect', 'ICE/ICE%20(1).png')];
+const ANIMS_EFFECT_CROSS = [getAssetPath('effect', 'cross/cross%20(1).png')];
+
+// プレースホルダー（次ステップでCSS変数クラスへ統合）
 const MISSILE_EFFECTS = {
   fire: `<div style="position:absolute; width:60px; height:60px; background:#ef4444; border-radius:50%; left:160px; top:160px; animation:fireFly 0.4s forwards; box-shadow:0 0 30px #f97316;"></div>`,
   ice: `<img src="${ANIMS_EFFECT_ICE[0]}" style="position:absolute; width:160px; height:160px; left:400px; top:120px; animation:stalkPulse 0.4s forwards;">`,
@@ -203,16 +234,6 @@ const STAGES = [
   { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級の【ホーリー】で挑め！" }
 ];
 
-const BGM_PEACE_FANTASY = "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/peace_bgm_fantasy14.mp3";
-const BGM_BATTLE_LIST = [
-  "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/tactics12.mp3",
-  "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/Darkbattrey09.mp3",
-  "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/arch_battrey03.mp3",
-  "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/pianobattre11.mp3",
-  "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/runningbattre15.mp3",
-  "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/senritsu04.mp3"
-];
-
 let curIdx = -1; let pMaxHp = 100, pHp = 100, eHp = 100, eMaxHp = 100, mana = 1.0; let isBusy = false, isMuted = false;
 let animeTimeout = null; let currentFrameIdx = 0;
 let itemInventory = { potion: 1, amulet: 1 }; let isAmuletActive = 0; let isPlayerStunned = false;
@@ -226,7 +247,8 @@ function playSE(url) {
 
 function showScreen(screenId) {
     ['scr-start', 'scr-intro', 'scr-battle', 'scr-result'].forEach(id => {
-        document.getElementById(id).style.display = (id === screenId) ? 'block' : 'none';
+        const el = document.getElementById(id);
+        if (el) el.style.display = (id === screenId) ? 'block' : 'none';
     });
 }
 
@@ -282,6 +304,11 @@ function startBattle() {
   const data = STAGES[curIdx]; eHp = eMaxHp = data.hp; isBusy = false; isPlayerStunned = false; isAmuletActive = 0; enemyMana = 1.0; isEnemyShieldActive = false;
   const eContainer = document.getElementById('e-sprite-container');
   if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
+  
+  // 🧙‍♂️ プレイヤー初期グラフィックを安全結合
+  const pGraphic = document.getElementById('p-sprite-graphic');
+  if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
+
   document.getElementById('item-badge').style.display = "none"; document.getElementById('charge-badge').style.display = "none";
   document.getElementById('e-name').innerText = data.name;
   document.getElementById('e-sprite-graphic').src = MASTER_ANIM_MAP[data.type][0];
@@ -314,19 +341,25 @@ function turn(playerMove) {
   if (isEnemyShieldActive) { dmg = Math.floor(dmg * 0.25); }
 
   const effLayer = document.getElementById('spell-effect-layer');
-  effLayer.innerHTML = ""; isEnemyShieldActive = false;
+  if (effLayer) effLayer.innerHTML = ""; isEnemyShieldActive = false;
 
-  if (playerMove === 'fire') { playSE(SOUND_FIRE); effLayer.innerHTML = MISSILE_EFFECTS.fire; } 
-  else if (playerMove === 'ice') { playSE(SOUND_ICE); effLayer.innerHTML = MISSILE_EFFECTS.ice; } 
-  else if (playerMove === 'holy') { playSE(SOUND_HOLY); effLayer.innerHTML = MISSILE_EFFECTS.holy; } 
-  else if (playerMove === 'def') {
-      document.getElementById('battle-log').innerText = "🛡 シールドを展開！防御姿勢をとった。";
-      setTimeout(() => { enemyTurnAction(true); }, 800); mana = 1.0; document.getElementById('charge-badge').style.display = "none"; return;
-  } else if (playerMove === 'chg') {
-      mana = 2.5; document.getElementById('charge-badge').style.display = "block"; document.getElementById('battle-log').innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
-      setTimeout(() => { enemyTurnAction(false); }, 800); return;
+  // 🛠️ 演出再生時のフリーズをガードする try-catch 安全弁
+  try {
+      if (playerMove === 'fire') { playSE(SOUND_FIRE); if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire; } 
+      else if (playerMove === 'ice') { playSE(SOUND_ICE); if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.ice; } 
+      else if (playerMove === 'holy') { playSE(SOUND_HOLY); if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.holy; } 
+      else if (playerMove === 'def') {
+          document.getElementById('battle-log').innerText = "🛡 シールドを展開！防御姿勢をとった。";
+          setTimeout(() => { enemyTurnAction(true); }, 800); mana = 1.0; document.getElementById('charge-badge').style.display = "none"; return;
+      } else if (playerMove === 'chg') {
+          mana = 2.5; document.getElementById('charge-badge').style.display = "block"; document.getElementById('battle-log').innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
+          setTimeout(() => { enemyTurnAction(false); }, 800); return;
+      }
+  } catch(e) {
+      console.error("Effect Playback Error Safety Catch:", e);
   }
 
+  // ターン進行保障（演出が詰まっても必ず確実にダメージ判定へ移る）
   setTimeout(() => {
       eHp = Math.max(0, eHp - dmg); updateHpUI(); createDmgPop(dmg, false);
       document.getElementById('battle-log').innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
@@ -342,7 +375,7 @@ function enemyTurnAction(isPlayerDefending = false) {
     dmg = Math.floor(dmg * enemyMana); enemyMana = 1.0;
     if (isAmuletActive > 0 && !isPlayerDefending) dmg = Math.floor(dmg * 0.5);
 
-    const effLayer = document.getElementById('spell-effect-layer'); effLayer.innerHTML = "";
+    const effLayer = document.getElementById('spell-effect-layer'); if (effLayer) effLayer.innerHTML = "";
 
     if (isSpecial) {
         if (data.type === 'skelton') {
@@ -355,16 +388,23 @@ function enemyTurnAction(isPlayerDefending = false) {
         }
 
         if (['slime', 'spider', 'harpy', 'dragon', 'golem'].includes(data.type)) {
-            effLayer.innerHTML = ENEMY_MISSILE_EFFECTS[data.type] || "";
+            if (effLayer) effLayer.innerHTML = ENEMY_MISSILE_EFFECTS[data.type] || "";
         } else {
-            effLayer.innerHTML = `<div style="position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(168,85,247,0.5); left:100px; top:120px; animation:stalkPulse 0.5s forwards; filter:blur(10px);"></div>`;
+            if (effLayer) effLayer.innerHTML = `<div style="position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(168,85,247,0.5); left:100px; top:120px; animation:stalkPulse 0.5s forwards; filter:blur(10px);"></div>`;
         }
 
         if (data.type === 'spider') isPlayerStunned = true;
         document.getElementById('battle-log').innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        document.getElementById('e-sprite-container').style.animation = "enemyAssault 0.45s forwards";
-        setTimeout(() => { document.getElementById('e-sprite-container').style.animation = "floatE 2.2s infinite alternate ease-in-out"; }, 460);
+        // 🛠️ 突進アニメーションの距離をCSS変数で制御
+        const eContainer = document.getElementById('e-sprite-container');
+        if (eContainer) {
+            eContainer.style.setProperty('--assaultX', '-140px');
+            eContainer.style.animation = "enemyAssault 0.45s forwards";
+        }
+        setTimeout(() => { 
+            if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
+        }, 460);
         document.getElementById('battle-log').innerText = `${data.name}の突進攻撃！【${dmg}】ダメージ！`;
     }
 
@@ -396,7 +436,7 @@ function transitionToResult() {
     const rTitle = document.getElementById('res-title'); const rText = document.getElementById('res-text'); const rBtn = document.getElementById('res-btn');
     if (eHp <= 0) {
         if (curIdx === STAGES.length - 1) {
-            rTitle.innerText = "GRAND END"; rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; rBtn.innerText = "タイトルへ戻る"; startBGM("grand_end");
+            rTitle.innerText = "GRAND END"; rText.innerText = "最上階的暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; rBtn.innerText = "タイトルへ戻る"; startBGM("grand_end");
         } else {
             rTitle.innerText = "VICTORY"; rText.innerText = `${STAGES[curIdx].name}を撃破した！次の階層への扉が開く。`; rBtn.innerText = "次へ進む";
         }
