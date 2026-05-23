@@ -3,7 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<link rel="stylesheet" href="css/style.css?v=16">
+<style>
+  /* ファイア魔法用（製品版タイムライン） */
+  @keyframes fireMissile {
+    0% { left: 120px; top: 180px; transform: scale(0.3); opacity: 0.2; }
+    20% { opacity: 1; transform: scale(1.1); }
+    100% { left: 400px; top: 130px; transform: scale(1.0); opacity: 1; }
+  }
+  @keyframes firePillarGlow {
+    0% { transform: scaleX(0.1) scaleY(0.1); bottom: 20px; opacity: 0; filter: blur(5px); }
+    15% { transform: scaleX(1.4) scaleY(1.3); opacity: 1; filter: blur(0px); box-shadow: 0 0 50px #ef4444; }
+    50% { transform: scaleX(1.0) scaleY(1.1); background: #f97316; }
+    100% { transform: scaleX(0.8) scaleY(0.0); bottom: 180px; opacity: 0; filter: blur(8px); }
+  }
+</style>
+<link rel="stylesheet" href="css/style.css?v=19">
 </head>
 <body class="game-body">
 
@@ -22,7 +36,7 @@
                 <div style="height:8px; background:linear-gradient(90deg,#4f46e5,#f43f5e); width:200px; margin:0 auto 25px auto; border-radius:99px;"></div>
                 <div style="background:#f8fafc; border-radius:20px; padding:20px; border-left:10px solid #4f46e5; text-align:left; margin-bottom:20px;">
                     <p style="color:#1e293b; font-size:1.1rem; line-height:1.7; font-weight:700; margin:0;">
-                        【新スライム16枚×アイス枠消滅フェード版】倉庫2に新規追加されたスライムの全16フレームアニメーションを1階に完全同期。アイス魔法の出現・消滅に超高速の不透明度計算を組み込み、四角い端の残像を完全に霧散させました。
+                        【倉庫2ファントム（11連番）反映版】8階ファントムの画像を倉庫2の `monster_phantom_01`〜`11` へ完全差し替え！全オーディオ＆ファイア巨大火柱、アイス枠消滅、新スライムもすべて正常稼働。
                     </p>
                 </div>
                 <button onclick="nextStage(); triggerFirstAudio();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3);">迷宮へ侵入する</button>
@@ -56,18 +70,18 @@
                     </div>
                 </div>
 
-                <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; position:relative; overflow:hidden;">
+                <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; width:100%; max-width:600px; margin:0 auto; position:relative; overflow:hidden; box-sizing:border-box;">
                     <div id="cutin-bar" style="position:absolute; width:100%; height:80px; background:linear-gradient(90deg, #4f46e5, #f43f5e); top:130px; left:0; z-index:40; display:none; align-items:center; justify-content:center; box-shadow:0 0 20px #facc15;">
                          <div style="color:white; font-size:1.8rem; font-weight:900; text-shadow:2px 2px 0 #000;">🧙‍♂️ 一撃必殺！クリティカルアタック！！</div>
                     </div>
 
                     <div id="spell-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:5; mix-blend-mode:screen !important;"></div>
                     
-                    <div id="icon-stage" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; gap:40px;">
-                        <div id="p-sprite-container" style="width:190px; height:190px; animation: floatP 1.8s infinite alternate ease-in-out;">
+                    <div id="icon-stage" style="display:flex; justify-content:center; align-items:center; width:100%; height:100%; gap:30px;">
+                        <div id="p-sprite-container" style="width:150px; height:150px; animation: floatP 1.8s infinite alternate ease-in-out;">
                             <img id="p-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Wizard">
                         </div>
-                        <div id="e-sprite-container" style="width:240px; height:240px; animation: floatE 2.2s infinite alternate ease-in-out; transition: opacity 0.8s, transform 0.8s;">
+                        <div id="e-sprite-container" style="width:200px; height:200px; animation: floatE 2.2s infinite alternate ease-in-out; transition: opacity 0.8s, transform 0.8s;">
                             <img id="e-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Enemy">
                         </div>
                     </div>
@@ -121,8 +135,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.60（🟢新スライム16枚搭載 × ❄️アイス対策1高速フェードイン・アウト加工）</span>
-        <span>Update: 2026.05.23 13:02:10</span>
+        <span>改訂 V5.80（🟢倉庫2新ファントム11連番反映 × 🔥ファイア演出刷新 × スライム16枚反映）</span>
+        <span>Update: 2026.05.23 13:30:10</span>
     </div>
 </div>
 
@@ -144,7 +158,7 @@ function checkDevPassword() {
 }
 
 // ==========================================
-// 🧱 1. 製品配布・ストリーミング専用ベースパス（github.io 形式）
+// 🧱 1. アセットベースパス管理
 // ==========================================
 const BASE_ASSETS = {
     repo1: "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/",
@@ -157,8 +171,11 @@ function getAssetPath(category, filename) {
         if (category === 'se_clean') return `${BASE_ASSETS.repo2Pages}se/${filename}`; 
         if (category === 'bgm_clean') return `${BASE_ASSETS.repo2Pages}bgm/${filename}`; 
         if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
-        // 🛠️ 倉庫2仕様スライム：専用のslimeフォルダ構造へ直結
+        // 新規格・倉庫2パス（スライム専用）
         if (category === 'enemy_slime_new') return `${BASE_ASSETS.repo2Pages}enemies/slime/${filename}`;
+        // 新規格・倉庫2パス（ファントム専用）
+        if (category === 'enemy_phantom_new') return `${BASE_ASSETS.repo2Pages}enemies/phantom/${filename}`;
+        // その他の新敵
         if (category === 'enemy_new') return `https://shadow-monk.github.io/spiral-tower2/enemies/${filename}`;
         if (category === 'effect') return `${BASE_ASSETS.repo1}effect/${filename}`;
         return "";
@@ -168,7 +185,7 @@ function getAssetPath(category, filename) {
     }
 }
 
-// 🛠️ 1階ヘドロスライム：新設された01〜16（04含む）の合計16枚の最新高密度連番配列へアップデート！
+// スライム16枚完全反映
 const ANIMS_SLIME = Array.from({length: 16}, (_, i) => {
     const num = String(i + 1).padStart(2, '0');
     return getAssetPath('enemy_slime_new', `monster_slime_${num}.png`);
@@ -178,7 +195,13 @@ const ANIMS_SPIDER = [1,2,3,4,5,6,7].map(n => getAssetPath('enemy_legacy', `spid
 const ANIMS_SKELTON = [1,2,3,4,5,6,7,8,9].map(n => getAssetPath('enemy_legacy', `monster2/skeleton/skeleton%20(${n}).png`));
 const ANIMS_HARPY = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `happy/happy%20(${n}).png`));
 const ANIMS_GOLEM = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `golem/Golem%20(${n}).png`));
-const ANIMS_PHANTOM = [1,2,3,4].map(n => getAssetPath('enemy_legacy', `phantom/phantom%20(${n}).png`));
+
+// 🛠️ 復活ステップ2：倉庫2新ファントム11連番（01〜11）配列へ完全移行！
+const ANIMS_PHANTOM = Array.from({length: 11}, (_, i) => {
+    const num = String(i + 1).padStart(2, '0');
+    return getAssetPath('enemy_phantom_new', `monster_phantom_${num}.png`);
+});
+
 const ANIMS_DRAGON = [1,2,3].map(n => getAssetPath('enemy_legacy', `doragon/A_dragon%20(${n}).png`));
 
 const ANIMS_EYES = [1,2,3,4,5,6].map(n => getAssetPath('enemy_new', `eyes/eyes_0${n}.png`));
@@ -191,7 +214,7 @@ const MASTER_ANIM_MAP = {
     mush: ANIMS_MAICONID, phantom: ANIMS_PHANTOM, eyes: ANIMS_EYES, dragon: ANIMS_DRAGON 
 };
 
-// 🔊 SE実名完全マッピング
+// 🔊 SE実名マッピング
 const SOUND_FIRE = getAssetPath('se_clean', 'se_fire_hit.mp3'); 
 const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');   
 const SOUND_HOLY = getAssetPath('se_clean', 'se_holy_hit.mp3'); 
@@ -211,30 +234,30 @@ const BGM_PEACE_GRAND_END = getAssetPath('bgm_clean', 'bgm_peace_fantasy14.mp3')
 // アイス用連番画像（全8枚）
 const ANIMS_EFFECT_ICE = [1,2,3,4,5,6,7,8].map(n => getAssetPath('effect', `ICE/ICE%20(${n}).png`));
 
+// プレースホルダー（ホーリー用）
 const MISSILE_EFFECTS = {
-  fire: `<div class="projectile-motion" style="width:60px; height:60px; background:#ef4444; border-radius:50%; --startX:160px; --startY:160px; --endX:420px; --endY:160px; --speed:0.4s; box-shadow:0 0 30px #f97316;"></div>`,
-  holy: `<div class="pulse-motion" style="width:200px; height:200px; background:rgba(250,204,21,0.2); border-radius:50%; --posX:420px; --posY:160px; --speed:0.5s; display:flex; align-items:center; justify-content:center; font-size:5rem;">✨</div>`
+  holy: `<div class="pulse-motion" style="width:200px; height:200px; background:rgba(250,204,21,0.2); border-radius:50%; --posX:380px; --posY:130px; --speed:0.5s; display:flex; align-items:center; justify-content:center; font-size:5rem;">✨</div>`
 };
 
 const ENEMY_MISSILE_EFFECTS = {
-  slime: `<div style="position:absolute; width:35px; height:35px; background:#22c55e; border-radius:50%; left:440px; top:140px; animation:enemyMissile 0.45s forwards;"></div>`,
-  spider: `<div style="position:absolute; width:50px; height:50px; border:2px dashed #e2e8f0; border-radius:50%; left:440px; top:140px; animation:enemyMissile 0.45s forwards;"></div>`,
-  harpy: `<div style="position:absolute; width:80px; height:20px; background:rgba(255,255,255,0.6); left:440px; top:140px; animation:enemyMissile 0.4s forwards; transform:rotate(-15deg);"></div>`,
-  golem: `<div style="position:absolute; width:60px; height:60px; background:#78350f; border-radius:12px; left:440px; top:140px; animation:enemyMissile 0.5s forwards;"></div>`,
-  dragon: `<div style="position:absolute; width:120px; height:60px; background:linear-gradient(90deg,#ef4444,transparent); left:440px; top:140px; animation:enemyMissile 0.4s forwards; blur(5px);"></div>`
+  slime: `<div style="position:absolute; width:35px; height:35px; background:#22c55e; border-radius:50%; left:400px; top:130px; animation:enemyMissile 0.45s forwards;"></div>`,
+  spider: `<div style="position:absolute; width:50px; height:50px; border:2px dashed #e2e8f0; border-radius:50%; left:400px; top:130px; animation:enemyMissile 0.45s forwards;"></div>`,
+  harpy: `<div style="position:absolute; width:80px; height:20px; background:rgba(255,255,255,0.6); left:400px; top:130px; animation:enemyMissile 0.4s forwards; transform:rotate(-15deg);"></div>`,
+  golem: `<div style="position:absolute; width:60px; height:60px; background:#78350f; border-radius:12px; left:400px; top:130px; animation:enemyMissile 0.5s forwards;"></div>`,
+  dragon: `<div style="position:absolute; width:120px; height:60px; background:linear-gradient(90deg,#ef4444,transparent); left:400px; top:130px; animation:enemyMissile 0.4s forwards; blur(5px);"></div>`
 };
 
 const STAGES = [
-  { floor: 1,  name: "ヘドロスライム",       hp: 65,  atk: 10, weak: "fire", type: "slime",   glow: "rgba(34,197,94,0.4)",  txt: "1階。通路を塞ぐ粘液質の魔物。新アセット全16フレームによる滑らかな躍動を見よ！" },
+  { floor: 1,  name: "ヘドロスライム",       hp: 65,  atk: 10, weak: "fire", type: "slime",   glow: "rgba(34,197,94,0.4)",  txt: "1階。通路を塞ぐ粘液質の魔物。新アセット全16連番の滑らかな跃動を見よ！弱点:Fire。" },
   { floor: 2,  name: "ブラッドスパイダー",   hp: 80,  atk: 13, weak: "fire", type: "spider",  glow: "rgba(239,68,68,0.4)",  txt: "2階。無数の足が蠢く巨大蜘蛛。蜘蛛の糸（1ターン麻痺）に警戒せよ！" },
   { floor: 3,  name: "スケルトンナイト",     hp: 100, atk: 16, weak: "holy", type: "skelton", glow: "rgba(203,213,225,0.5)", txt: "3階。古の戦意を宿した強固な骸骨騎士。鉄壁の呪文シールドに注意せよ！" },
   { floor: 4,  name: "ハーピィ",             hp: 125, atk: 19, weak: "ice",  type: "harpy",   glow: "rgba(236,72,153,0.4)",  txt: "4階。大気を操り鋭く羽ばたく怪鳥。自由な翼を【アイス】で完全氷結させろ！" },
   { floor: 5,  name: "ゴーレム",             hp: 155, atk: 22, weak: "fire", type: "golem",   glow: "rgba(245,158,11,0.5)",  txt: "5階。地響きを伴って駆動する岩石巨兵。強烈な岩石投げをいなせ！" },
   { floor: 6,  name: "ガーゴイル",           hp: 190, atk: 26, weak: "ice",  type: "gargoil", glow: "rgba(100,116,139,0.5)", txt: "6階。石像から解き放たれし守護霊獣。魔法陣による超チャージに警戒！" },
   { floor: 7,  name: "マイコニド",           hp: 230, atk: 30, weak: "fire", type: "mush",    glow: "rgba(168,85,247,0.4)",  txt: "7階。歩行キノコ。胞子による腐食に注意せよ！" },
-  { floor: 8,  name: "ファントム",           hp: 280, atk: 35, weak: "holy", type: "phantom", glow: "rgba(125,211,252,0.4)", txt: "8階。霧のように形を変えて浮遊する亡霊。周囲を覆う腐食ガスを突破せよ！" },
+  { floor: 8,  name: "ファントム",           hp: 280, atk: 35, weak: "holy", type: "phantom", glow: "rgba(125,211,252,0.4)", txt: "8階。霧のように形を変える亡霊。倉庫2の新規格11連番にて復旧！周囲を覆う腐食ガスを突破せよ！" },
   { floor: 9,  name: "イビルアイ",           hp: 360, atk: 42, weak: "holy", type: "eyes",    glow: "rgba(219,39,119,0.5)",  txt: "9階。狂気に満ちた視線を放つ巨大魔眼。死の光の空間出現をかわせ！" },
-  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級 of 最大級の攻撃で挑め！" }
+  { floor: 10, name: "カリスドラゴン",       hp: 550, atk: 52, weak: "holy", type: "dragon",  glow: "rgba(15,23,42,1)",      txt: "10階。螺旋の頂上に君臨する最終暗黒竜。全てを込めた最大級の【ホーリー】で挑め！" }
 ];
 
 let curIdx = -1; let pMaxHp = 100, pHp = 100, eHp = 100, eMaxHp = 100, mana = 1.0; let isBusy = false, isMuted = false;
@@ -268,7 +291,13 @@ function startCustomAnimation(type) {
         let dynamicArr = MASTER_ANIM_MAP[cType] || ANIMS_SLIME;
         currentFrameIdx = (currentFrameIdx + 1) % dynamicArr.length;
         graphicEl.src = dynamicArr[currentFrameIdx];
-        animeTimeout = setTimeout(step, 140); // 16枚になったので、少し速度をアップ（140ms）して滑らかにループ
+        
+        // 🛠️ 枚数拡張に伴うフレームレート補正
+        let fps = 140;
+        if (cType === 'slime') fps = 130;    // スライム(16枚)は少し速く
+        if (cType === 'phantom') fps = 160;  // ファントム(11枚)は少しゆっくり
+        
+        animeTimeout = setTimeout(step, fps); 
     }
     step();
 }
@@ -343,7 +372,7 @@ function updateHpUI() {
 
 function createDmgPop(dmg, isPlayer) {
     const pop = document.createElement("div"); pop.style.position = "absolute"; pop.style.fontSize = "2.5rem"; pop.style.fontWeight = "900"; pop.style.textShadow = "2px 2px #000";
-    pop.style.left = isPlayer ? "100px" : "400px"; pop.style.top = "150px"; pop.style.color = isPlayer ? "#ef4444" : "#fff"; pop.innerText = dmg;
+    pop.style.left = isPlayer ? "100px" : "360px"; pop.style.top = "150px"; pop.style.color = isPlayer ? "#ef4444" : "#fff"; pop.innerText = dmg;
     document.getElementById("dmg-layer").appendChild(pop); setTimeout(() => pop.remove(), 800);
 }
 
@@ -361,35 +390,49 @@ function turn(playerMove) {
   if (effLayer) effLayer.innerHTML = ""; isEnemyShieldActive = false;
 
   try {
+      // 復旧ステップ1：ファイア段階的タイムライン制御システム（復習）
       if (playerMove === 'fire') {
-          if(effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire;
-          setTimeout(() => { playSE(SOUND_FIRE); }, 400);
+          if (effLayer) {
+              // 【第1段階：発射】
+              effLayer.innerHTML = `<div style="position:absolute; width:55px; height:55px; background:radial-gradient(circle, #facc15 10%, #f97316 50%, #ef4444 100%); border-radius:50%; box-shadow:0 0 35px #f97316, 0 0 60px #ef4444; animation: fireMissile 0.4s cubic-bezier(0.25, 1, 0.5, 1) forwards;"></div>`;
+          }
+          
+          // 【第2段階：着弾SE同期】
+          setTimeout(() => { 
+              playSE(SOUND_FIRE); 
+              
+              // 【第3段階：巨大火柱（pillar_of_fire）展開】
+              if (effLayer) {
+                  effLayer.innerHTML = `<div id="pillar-of-fire" style="position:absolute; width:160px; height:320px; right:70px; bottom:20px; background:linear-gradient(to top, #ef4444 0%, #f97316 40%, #facc15 80%, transparent 100%); border-radius:50px 50px 0 0; animation: firePillarGlow 0.6s ease-out forwards; pointer-events:none; z-index:11;"></div>`;
+              }
+          }, 400);
       } 
-      // 🛠️ 対策1：アイスのフチ枠消滅 高速透明度（opacity）フェードイン・アウトマシーン
+      // 対策1：アイスのフチ枠消滅 高速透明度フェードイン・アウトマシーン（10msウエイト版）
       else if (playerMove === 'ice') {
           if (effLayer) {
-              effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:240px; height:240px; left:330px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; transition: opacity 0.1s; opacity: 0; pointer-events:none;">`;
-              const iceImg = document.getElementById("ice-anim-sprite");
-              let frame = 0;
+              effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:200px; height:200px; right:50px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; transition: opacity 0.12s ease-in-out; opacity: 0; pointer-events:none; z-index:10;">`;
               
-              function playIceFrame() {
-                  if (frame < ANIMS_EFFECT_ICE.length) {
-                      if (iceImg) {
-                          iceImg.src = ANIMS_EFFECT_ICE[frame];
-                          // 🎨 境界線ブレンド制御：出現(1〜2枚)と消滅(7〜8枚)の瞬間に透明度を高速スライドさせフチの断崖絶壁を隠す
-                          if (frame <= 1) {
-                              iceImg.style.opacity = (frame + 1) * 0.5; // 0.5 ➔ 1.0 へ高速フェードイン
-                          } else if (frame >= 6) {
-                              iceImg.style.opacity = (8 - frame) * 0.5; // 1.0 ➔ 0.5 ➔ 0 へ高速フェードアウト
-                          } else {
-                              iceImg.style.opacity = 1;
+              setTimeout(() => {
+                  const iceImg = document.getElementById("ice-anim-sprite");
+                  let frame = 0;
+                  function playIceFrame() {
+                      if (frame < ANIMS_EFFECT_ICE.length) {
+                          if (iceImg) {
+                              iceImg.src = ANIMS_EFFECT_ICE[frame];
+                              if (frame <= 1) {
+                                  iceImg.style.opacity = (frame + 1) * 0.5; 
+                              } else if (frame >= 6) {
+                                  iceImg.style.opacity = (8 - frame) * 0.5; 
+                              } else {
+                                  iceImg.style.opacity = 1;
+                              }
                           }
+                          frame++;
+                          setTimeout(playIceFrame, 55); 
                       }
-                      frame++;
-                      setTimeout(playIceFrame, 55); 
                   }
-              }
-              playIceFrame();
+                  playIceFrame();
+              }, 10);
           }
           setTimeout(() => { playSE(SOUND_ICE); }, 400);
       } 
@@ -410,6 +453,7 @@ function turn(playerMove) {
       console.error("Effect Playback Safety Catch:", e);
   }
 
+  // 行動ダメージ適用タイムライン
   setTimeout(() => {
       eHp = Math.max(0, eHp - dmg); updateHpUI(); createDmgPop(dmg, false);
       document.getElementById('battle-log').innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
@@ -429,9 +473,7 @@ function enemyTurnAction(isPlayerDefending = false) {
     const effLayer = document.getElementById('spell-effect-layer'); if (effLayer) effLayer.innerHTML = "";
 
     if (isSpecial) {
-        // 🔊 特殊攻撃時SEハック：不気味な魔力集約音代わりに「se_holy_hit」を流用
         playSE(SOUND_HOLY);
-
         if (data.type === 'skelton') {
             isEnemyShieldActive = true; document.getElementById('battle-log').innerText = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
             postEnemyTurnCleanup(); return;
@@ -448,9 +490,7 @@ function enemyTurnAction(isPlayerDefending = false) {
         if (data.type === 'spider') isPlayerStunned = true;
         document.getElementById('battle-log').innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        // 🔊 被ダメージ音SEハック：激しい打撃激突音代わりに「se_fire_hit」を少し時間差で流用
         setTimeout(() => { playSE(SOUND_FIRE); }, 200);
-
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
             eContainer.style.setProperty('--assaultX', '-140px');
@@ -473,9 +513,7 @@ function checkBattleEnd() {
   if (pHp <= 0 || eHp <= 0) { 
     stopBGM(); stopSlimeAnimation();
     if (eHp <= 0) {
-        // 🔊 敵死亡消滅SEハック：パリンと魂が砕け散る表現として「se_freeze_hit」を大爆音流用！
         playSE(SOUND_FREEZE_DEAD);
-
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
         setTimeout(() => { transitionToResult(); }, 800);
