@@ -20,18 +20,18 @@ window.isEnemyShieldActive = false;
 // 🧙‍♂️ 2. プレイヤー行動・アイテムロジック
 // ==========================================
 function useItem(itemType) {
-    if (isBusy || itemInventory[itemType] <= 0) return;
-    isBusy = true; 
-    itemInventory[itemType]--; 
+    if (window.isBusy || window.itemInventory[itemType] <= 0) return;
+    window.isBusy = true; 
+    window.itemInventory[itemType]--; 
     closeItemBag();
     const effLayer = document.getElementById('spell-effect-layer');
     if (effLayer) effLayer.innerHTML = "";
     const logEl = document.getElementById('battle-log');
     if (itemType === 'potion') { 
-        pHp = Math.min(pMaxHp, pHp + 50); 
+        window.pHp = Math.min(window.pMaxHp, window.pHp + 50); 
         if (logEl) logEl.innerText = "🎒 回復薬を使用！HPが50回復！"; 
     } else { 
-        isAmuletActive = 3; 
+        window.isAmuletActive = 3; 
         const badge = document.getElementById('item-badge');
         if (badge) badge.style.display = "block"; 
         if (logEl) logEl.innerText = "🎒 お守りを使用！3ターン被ダメ半減！"; 
@@ -42,10 +42,10 @@ function useItem(itemType) {
 
 function nextStage() {
     closeItemBag(); 
-    curIdx++;
-    if (curIdx >= STAGES.length) { resetGame(); showScreen('scr-start'); const indicator = document.getElementById('floor-indicator'); if (indicator) indicator.style.visibility = 'hidden'; startBGM("title"); return; }
-    const data = STAGES[curIdx]; 
-    if (!window.isDebugUnlocked) { pMaxHp = 100; pHp = 100; }
+    window.curIdx++;
+    if (window.curIdx >= STAGES.length) { resetGame(); showScreen('scr-start'); const indicator = document.getElementById('floor-indicator'); if (indicator) indicator.style.visibility = 'hidden'; startBGM("title"); return; }
+    const data = STAGES[window.curIdx]; 
+    if (!window.isDebugUnlocked) { window.pMaxHp = 100; window.pHp = 100; }
     const indicator = document.getElementById('floor-indicator');
     if (indicator) { indicator.style.visibility = 'visible'; indicator.innerText = `${data.floor}階`; }
     const chNum = document.getElementById('intro-ch-num');
@@ -59,13 +59,13 @@ function nextStage() {
 }
 
 function startBattle() {
-    const data = STAGES[curIdx]; 
-    eHp = eMaxHp = data.hp; 
-    isBusy = false; 
-    isPlayerStunned = false; 
-    isAmuletActive = 0; 
-    enemyMana = 1.0; 
-    isEnemyShieldActive = false;
+    const data = STAGES[window.curIdx]; 
+    window.eHp = window.eMaxHp = data.hp; 
+    window.isBusy = false; 
+    window.isPlayerStunned = false; 
+    window.isAmuletActive = 0; 
+    window.enemyMana = 1.0; 
+    window.isEnemyShieldActive = false;
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
     const pGraphic = document.getElementById('p-sprite-graphic');
@@ -91,10 +91,10 @@ function startBattle() {
 // 💥 3. 勝敗判定・ゲームリセットロジック
 // ==========================================
 function checkBattleEnd() {
-    if (pHp <= 0 || eHp <= 0) { 
+    if (window.pHp <= 0 || window.eHp <= 0) { 
         stopBGM(); 
         stopSlimeAnimation();
-        if (eHp <= 0) {
+        if (window.eHp <= 0) {
             playSE(SOUND_FREEZE_DEAD);
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
@@ -112,33 +112,33 @@ function transitionToResult() {
     const rTitle = document.getElementById('res-title'); 
     const rText = document.getElementById('res-text'); 
     const rBtn = document.getElementById('res-btn');
-    if (eHp <= 0) {
-        if (curIdx === STAGES.length - 1) {
+    if (window.eHp <= 0) {
+        if (window.curIdx === STAGES.length - 1) {
             if (rTitle) rTitle.innerText = "GRAND END"; 
             if (rText) rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; 
             if (rBtn) rBtn.innerText = "タイトルへ戻る"; 
             startBGM("grand_end"); 
         } else {
             if (rTitle) rTitle.innerText = "VICTORY"; 
-            if (rText) rText.innerText = `${STAGES[curIdx].name}を撃破した！次の階層への扉が開く。`; 
+            if (rText) rText.innerText = `${STAGES[window.curIdx].name}を撃破した！次の階層への扉が開く。`; 
             if (rBtn) rBtn.innerText = "次へ進む";
         }
     } else {
         if (rTitle) rTitle.innerText = "DEFEATED"; 
         if (rText) rText.innerText = "目の前が真っ暗になった..."; 
         if (rBtn) rBtn.innerText = "タイトルへ戻る"; 
-        curIdx = -1;
+        window.curIdx = -1;
     }
-    isBusy = false;
+    window.isBusy = false;
 }
 
 function resetGame() { 
-    if (!window.isDebugUnlocked) { pMaxHp = 100; pHp = 100; } else { pMaxHp = 8000; pHp = 8000; } 
-    mana = 1.0; 
-    curIdx = -1; 
-    isBusy = false; 
-    itemInventory = { potion: 1, amulet: 1 }; 
-    isAmuletActive = 0; 
+    if (!window.isDebugUnlocked) { window.pMaxHp = 100; window.pHp = 100; } else { window.pMaxHp = 8000; window.pHp = 8000; } 
+    window.mana = 1.0; 
+    window.curIdx = -1; 
+    window.isBusy = false; 
+    window.itemInventory = { potion: 1, amulet: 1 }; 
+    window.isAmuletActive = 0; 
     stopBGM(); 
     stopSlimeAnimation(); 
 }
