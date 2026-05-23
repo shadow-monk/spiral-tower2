@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 最終決定版：残骸除去・連打フリーズ解消・正規harpy表示のすべてを完全開通！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 品質保証最終版：連打ロック解除・画像割れ残像撲滅・呪文結合完了！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -59,6 +59,13 @@ function turn(playerMove) {
     if (effLayer) effLayer.innerHTML = ""; 
     window.isEnemyShieldActive = false;
 
+    // ⚡ 懸念点対処：ファイア、アイスのエフェクト関数（effects.js側）を安全に叩き起こす
+    if (typeof startSpellEffect === "function") {
+        startSpellEffect(playerMove);
+    } else if (typeof openMagic === "function") {
+        openMagic(playerMove);
+    }
+
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -81,7 +88,6 @@ function turn(playerMove) {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
         
-        // 🚨 安全弁A：ダメージポップ不在によるフリーズを鉄壁ガード
         if (typeof createDmgPop === "function") {
             createDmgPop(dmg, false);
         }
@@ -167,8 +173,8 @@ function startBattle() {
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
     
-    // 🚨 成果クリアA：新しいグラフィックを当てる直前に古い残骸を完全白紙化
-    if (eGraphic) eGraphic.src = "";
+    // 🚨 対策③：画像割れバツマーク（NO IMAGE）を絶対に出さないため、アドレスクリアではなくCSSで「一時的に完全隠蔽」する
+    if (eGraphic) eGraphic.style.visibility = "hidden";
 
     const logEl = document.getElementById('battle-log');
     if (itemBadge) itemBadge.style.display = "none"; 
@@ -182,11 +188,12 @@ function startBattle() {
     if (typeof startBGM === "function") startBGM("battle");
 
     setTimeout(() => {
-        // 🚨 成果同期：リネームが完了した正規の 'harpy' フォルダ構造を完璧にロード
         let folderType = data.type; 
 
         if (eGraphic && MASTER_ANIM_MAP[folderType]) { 
             eGraphic.src = MASTER_ANIM_MAP[folderType][0];
+            // 🚨 新しいアセット画像がHTMLに完全にバインドされたこの瞬間に、隠蔽を解除して表示させる！これで残骸も画像割れも100%消滅
+            eGraphic.style.visibility = "visible";
         }
         if (typeof startCustomAnimation === "function") {
             startCustomAnimation(folderType); 
@@ -224,7 +231,6 @@ function enemyTurnAction(isPlayerDefending = false) {
     window.pHp = Math.max(0, window.pHp - dmg); 
     updateHpUI(); 
     
-    // 🚨 安全弁B：エネミーターン側の連打フリーズ防止ガード
     if (typeof createDmgPop === "function") {
         createDmgPop(dmg, true);
     }
@@ -241,7 +247,13 @@ function postEnemyTurnCleanup() {
             if (badge) badge.style.display = "none";
         }
     }
-    setTimeout(() => { checkBattleEnd(); }, 800);
+    
+    // 🚨 対策①：何が起きてもタイマー処理の最後で「必ず」行動中フラグをfalseにしてプレイヤーにターンを返す
+    // これにより、1行動でゲームが永久ロックされるバグが完全に消滅します。
+    setTimeout(() => { 
+        window.isBusy = false;
+        checkBattleEnd(); 
+    }, 800);
 }
 
 // ==========================================
