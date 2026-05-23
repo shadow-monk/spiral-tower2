@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 最新の調整版（2026.05.23 23:30版）画像同期の修正完了！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 2026.05.23 23:59最終版：旧戦闘DNA（全魔法・特殊AI）完全覚醒・合流完了！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数（全ファイル共有解放版）
@@ -20,17 +20,99 @@ window.isPlayerStunned = false;
 
 window.enemyMana = 1.0; 
 window.isEnemyShieldActive = false;
+window.battleTurnCount = 1; // ターンカウント用変数
 
-// 変数名を完全に隔離して安全を確保
-window.battleTurnCount = 1; 
+// ==========================================
+// 🧙‍♂️ 2. プレイヤー行動・全コマンドロジック（完全復活）
+// ==========================================
+function turn(playerMove) {
+    // プレイヤーが行動中、または両者のHPが0以下の場合は入力を完全に遮断
+    if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
+    window.isBusy = true;
 
-function turn() {
-    console.log("turn() function triggered by UI. Current TurnCount:", window.battleTurnCount);
+    // 🚨 麻痺（スタン）チェックロジックの完全復元
+    if (window.isPlayerStunned) { 
+        window.isPlayerStunned = false; 
+        const logEl = document.getElementById('battle-log');
+        if (logEl) logEl.innerText = "🚨 麻痺して動けない！"; 
+        setTimeout(enemyTurnAction, 1000); 
+        return; 
+    }
+  
+    const data = STAGES[window.curIdx]; 
+    
+    // 🚨 弱点直撃（クリティカル）判定
+    let isCritical = (playerMove === data.weak);
+    
+    // 🚨 デスコード（debug_death）の完全復元
+    if (playerMove === 'debug_death') { 
+        window.eHp = 0; 
+        updateHpUI(); 
+        const logEl = document.getElementById('battle-log');
+        if (logEl) logEl.innerText = "☠ デスコード起動。"; 
+        setTimeout(checkBattleEnd, 500); 
+        return; 
+    }
+
+    // 🚨 ホーリー（35）とその他（15）のベース威力の完全復元（弱点時は2.2倍）
+    let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
+    
+    // 🚨 敵の骨盾によるダメージ75%カット処理の復元
+    if (window.isEnemyShieldActive) { 
+        dmg = Math.floor(dmg * 0.25); 
+    }
+
+    const effLayer = document.getElementById('spell-effect-layer');
+    if (effLayer) effLayer.innerHTML = ""; 
+    window.isEnemyShieldActive = false; // 攻撃を叩き込んだので盾は解除
+
+    // 🧙‍♂️ 各コマンドの演出・分岐処理
+    if (playerMove === 'fire') {
+        if (effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire;
+    } else if (playerMove === 'ice') {
+        if (effLayer) effLayer.innerHTML = `<img src="${ANIMS_EFFECT_ICE[0]}" style="position:absolute; width:100px; height:100px; left:400px; top:120px; animation:stalkPulse 0.4s forwards;">`;
+    } else if (playerMove === 'holy') {
+        if (effLayer) effLayer.innerHTML = `<img src="${ANIMS_EFFECT_CROSS[0]}" style="position:absolute; width:140px; height:140px; left:400px; top:120px; animation:stalkPulse 0.5s forwards;">`;
+    } else if (playerMove === 'def') {
+        // 🚨 シールド防御コマンドの完全復元
+        const logEl = document.getElementById('battle-log');
+        if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
+        setTimeout(() => { enemyTurnAction(true); }, 800); 
+        window.mana = 1.0; 
+        const chargeBadge = document.getElementById('charge-badge');
+        if (chargeBadge) chargeBadge.style.display = "none"; 
+        return;
+    } else if (playerMove === 'chg') {
+        // 🚨 チャージ（次回威力2.5倍）コマンドの完全復元
+        window.mana = 2.5; 
+        const chargeBadge = document.getElementById('charge-badge');
+        if (chargeBadge) chargeBadge.style.display = "block"; 
+        const logEl = document.getElementById('battle-log');
+        if (logEl) logEl.innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
+        setTimeout(() => { enemyTurnAction(false); }, 800); 
+        return;
+    }
+
+    // 💥 魔法ヒット・ダメージ適用タイミング（400ミリ秒ディレイ）の完全同期
+    setTimeout(() => {
+        window.eHp = Math.max(0, window.eHp - dmg); 
+        updateHpUI(); 
+        createDmgPop(dmg, false);
+        
+        const logEl = document.getElementById('battle-log');
+        if (logEl) {
+            logEl.innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
+        }
+        
+        window.mana = 1.0; 
+        const chargeBadge = document.getElementById('charge-badge');
+        if (chargeBadge) chargeBadge.style.display = "none";
+        
+        // 敵が倒れていなければ、800ミリ秒後にエネミーターンを起動
+        setTimeout(() => { if (!checkBattleEnd()) enemyTurnAction(); }, 800);
+    }, 400);
 }
 
-// ==========================================
-// 🧙‍♂️ 2. プレイヤー行動・アイテムロジック
-// ==========================================
 function useItem(itemType) {
     if (window.isBusy || window.itemInventory[itemType] <= 0) return;
     window.isBusy = true; 
@@ -106,60 +188,114 @@ function startBattle() {
     if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     startBGM("battle");
 
-    // 🚨 修正の核心：インデックスの判定ズレを防ぐため、コンマ数秒（50ミリ秒）だけ待ってから安全にアセット画像をバインド＆アニメーションを叩き起こす
+    // 🚀 新倉庫アセットを100%安全に描画＆起動する50ms同期タイマー
     setTimeout(() => {
         if (eGraphic && MASTER_ANIM_MAP[data.type]) { 
             eGraphic.src = MASTER_ANIM_MAP[data.type][0];
         }
-        // 内部変数が戦闘モードに完全に切り替わった直後にループを起動
-        startCustomAnimation(data.type); 
+        if (typeof startCustomAnimation === "function") {
+            startCustomAnimation(data.type); 
+        }
     }, 50);
 }
 
 // ==========================================
-// 👹 4. エネミーターン行動AIロジック
+// 👹 3. エネミーターン行動AIロジック（特殊攻撃完全復元版）
 // ==========================================
-function enemyTurnAction() {
-    if (checkBattleEnd()) return;
-
-    const logEl = document.getElementById('battle-log');
+function enemyTurnAction(isPlayerDefending = false) {
+    if (window.eHp <= 0 || window.pHp <= 0) return; 
     const data = STAGES[window.curIdx];
     
-    let damage = data.atk || 15;
+    // 40%の確率で特殊AIを発動
+    let isSpecial = (Math.random() < 0.4);
+    
+    // シールド防御時はダメージを15%に激減、通常時はステージ指定の攻撃力
+    let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
+    
+    // 敵が魔力集約していた場合はダメージ2倍
+    dmg = Math.floor(dmg * window.enemyMana); 
+    window.enemyMana = 1.0; // 消費
+    
+    // お守り結界が発動しており、かつシールド防御をしていない場合は被ダメ半減
+    if (window.isAmuletActive > 0 && !isPlayerDefending) {
+        dmg = Math.floor(dmg * 0.5);
+    }
 
-    if (window.isAmuletActive > 0) {
-        damage = Math.floor(damage / 2);
-        window.isAmuletActive--;
-        if (window.isAmuletActive === 0) {
+    const effLayer = document.getElementById('spell-effect-layer'); 
+    if (effLayer) effLayer.innerHTML = "";
+
+    const logEl = document.getElementById('battle-log');
+
+    if (isSpecial) {
+        // 🚨 スケルトンナイト（3階）の骨盾AIの完全復元
+        if (data.type === 'skelton') {
+            window.isEnemyShieldActive = true; 
+            if (logEl) logEl.innerText = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
+            postEnemyTurnCleanup(); 
+            return;
+        }
+        // 🚨 ガーゴイル（6階）の魔力集約AIの完全復元
+        if (data.type === 'gargoil') {
+            window.enemyMana = 2.0; 
+            if (logEl) logEl.innerText = `⚡ ${data.name}は魔力を集約！次回の攻撃力2倍！`;
+            postEnemyTurnCleanup(); 
+            return;
+        }
+
+        // 特殊攻撃のエフェクトアニメーション
+        if (effLayer) {
+            if (['slime', 'spider', 'harpy', 'dragon', 'golem'].includes(data.type)) {
+                effLayer.innerHTML = ENEMY_MISSILE_EFFECTS[data.type] || "";
+            } else {
+                effLayer.innerHTML = `<div style="position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(168,85,247,0.5); left:100px; top:120px; animation:stalkPulse 0.5s forwards; filter:blur(10px);"></div>`;
+            }
+        }
+
+        // 🚨 クモの特殊攻撃によるプレイヤー麻痺（スタン）の完全復元
+        if (data.type === 'spider') {
+            window.isPlayerStunned = true;
+        }
+        if (logEl) logEl.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
+    } else {
+        // 通常の突進突撃アニメーション演出
+        const eContainer = document.getElementById('e-sprite-container');
+        if (eContainer) eContainer.style.animation = "enemyAssault 0.45s forwards";
+        setTimeout(() => { 
+            if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
+        }, 460);
+        
+        if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】ダメージ！`;
+    }
+
+    // プレイヤーへダメージ適用、ポップアップ生成
+    window.pHp = Math.max(0, window.pHp - dmg); 
+    updateHpUI(); 
+    createDmgPop(dmg, true);
+    
+    window.battleTurnCount++;
+    postEnemyTurnCleanup();
+}
+
+function postEnemyTurnCleanup() {
+    if (window.isAmuletActive > 0) { 
+        window.isAmuletActive--; 
+        if (window.isAmuletActive <= 0) {
             const badge = document.getElementById('item-badge');
             if (badge) badge.style.display = "none";
         }
     }
-
-    window.pHp = Math.max(0, window.pHp - damage);
-    updateHpUI();
-
-    if (logEl) {
-        logEl.innerText = `💥 ${data.name}の攻撃！ プレイヤーは ${damage} のダメージを受けた！`;
-    }
-
-    window.battleTurnCount++;
-
-    setTimeout(() => {
-        if (!checkBattleEnd()) {
-            window.isBusy = false; 
-            if (logEl) logEl.innerText = "🧙‍♂️ プレイヤーのターンです。行動を選択してください。";
-        }
-    }, 1000);
+    setTimeout(() => { checkBattleEnd(); }, 800);
 }
 
 // ==========================================
-// 💥 3. 勝敗判定・ゲームリセットロジック
+// 💥 4. 勝敗判定・ゲームリセットロジック
 // ==========================================
 function checkBattleEnd() {
     if (window.pHp <= 0 || window.eHp <= 0) { 
         stopBGM(); 
-        stopSlimeAnimation();
+        if (typeof stopSlimeAnimation === "function") {
+            stopSlimeAnimation();
+        }
         if (window.eHp <= 0) {
             playSE(SOUND_FREEZE_DEAD);
             const eContainer = document.getElementById('e-sprite-container');
@@ -206,5 +342,7 @@ function resetGame() {
     window.itemInventory = { potion: 1, amulet: 1 }; 
     window.isAmuletActive = 0; 
     stopBGM(); 
-    stopSlimeAnimation(); 
+    if (typeof stopSlimeAnimation === "function") {
+        stopSlimeAnimation(); 
+    }
 }
