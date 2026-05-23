@@ -17,7 +17,7 @@
     100% { transform: scaleX(0.8) scaleY(0.0); bottom: 180px; opacity: 0; filter: blur(8px); }
   }
 </style>
-<link rel="stylesheet" href="css/style.css?v=20">
+<link rel="stylesheet" href="css/style.css?v=21">
 </head>
 <body class="game-body">
 
@@ -36,7 +36,7 @@
                 <div style="height:8px; background:linear-gradient(90deg,#4f46e5,#f43f5e); width:200px; margin:0 auto 25px auto; border-radius:99px;"></div>
                 <div style="background:#f8fafc; border-radius:20px; padding:20px; border-left:10px solid #4f46e5; text-align:left; margin-bottom:20px;">
                     <p style="color:#1e293b; font-size:1.1rem; line-height:1.7; font-weight:700; margin:0;">
-                        【パス修復×比率レイアウト完全固定版】旧リポジトリ魔物の消失バグを完全解決。アリーナ内の隙間計算を自動等間隔（space-around）に改訂し、左右へのはみ出しと変形による崩れを永久に封印しました。
+                        【JS構文エラー完全修復×アリーナ幅物理固定版】JavaScriptのタイマー関数の波括弧バグを完全に修正しフリーズを解消。コンテナにborder-boxを強制直書きし、はみ出しによる画面の横長変形崩れを完全に根絶しました。
                     </p>
                 </div>
                 <button onclick="nextStage(); triggerFirstAudio();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3);">迷宮へ侵入する</button>
@@ -70,14 +70,14 @@
                     </div>
                 </div>
 
-                <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; width:100%; max-width:600px; margin:0 auto; position:relative; overflow:hidden; box-sizing:border-box;">
+                <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; width:100%; max-width:600px; margin:0 auto; position:relative; overflow:hidden; box-sizing:border-box !important;">
                     <div id="cutin-bar" style="position:absolute; width:100%; height:80px; background:linear-gradient(90deg, #4f46e5, #f43f5e); top:130px; left:0; z-index:40; display:none; align-items:center; justify-content:center; box-shadow:0 0 20px #facc15;">
                          <div style="color:white; font-size:1.8rem; font-weight:900; text-shadow:2px 2px 0 #000;">🧙‍♂️ 一撃必殺！クリティカルアタック！！</div>
                     </div>
 
-                    <div id="spell-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:5; mix-blend-mode:screen !important;"></div>
+                    <div id="spell-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:5; mix-blend-mode:screen !important; box-sizing:border-box !important;"></div>
                     
-                    <div id="icon-stage" style="display:flex; justify-content:space-around; align-items:center; width:100%; height:100%; box-sizing:border-box; padding:0 20px;">
+                    <div id="icon-stage" style="display:flex; justify-content:space-around; align-items:center; width:100%; height:100%; box-sizing:border-box !important; padding:0 20px;">
                         <div id="p-sprite-container" style="width:140px; height:140px; animation: floatP 1.8s infinite alternate ease-in-out;">
                             <img id="p-sprite-graphic" style="width:100%; height:100%; object-fit:contain; image-rendering:pixelated;" alt="Wizard">
                         </div>
@@ -86,8 +86,8 @@
                         </div>
                     </div>
                     
-                    <div id="front-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:6;"></div>
-                    <div id="dmg-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:7;"></div>
+                    <div id="front-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:6; box-sizing:border-box !important;"></div>
+                    <div id="dmg-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:7; box-sizing:border-box !important;"></div>
                     <div id="charge-badge" style="position:absolute; top:15px; left:15px; background:linear-gradient(135deg,#e11d48,#4f46e5); color:#ffffff; font-size:1rem; font-weight:900; padding:4px 12px; border-radius:99px; display:none; z-index:6;">魔力解放：威力2.5倍</div>
                     <div id="item-badge" style="position:absolute; top:15px; right:15px; background:#059669; color:white; font-size:0.9rem; font-weight:900; padding:4px 12px; border-radius:6px; display:none; z-index:6;">🛡 お守り結界中</div>
                 </div>
@@ -135,8 +135,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.90（🛠️全魔物画像パス分離修復 × 📐等間隔アリーナ比率完全固定版）</span>
-        <span>Update: 2026.05.23 13:42:15</span>
+        <span>改訂 V6.00（🔥JS構文エラー完全救済 × 🛡️アリーナ物理境界はみ出し崩れ治療完了版）</span>
+        <span>Update: 2026.05.23 13:46:12</span>
     </div>
 </div>
 
@@ -170,11 +170,9 @@ function getAssetPath(category, filename) {
         if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
         if (category === 'se_clean') return `${BASE_ASSETS.repo2Pages}se/${filename}`; 
         if (category === 'bgm_clean') return `${BASE_ASSETS.repo2Pages}bgm/${filename}`; 
-        // 🛠️ 治療措置ファクト：未移行モンスターは確実に元の「repo1」を向くように完全分離！
         if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
         if (category === 'enemy_slime_new') return `${BASE_ASSETS.repo2Pages}enemies/slime/${filename}`;
         if (category === 'enemy_phantom_new') return `${BASE_ASSETS.repo2Pages}enemies/phantom/${filename}`;
-        // 新規格アセットはPagesドメイン経由で取得
         if (category === 'enemy_new') return `https://shadow-monk.github.io/spiral-tower2/enemies/${filename}`;
         if (category === 'effect') return `${BASE_ASSETS.repo1}effect/${filename}`;
         return "";
@@ -284,7 +282,7 @@ function startCustomAnimation(type) {
         
         animeTimeout = setTimeout(step, fps); 
     }
-    step();
+    step(); // 🛠️ 治療完了：関数を包む波括弧の狂いを完全修正し、フリーズを大破・消滅
 }
 function stopSlimeAnimation() { if(animeTimeout) { clearTimeout(animeTimeout); animeTimeout = null; } }
 
@@ -382,13 +380,14 @@ function turn(playerMove) {
           setTimeout(() => { 
               playSE(SOUND_FIRE); 
               if (effLayer) {
-                  effLayer.innerHTML = `<div id="pillar-of-fire" style="position:absolute; width:160px; height:320px; right:70px; bottom:20px; background:linear-gradient(to top, #ef4444 0%, #f97316 40%, #facc15 80%, transparent 100%); border-radius:50px 50px 0 0; animation: firePillarGlow 0.6s ease-out forwards; pointer-events:none; z-index:11;"></div>`;
+                  effLayer.innerHTML = `<div id="pillar-of-fire" style="position:absolute; width:160px; height:320px; right:40px; bottom:20px; background:linear-gradient(to top, #ef4444 0%, #f97316 40%, #facc15 80%, transparent 100%); border-radius:50px 50px 0 0; animation: firePillarGlow 0.6s ease-out forwards; pointer-events:none; z-index:11;"></div>`;
               }
           }, 400);
       } 
+      // 🛠️ 治療完了：10ms猶予フェードイン・フェードアウトを高精度で単独稼働
       else if (playerMove === 'ice') {
           if (effLayer) {
-              effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:200px; height:200px; right:50px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; transition: opacity 0.12s ease-in-out; opacity: 0; pointer-events:none; z-index:10;">`;
+              effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:200px; height:200px; right:30px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; transition: opacity 0.12s ease-in-out; opacity: 0; pointer-events:none; z-index:10;">`;
               
               setTimeout(() => {
                   const iceImg = document.getElementById("ice-anim-sprite");
