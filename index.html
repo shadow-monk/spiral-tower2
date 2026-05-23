@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<link rel="stylesheet" href="css/style.css?v=12">
+<link rel="stylesheet" href="css/style.css?v=11">
 </head>
 <body class="game-body">
 
@@ -25,7 +25,7 @@
                         【構造整理・アセット更新版】エビルアイ、ガーゴイル、マイコニドの最新アニメーションを実装。リポジトリ構造を正規化し、各モンスター固有のフレーム数による滑らかな蠢きを復旧。
                     </p>
                 </div>
-                <button onclick="nextStage(); triggerFirstAudio();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3);">迷宮へ侵入する</button>
+                <button onclick="nextStage()" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3);">迷宮へ侵入する</button>
             </div>
 
             <div id="scr-intro" style="display:none; padding:20px 10px;">
@@ -56,7 +56,7 @@
                     </div>
                 </div>
 
-                <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; position:relative; overflow:hidden; transition: background-color 0.3s;">
+                <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; position:relative; overflow:hidden;">
                     <div id="cutin-bar" style="position:absolute; width:100%; height:80px; background:linear-gradient(90deg, #4f46e5, #f43f5e); top:130px; left:0; z-index:40; display:none; align-items:center; justify-content:center; box-shadow:0 0 20px #facc15;">
                          <div style="color:white; font-size:1.8rem; font-weight:900; text-shadow:2px 2px 0 #000;">🧙‍♂️ 一撃必殺！クリティカルアタック！！</div>
                     </div>
@@ -121,8 +121,8 @@
     </div>
     
     <div style="width:100%; max-width:640px; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold;">
-        <span>改訂 V5.60（🛡️自動再生ブロック解除 × 🎨アリーナ背景連動透過処理）</span>
-        <span>Update: 2026.05.23 11:24:15</span>
+        <span>改訂 V5.50（🛡️assets/bgm/ フォルダパス完全同期版）</span>
+        <span>Update: 2026.05.23 11:18:40</span>
     </div>
 </div>
 
@@ -144,7 +144,7 @@ function checkDevPassword() {
 }
 
 // ==========================================
-// 🧱 1. 製品配布を見据えたアセットベースパス一元管理（実パス同期）
+// 🧱 1. パス自動結合管理（assets/bgm/ 完全準拠版）
 // ==========================================
 const BASE_ASSETS = {
     repo1: "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/",
@@ -155,6 +155,7 @@ function getAssetPath(category, filename) {
     try {
         if (category === 'hero') return `${BASE_ASSETS.repo1}hero/${filename}`;
         if (category === 'se_clean') return `${BASE_ASSETS.repo1}se/${filename}`; 
+        // 🛠️ 修正ファクト：ディレクターの指示通り、musicではなく実名の bgm/ フォルダに結合
         if (category === 'bgm_clean') return `${BASE_ASSETS.repo1}bgm/${filename}`; 
         if (category === 'enemy_legacy') return `${BASE_ASSETS.repo1}${filename}`;
         if (category === 'enemy_new') return `${BASE_ASSETS.repo2}enemies/${filename}`;
@@ -191,7 +192,7 @@ const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');
 const SOUND_HOLY = getAssetPath('se_clean', 'se_holy_hit.mp3'); 
 const SOUND_DEAD = getAssetPath('se_clean', 'se_dead.mp3'); 
 
-// 🎵 BGMプレイリスト
+// 🎵 刷新：bgm/ フォルダから6曲のランダムプレイリスト
 const BGM_BATTLE_PLAYLIST = [
     getAssetPath('bgm_clean', 'bgm_battle09.mp3'),
     getAssetPath('bgm_clean', 'bgm_battle11.mp3'),
@@ -237,14 +238,9 @@ let itemInventory = { potion: 1, amulet: 1 }; let isAmuletActive = 0; let isPlay
 let currentAudioBgm = null;
 let enemyMana = 1.0; let isEnemyShieldActive = false;
 
-// 🛠️ 治療：ユーザーのクリック契機でオーディオコンテキストのブロックを解凍する関数
-function triggerFirstAudio() {
-    startBGM("title");
-}
-
 function playSE(url) {
     if (isMuted) return;
-    try { const se = new Audio(url); se.volume = 0.4; se.play().catch(e => console.error("SE Blocked Error:", e)); } catch(e){}
+    try { const se = new Audio(url); se.volume = 0.4; se.play().catch(e => console.error("SE Playback Error:", e)); } catch(e){}
 }
 
 function showScreen(screenId) {
@@ -285,7 +281,7 @@ function startBGM(mode) {
             currentAudioBgm = new Audio(url); 
             currentAudioBgm.loop = (mode !== "grand_end"); 
             currentAudioBgm.volume = 0.3; 
-            currentAudioBgm.play().catch(e=>console.error("BGM Blocked Error:", e)); 
+            currentAudioBgm.play().catch(e=>console.error("BGM Playback Error:", e)); 
         } catch(e){}
     }
 }
@@ -352,7 +348,6 @@ function turn(playerMove) {
   let dmg = Math.floor((playerMove==='holy'?35:15) * (isCritical?2.2:1) * mana);
   if (isEnemyShieldActive) { dmg = Math.floor(dmg * 0.25); }
 
-  const effScreen = document.getElementById('eff-scr');
   const effLayer = document.getElementById('spell-effect-layer');
   if (effLayer) effLayer.innerHTML = ""; isEnemyShieldActive = false;
 
@@ -362,9 +357,6 @@ function turn(playerMove) {
           setTimeout(() => { playSE(SOUND_FIRE); }, 400);
       } 
       else if (playerMove === 'ice') {
-          // 🛠️ 治療：演出中だけアリーナ背景を一時的に「純粋な漆黒（#000000）」にして、四角いフチ枠を完全に物理消滅させる
-          if (effScreen) effScreen.style.backgroundColor = "#000000";
-          
           if (effLayer) {
               effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:200px; height:200px; left:350px; top:100px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important;">`;
               const iceImg = document.getElementById("ice-anim-sprite");
@@ -402,9 +394,6 @@ function turn(playerMove) {
       eHp = Math.max(0, eHp - dmg); updateHpUI(); createDmgPop(dmg, false);
       document.getElementById('battle-log').innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
       mana = 1.0; document.getElementById('charge-badge').style.display = "none";
-      
-      // 🛠️ 治療：演出が終わったらアリーナ背景を元の群青色（#0f172a）に優しく戻す
-      if (effScreen) effScreen.style.backgroundColor = "#0f172a";
       
       setTimeout(() => { 
           if (!checkBattleEnd()) enemyTurnAction(); 
@@ -461,6 +450,7 @@ function postEnemyTurnCleanup() {
     setTimeout(() => { 
         if (!checkBattleEnd()) {
             isBusy = false; 
+            document.getElementById('battle-log').innerText = "コマンドを選択せよ White。";
             document.getElementById('battle-log').innerText = "コマンドを選択せよ。";
         }
     }, 800);
@@ -500,8 +490,7 @@ function transitionToResult() {
 
 function resetGame() { if(!isDebugUnlocked) { pMaxHp = 100; pHp = 100; } else { pMaxHp = 8000; pHp = 8000; } mana = 1.0; curIdx = -1; isBusy = false; itemInventory={potion:1,amulet:1}; isAmuletActive=0; stopBGM(); stopSlimeAnimation(); }
 
-// 🛠️ 変更：ページをロードした瞬間は静かに待機。最初のボタンクリックで音楽を解凍
-window.onload = function() { console.log("Audio System Standby. Waiting for user interaction."); };
+window.onload = function() { startBGM("title"); };
 </script>
 </body>
 </html>
