@@ -1,13 +1,12 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 1.2 (資料e65ffa6・HTML完全同期・出現ラグ無し確定版)
+// 📦 VERSION: 1.3 (カットイン遅延修復・魔法枠線消滅・完全同期版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.2: 資料e65ffa6のHTML構造、CSSアニメーション、および特殊行動を100%完全同期結合。出現ラグ完全撤廃版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.3: ①トドメのカットイン時間軸バグ完全修復 ＋ ②粒子エフェクト枠線消滅処理（plus-lighter・コントラスト）を完全統合！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数
 // ==========================================
-// 資料内の変数宣言（155行目近辺）を100%保持。Ver 1.1ベースの変数も不壊プロテクト
 window.curIdx = -1; 
 window.pMaxHp = 100; 
 window.pHp = 100; 
@@ -28,7 +27,7 @@ window.isPlayerStunned = false;
 window.currentAudioBgm = null;
 
 // ==========================================
-// 🧬 2. モンスターアニメーション駆動回路（資料155-169行目を完全移植）
+// 🧬 2. モンスターアニメーション駆動回路（資料完全同期）
 // ==========================================
 function startCustomAnimation(type) {
     stopSlimeAnimation(); 
@@ -94,7 +93,7 @@ function burstSlimeAnimation() {
 }
 
 // ==========================================
-// 🎧 3. オーディオ制御システム（資料169-185行目完全同期）
+// 🎧 3. オーディオ制御システム
 // ==========================================
 function startBGM(mode) {
     stopBGM(); 
@@ -179,7 +178,7 @@ function playSE(type) {
 }
 
 // ==========================================
-// 🎒 4. アイテムバッグシステム（資料185-191行目完全同期）
+// 🎒 4. アイテムバッグシステム
 // ==========================================
 function openItemBag() { 
     playSE('click'); 
@@ -222,7 +221,7 @@ function useItem(itemType) {
 }
 
 // ==========================================
-// 🎨 5. 付随演出用エフェクト関数群（資料191-211行目完全同期）
+// 🎨 5. 演出エフェクト処理（★Ver 1.3 魔法の四角い枠線を完全隠滅）
 // ==========================================
 function applyManaStockAura(moveType) {
     const aura = document.getElementById('p-aura-layer'); 
@@ -335,7 +334,7 @@ function clearCrisisAlertEffects() {
 }
 
 // ==========================================
-// 🚀 6. ステージ・戦闘遷移（出現ラグ完全撤廃版）
+// 🚀 6. ステージ・戦闘遷移（出現ラグ完全撤廃）
 // ==========================================
 function nextStage() {
     playSE('click'); 
@@ -362,7 +361,6 @@ function nextStage() {
     stopBGM(); 
 }
 
-// 【Ver 1.1・1.2特権回路】タイマーラグを完全撤廃し、HTMLのサイズ設計を絶対破壊しない出現ロジック
 function startBattle() {
     playSE('click'); 
     const data = STAGES[window.curIdx];
@@ -377,7 +375,6 @@ function startBattle() {
     clearCrisisAlertEffects(); 
     document.getElementById('item-badge').style.display = "none";
     
-    // JS側からの勝手なサイズ書き換えプロパティ変更を完全破壊。HTML/CSSの floatE 構造を100%保護する
     const container = document.getElementById('e-sprite-container'); 
     if (container) { 
         container.removeAttribute("style");
@@ -397,7 +394,6 @@ function startBattle() {
         if (data.type === "eyes") { graphicEl.style.transform = "scaleX(-1)"; } 
     }
     
-    // ➔ ここがラグ潰しの真髄：画面を表示する「まさにその瞬間」に、透明画像を挟まずに直接本物画像を同期流し込み！
     if (graphicEl && MASTER_ANIM_MAP[data.type]) {
         graphicEl.src = MASTER_ANIM_MAP[data.type][0];
     }
@@ -405,7 +401,6 @@ function startBattle() {
     document.getElementById('scr-battle').style.display = 'block';
     document.getElementById('e-name').innerText = data.name;
     
-    // アニメーションおよびUI同期
     startCustomAnimation(data.type); 
     updateHpUI(); 
     checkDevPassword();
@@ -439,13 +434,12 @@ function updateHpUI() {
 }
 
 // ==========================================
-// 🧙‍♂️ 7. プレイヤー行動戦闘ループ（資料229-266行目完全同期）
+// 🧙‍♂️ 7. プレイヤー行動戦闘ループ（★Ver 1.3 カットイン同期タイミング＆枠線消滅を完全統合）
 // ==========================================
 function turn(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
     
-    // 資料通りの「麻痺行動不能」条件分岐の配線を完全修復
     if (window.isPlayerStunned) { 
         window.isPlayerStunned = false; 
         document.getElementById('battle-log').innerHTML = "🚨 麻痺して動けない！"; 
@@ -465,24 +459,10 @@ function turn(playerMove) {
         return;
     }
 
-    let testDmg = Math.floor((playerMove === 'holy' ? 36 : 16) * (isCritical ? 2.3 : 1) * window.mana);
+    let calculatedDmg = Math.floor((playerMove === 'holy' ? 36 : 16) * (isCritical ? 2.3 : 1) * window.mana);
     
-    // クリティカルかつトドメの瞬間のみ正確にインターセプトしてカットインを割り込ませる
-    if (isCritical && (window.eHp - testDmg <= 0)) {
-        playSE('boom'); 
-        document.getElementById('cutin-dark-layer').style.display = "block";
-        const cBar = document.getElementById('cutin-bar'); 
-        cBar.style.display = "flex"; 
-        cBar.style.animation = "cutinSlide 1.0s ease-in-out forwards";
-        
-        setTimeout(() => { 
-            document.getElementById('cutin-dark-layer').style.display = "none"; 
-            cBar.style.display = "none"; 
-            executePlayerAttack(playerMove, isCritical, testDmg); 
-        }, 1000); 
-        return;
-    }
-    executePlayerAttack(playerMove, isCritical, testDmg);
+    // ➔ 改善：トドメのカットイン判定を「攻撃エフェクト着弾時」へ完全委任するため、ここではダメージ計算の適用だけを通す
+    executePlayerAttack(playerMove, isCritical, calculatedDmg);
 }
 
 function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
@@ -490,27 +470,30 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     const effectLayer = document.getElementById('spell-effect-layer'); 
     const frontLayer = document.getElementById('front-effect-layer');
     const pContainer = document.getElementById('p-sprite-container'); 
-    const containerEl = document.getElementById('e-sprite-container');
 
     if (effectLayer) effectLayer.innerHTML = "";
     if (frontLayer) frontLayer.innerHTML = "";
 
     let spellName = playerMove === 'fire' ? "ファイア" : (playerMove === 'ice' ? "アイス" : "ホーリー"); 
     let flashColor = playerMove === 'fire' ? "#e11d48" : (playerMove === 'ice' ? "#0284c7" : "#eab308");
-    window.eHp = Math.max(0, window.eHp - calculatedDmg);
     
-    let holyStyleRandom = (playerMove === 'holy') ? Math.floor(Math.random() * 4) + 1 : 0;
-    
+    // 🧙‍♂️ 【第1案・第2案適用】粒子が詰まったアイス・ホーリーの四角い枠線を消滅させるインラインCSS
+    // mix-blend-mode: plus-lighterへの変更、コントラスト＆輝度アップ、画素固定により不要な端のボケ枠を焼き切る
+    let borderKillStyle = "position:absolute; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:plus-lighter !important; filter:contrast(130%) brightness(110%); pointer-events:none;";
+
     if (playerMove === 'ice') {
         if (effectLayer) {
             effectLayer.innerHTML = `
-              <img src="${ANIMS_EFFECT_ICE[0]}" style="position:absolute; width:50px; height:50px; left:410px; top:110px; animation:iceSurround1 0.35s ease-out forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode: screen !important;">
-              <img src="${ANIMS_EFFECT_ICE[0]}" style="position:absolute; width:50px; height:50px; left:320px; top:240px; animation:iceSurround2 0.35s ease-out forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode: screen !important;">
-              <img src="${ANIMS_EFFECT_ICE[0]}" style="position:absolute; width:50px; height:50px; left:430px; top:230px; animation:iceSurround3 0.35s ease-out forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode: screen !important;">
+              <img src="${ANIMS_EFFECT_ICE[0]}" style="${borderKillStyle} width:50px; height:50px; left:410px; top:110px; animation:iceSurround1 0.35s ease-out forwards;">
+              <img src="${ANIMS_EFFECT_ICE[0]}" style="${borderKillStyle} width:50px; height:50px; left:320px; top:240px; animation:iceSurround2 0.35s ease-out forwards;">
+              <img src="${ANIMS_EFFECT_ICE[0]}" style="${borderKillStyle} width:50px; height:50px; left:430px; top:230px; animation:iceSurround3 0.35s ease-out forwards;">
             `;
         }
     } else if (playerMove === 'holy') {
-        if (effectLayer) effectLayer.innerHTML = MISSILE_EFFECTS['holy'];
+        // ホーリーのミサイル飛翔エフェクトの枠線対策
+        if (effectLayer) {
+            effectLayer.innerHTML = MISSILE_EFFECTS['holy'].replace(/style="/g, `style="mix-blend-mode:plus-lighter !important; filter:contrast(130%) brightness(110%); `);
+        }
     } else {
         if (effectLayer) effectLayer.innerHTML = MISSILE_EFFECTS[playerMove];
     }
@@ -518,9 +501,15 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     if (pContainer) pContainer.style.transform = 'translateX(45px) scale(1.08)'; 
     setTimeout(() => { if (pContainer) pContainer.style.transform = 'none'; }, 350);
     
+    // ➔ 着弾フェーズ（360ms後：エフェクトが敵の座標へ完全に重なった瞬間）
     setTimeout(() => {
         playSE(playerMove); 
         burstSlimeAnimation(); 
+        
+        // 敵へのダメージ確定
+        window.eHp = Math.max(0, window.eHp - calculatedDmg);
+        
+        const containerEl = document.getElementById('e-sprite-container');
         if (containerEl && frontLayer) {
             const parentRect = document.getElementById('eff-scr').getBoundingClientRect(); 
             const targetRect = containerEl.getBoundingClientRect(); 
@@ -531,20 +520,16 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
             hitBox.style.left = `${relativeX}px`; 
             hitBox.style.top = `${relativeY}px`; 
             hitBox.style.pointerEvents = 'none';
-            hitBox.style.mixBlendMode = "screen"; 
+            hitBox.style.mixBlendMode = "plus-lighter"; // 粒子合成の最適化
             hitBox.style.backgroundColor = "transparent";
 
             if (playerMove === 'ice') {
                 let iceFrame = 0; 
                 const iceImg = document.createElement('img'); 
-                iceImg.style.position = 'absolute'; 
+                iceImg.setAttribute("style", borderKillStyle); // 枠線滅殺スタイル
                 iceImg.style.width = '140px'; 
                 iceImg.style.height = '140px'; 
                 iceImg.style.transform = 'translate(-50%,-50%)';
-                iceImg.style.imageRendering = 'pixelated'; 
-                iceImg.style.zIndex = '9';
-                iceImg.style.mixBlendMode = "screen"; 
-                iceImg.style.backgroundColor = "transparent";
                 hitBox.appendChild(iceImg); 
                 frontLayer.appendChild(hitBox);
                 
@@ -554,17 +539,15 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
                 }, 45);
             } else if (playerMove === 'holy') {
                 frontLayer.appendChild(hitBox);
+                let holyStyleRandom = Math.floor(Math.random() * 4) + 1;
+                
                 if (holyStyleRandom === 1) {
                     let hFrame = 0;
                     const holyImg = document.createElement('img'); 
-                    holyImg.style.position = 'absolute'; 
+                    holyImg.setAttribute("style", borderKillStyle); // 枠線滅殺スタイル
                     holyImg.style.width = '130px'; 
                     holyImg.style.height = '130px'; 
                     holyImg.style.transform = 'translate(-50%,-50%)'; 
-                    holyImg.style.imageRendering = 'pixelated';
-                    holyImg.style.zIndex = '9';
-                    holyImg.style.mixBlendMode = "screen"; 
-                    holyImg.style.backgroundColor = "transparent";
                     hitBox.appendChild(holyImg);
                     const hInterval = setInterval(() => { 
                         if (hFrame >= ANIMS_EFFECT_CROSS.length) { clearInterval(hInterval); hitBox.remove(); } 
@@ -572,20 +555,20 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
                     }, 65);
                 } else if (holyStyleRandom === 2) {
                     hitBox.innerHTML = `
-                      <img src="${ANIMS_EFFECT_CROSS[0]}" style="position:absolute; width:120px; height:120px; animation:holyThunder1 0.3s forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">
-                      <img src="${ANIMS_EFFECT_CROSS[1]}" style="position:absolute; width:140px; height:140px; animation:holyThunder2 0.4s 0.1s forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">
-                      <img src="${ANIMS_EFFECT_CROSS[2]}" style="position:absolute; width:160px; height:160px; animation:holyThunder3 0.5s 0.2s forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">
+                      <img src="${ANIMS_EFFECT_CROSS[0]}" style="${borderKillStyle} width:120px; height:120px; animation:holyThunder1 0.3s forwards;">
+                      <img src="${ANIMS_EFFECT_CROSS[1]}" style="${borderKillStyle} width:140px; height:140px; animation:holyThunder2 0.4s 0.1s forwards;">
+                      <img src="${ANIMS_EFFECT_CROSS[2]}" style="${borderKillStyle} width:160px; height:160px; animation:holyThunder3 0.5s 0.2s forwards;">
                     `;
                     setTimeout(() => hitBox.remove(), 750);
                 } else if (holyStyleRandom === 3) {
                     hitBox.innerHTML = `
-                      <img src="${ANIMS_EFFECT_CROSS[0]}" style="position:absolute; width:60px; height:60px; animation:holy陣1 0.4s ease-out forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">
-                      <img src="${ANIMS_EFFECT_CROSS[1]}" style="position:absolute; width:70px; height:70px; animation:holy陣2 0.4s ease-out forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">
-                      <img src="${ANIMS_EFFECT_CROSS[2]}" style="position:absolute; width:80px; height:80px; animation:holy陣3 0.4s ease-out forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">
+                      <img src="${ANIMS_EFFECT_CROSS[0]}" style="${borderKillStyle} width:60px; height:60px; animation:holy陣1 0.4s ease-out forwards;">
+                      <img src="${ANIMS_EFFECT_CROSS[1]}" style="${borderKillStyle} width:70px; height:70px; animation:holy陣2 0.4s ease-out forwards;">
+                      <img src="${ANIMS_EFFECT_CROSS[2]}" style="${borderKillStyle} width:80px; height:80px; animation:holy陣3 0.4s ease-out forwards;">
                     `;
                     setTimeout(() => hitBox.remove(), 500);
                 } else if (holyStyleRandom === 4) {
-                    hitBox.innerHTML = `<img src="${ANIMS_EFFECT_CROSS[2]}" style="position:absolute; width:100px; height:100px; animation:holyGodNova 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:screen;">`;
+                    hitBox.innerHTML = `<img src="${ANIMS_EFFECT_CROSS[2]}" style="${borderKillStyle} width:100px; height:100px; animation:holyGodNova 0.6s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;">`;
                     setTimeout(() => hitBox.remove(), 650);
                 }
             } else {
@@ -594,16 +577,41 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
                 setTimeout(() => { hitBox.remove(); if (effectLayer) effectLayer.innerHTML = ""; }, 420);
             }
         }
+        
         triggerEnemyHitPulse(isCritical, data.type); 
         triggerShake(isCritical ? 'critical_shake' : 'attack_success');
         createDmgPop(calculatedDmg, isCritical, false); 
         if (isCritical) { flashCritical(flashColor); } else { flashScreen(flashColor); }
         updateHpUI();
         
-        let rndText = holyStyleRandom > 0 ? ` [式第${holyStyleRandom}陣]` : "";
         document.getElementById('battle-log').innerHTML = isCritical ?
-          `💥 弱点適合！『${spellName}』${rndText}直撃！【${calculatedDmg}】ダメージ！` : `『${spellName}』${rndText}命中！敵に ${calculatedDmg} ダメージ！`;
+          `💥 弱点適合！『${spellName}』直撃！【${calculatedDmg}】ダメージ！` : `『${spellName}』命中！敵に ${calculatedDmg} ダメージ！`;
           
+        // ➔ 修正の核心：ダメージが画面に入り、HPが0になった「この瞬間」にカットイン条件をジャッジする
+        if (isCritical && window.eHp <= 0) {
+            const darkLayer = document.getElementById('cutin-dark-layer');
+            const cBar = document.getElementById('cutin-bar');
+            
+            if (darkLayer && cBar) {
+                darkLayer.style.display = "block";
+                cBar.style.display = "flex";
+                
+                // CSSリフローを強制注入して、アニメーション再生ヘッドを0%にリセット巻き戻しする
+                cBar.style.animation = "none";
+                void cBar.offsetWidth; 
+                cBar.style.animation = "cutinSlide 1.0s ease-in-out forwards";
+                
+                // 1000msのカットインが完遂した後に、安全に勝敗判定（リザルト画面）の直列回路を呼び出す
+                setTimeout(() => {
+                    darkLayer.style.display = "none";
+                    cBar.style.display = "none";
+                    checkBattleEnd();
+                }, 1000);
+                return;
+            }
+        }
+
+        // 生存時は通常の敵ターンへ移行
         setTimeout(() => { checkBattleEnd() ? null : enemyTurnAction(); }, 600);
     }, 360);
     
@@ -614,7 +622,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
 }
 
 // ==========================================
-// 👹 8. エネミーターン行動AI（資料267-282行目完全同期）
+// 👹 8. エネミーターン行動AI（資料完全同期）
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return;
@@ -647,11 +655,10 @@ function enemyTurnAction(isPlayerDefending = false) {
             postEnemyTurnCleanup();
         }, 400);
     } else {
-        // 通常攻撃：資料の『enemyAssault』アニメーションを完全発火
         if (containerEl) { 
             containerEl.style.transform = 'translateX(0)'; 
             containerEl.style.animation = 'none'; 
-            void containerEl.offsetWidth; // リフローによる再着火
+            void containerEl.offsetWidth; 
             containerEl.style.animation = 'enemyAssault 0.45s forwards'; 
         }
         setTimeout(() => { if (containerEl) containerEl.style.animation = 'floatE 2.2s infinite alternate ease-in-out'; }, 460);
@@ -678,7 +685,7 @@ function postEnemyTurnCleanup() {
 }
 
 // ==========================================
-// 💥 9. 勝敗判定・ゲームリセット（資料282-297行目完全同期）
+// 💥 9. 勝敗判定・ゲームリセット（資料完全同期）
 // ==========================================
 function checkBattleEnd() {
     if (window.pHp <= 0 || window.eHp <= 0) { 
@@ -762,5 +769,5 @@ function resetGame() {
     clearCrisisAlertEffects(); 
 }
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 1.2]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 1.3]
 // ==========================================
