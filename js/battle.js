@@ -1,28 +1,19 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 1.3 (タイポ完全修復・ReferenceError鉄壁回避版)
+// 📦 VERSION: 1.4 (バグ完全回収・粒子四散デストロイ完全統合版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.3: 194行目の致命的なタイポを完全修復！未定義エラーを鉄壁回避しタイトルより爆速進行する確定版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.4: 変数プロテクトによるフリーズ全回収 ＋ 敵死亡時の『ドット粒子四散デストロイ』回路を完全実装！", "color: #00ff00; font-weight: bold;");
 
-// ==========================================
-// ⚔️ 1. グローバル戦闘ステータス管理変数の保護
-// ==========================================
-if (window.curIdx === undefined) window.curIdx = -1;
-if (window.pMaxHp === undefined) window.pMaxHp = 100;
-if (window.pHp === undefined) window.pHp = 100;
-if (window.eHp === undefined) window.eHp = 100;
-if (window.eMaxHp === undefined) window.eMaxHp = 100;
-if (window.mana === undefined) window.mana = 1.0;
-if (window.isBusy === undefined) window.isBusy = false;
-if (window.isMuted === undefined) window.isMuted = false;
-
+// ⚔️ グローバル変数の二重上書き・初期化を完全禁止（外部アセット最優先保護）
+window.mana = window.mana || 1.0;
+window.isBusy = false; 
 window.isPlayerStunned = window.isPlayerStunned || false;
 window.isAmuletActive = window.isAmuletActive || 0;
 window.itemInventory = window.itemInventory || { potion: 1, amulet: 1 };
 window.currentAudioBgm = window.currentAudioBgm || null;
 
 // ==========================================
-// 🎧 2. セーフティオーディオシステム（ReferenceErrorを100%回避）
+// 🎧 1. セーフティオーディオシステム
 // ==========================================
 function startBGM(mode) {
     stopBGM(); 
@@ -40,7 +31,9 @@ function startBGM(mode) {
     if (mode === "title" || mode === "grand_end") {
         targetUrl = titleBgm;
     } else if (mode === "battle") {
-        targetUrl = battleList[Math.floor(Math.random() * battleList.length)];
+        if (Array.isArray(battleList) && battleList.length > 0) {
+            targetUrl = battleList[Math.floor(Math.random() * battleList.length)];
+        }
     }
     
     if (targetUrl) {
@@ -68,13 +61,14 @@ function toggleMute() {
     if (muteBtn) muteBtn.innerText = window.isMuted ? "🔇 音声: OFF" : "🔊 音声: ON";
     if (window.isMuted) stopBGM(); 
     else { 
-        startBGM((document.getElementById('scr-battle') && document.getElementById('scr-battle').style.display === "block") ? "battle" : "castle");
+        if (document.getElementById('scr-battle') && document.getElementById('scr-battle').style.display === "block") {
+            startBGM("battle");
+        }
     }
 }
 
 function playSE(type) {
     if (window.isMuted) return;
-    
     if (typeof SE_MAGIC !== 'undefined' && SE_MAGIC[type]) { 
         try { 
             let mAudio = new Audio(SE_MAGIC[type]); 
@@ -83,8 +77,6 @@ function playSE(type) {
             return; 
         } catch (e) {} 
     }
-    
-    // 未定義時のフォールバック（WebAudio発振器）
     try {
         let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let now = audioCtx.currentTime; 
@@ -106,7 +98,7 @@ function playSE(type) {
 }
 
 // ==========================================
-// 🎒 3. アイテムバッグシステム
+// 🎒 2. アイテムバッグシステム
 // ==========================================
 function openItemBag() { 
     playSE('click'); 
@@ -157,8 +149,19 @@ function useItem(itemType) {
 }
 
 // ==========================================
-// 🎨 4. 付随視覚効果
+// 🎨 3. 演出ビジュアル効果（★コア関数を完全保持）
 // ==========================================
+function applyManaStockAura(moveType) {
+    const aura = document.getElementById('p-aura-layer'); 
+    if (!aura) return;
+    if (window.mana > 1.0) {
+        aura.style.display = "block";
+        if (moveType === 'fire') aura.style.background = "radial-gradient(circle, rgba(239,68,68,0.8) 0%, transparent 70%)";
+        if (moveType === 'ice') aura.style.background = "radial-gradient(circle, rgba(56,189,248,0.8) 0%, transparent 70%)";
+        if (moveType === 'holy') aura.style.background = "radial-gradient(circle, rgba(234,179,8,0.8) 0%, transparent 70%)";
+    }
+}
+
 function createDmgPop(dmg, isWeak, isPlayer) {
     const layer = document.getElementById("dmg-layer"); if(!layer) return;
     const pop = document.createElement("div");
@@ -183,17 +186,121 @@ function triggerShake(shakeType) {
     }, 16);
 }
 
+function triggerEnemyHitPulse(isWeak, type) {
+    const box = document.getElementById('e-sprite-graphic'); 
+    const container = document.getElementById('e-sprite-container'); 
+    if (!box || !container) return;
+    window.isKnockedBack = true;
+    container.style.animation = 'none'; 
+    let pCount = 0;
+    const pulseTimer = setInterval(() => {
+        if (pCount > 6) { 
+            box.style.transform = (type === "eyes") ? "scaleX(-1)" : "none"; 
+            container.style.animation = 'floatE 2.2s infinite alternate ease-in-out'; 
+            window.isKnockedBack = false; 
+            clearInterval(pulseTimer); 
+            return; 
+        }
+        let angle = isWeak ? (pCount % 2 === 0 ? 12 : -12) : (pCount % 2 === 0 ? 5 : -5);
+        box.style.transform = `translate3d(${(pCount % 2 === 0 ? 15 : -15)}px, ${pCount * -2}px, 0px) rotate(${angle}deg) ${(type === "eyes" ? "scaleX(-1)" : "")}`; 
+        pCount++;
+    }, 35);
+}
+
 function flashScreen(color) { const screen = document.getElementById('eff-scr'); if(!screen) return; screen.style.backgroundColor = color; setTimeout(() => { screen.style.backgroundColor = (window.pHp <= 30) ? 'rgba(239, 68, 68, 0.1)' : '#0f172a'; }, 130); }
 function flashCritical(color) { const screen = document.getElementById('eff-scr'); if(!screen) return; screen.style.backgroundColor = color; setTimeout(() => { screen.style.backgroundColor = '#0f172a'; setTimeout(() => { screen.style.backgroundColor = color; setTimeout(() => { screen.style.backgroundColor = (window.pHp <= 30) ? 'rgba(239, 68, 68, 0.1)' : '#0f172a'; }, 65); }, 45); }, 65); }
 function hideAll() { ['scr-start','scr-intro','scr-battle','scr-result'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; }); }
 function clearCrisisAlertEffects() { const scr = document.getElementById('eff-scr'); const alertBadge = document.getElementById('p-hp-alert-badge'); if(scr) { scr.style.animation = 'none'; scr.style.borderColor = '#334155'; scr.style.backgroundColor = '#0f172a'; } if(alertBadge) alertBadge.style.display = "none"; }
 
 // ==========================================
-// 🚀 5. ステージ・戦闘遷移（出現ラグ完全撤廃）
+// 🌌 🚀 ②課題：『ドット粒子四散デストロイ』独立エンジン
+// ==========================================
+function triggerParticle四散(targetContainer, particleColor) {
+    if (!targetContainer) return;
+    const parent = document.getElementById('eff-scr');
+    if (!parent) return;
+
+    const rect = targetContainer.getBoundingClientRect();
+    const parentRect = parent.getBoundingClientRect();
+    
+    // 敵の中心座標を正確に割り出す
+    const centerX = (rect.left - parentRect.left) + rect.width / 2;
+    const centerY = (rect.top - parentRect.top) + rect.height / 2;
+    
+    const pCount = 40; // 粒子の数
+    const particles = [];
+
+    for (let i = 0; i < pCount; i++) {
+        const p = document.createElement('div');
+        p.style.position = 'absolute';
+        
+        // レトロ感溢れる「4px〜8pxの不規則な正方形ドット粒子」を生成
+        const pSize = Math.floor(Math.random() * 5) + 4; 
+        p.style.width = `${pSize}px`;
+        p.style.height = `${pSize}px`;
+        p.style.left = `${centerX}px`;
+        p.style.top = `${centerY}px`;
+        
+        // ボスのグロー色、または高輝度色を強制適合
+        p.style.backgroundColor = particleColor || '#ffffff';
+        p.style.boxShadow = `0 0 8px ${particleColor || '#ffffff'}`;
+        p.style.imageRendering = 'pixelated';
+        p.style.pointerEvents = 'none';
+        p.style.zIndex = '99';
+        
+        parent.appendChild(p);
+
+        // 360度全方位へのランダムな爆発ベクトルを計算
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 8 + 4; 
+        const vx = Math.cos(angle) * speed;
+        const vy = Math.sin(angle) * speed;
+
+        particles.push({ element: p, x: centerX, y: centerY, vx: vx, vy: vy, opacity: 1.0 });
+    }
+
+    // 毎秒60フレームのアニメーションループで高パフォーマンスに粒子を駆動
+    let pFrameCount = 0;
+    const loop = setInterval(() => {
+        pFrameCount++;
+        let alive = false;
+
+        particles.forEach(p => {
+            if (p.opacity <= 0) return;
+            alive = true;
+            
+            // ベクトル移動と僅かな重力・空気抵抗の物理演算
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.15; // 重力加速度
+            p.vx *= 0.98; // 空気抵抗
+            p.opacity -= 0.025; // 徐々にフェードアウト
+
+            p.element.style.left = `${p.x}px`;
+            p.element.style.top = `${p.y}px`;
+            p.element.style.opacity = p.opacity;
+            p.element.style.transform = `scale(${p.opacity > 0 ? p.opacity : 0})`;
+        });
+
+        if (!alive || pFrameCount > 60) {
+            clearInterval(loop);
+            particles.forEach(p => p.element.remove());
+        }
+    }, 16);
+}
+
+// ==========================================
+// 🚀 4. ステージ進行・戦闘遷移（変数初期化を保護）
 // ==========================================
 function nextStage() {
     playSE('click'); 
-    window.curIdx++; 
+    
+    if (window.curIdx === undefined || window.curIdx < 0) {
+        window.curIdx = 0; 
+    } else {
+        window.curIdx++;
+    }
+    
     clearCrisisAlertEffects();
     
     if (typeof STAGES === 'undefined' || window.curIdx >= STAGES.length) { 
@@ -225,7 +332,7 @@ function nextStage() {
 
 function startBattle() {
     playSE('click'); 
-    if (typeof STAGES === 'undefined' || window.curIdx < 0) return;
+    if (typeof STAGES === 'undefined' || window.curIdx < 0 || !STAGES[window.curIdx]) return;
     const data = STAGES[window.curIdx];
     window.eHp = window.eMaxHp = data.hp; 
     hideAll(); 
@@ -243,6 +350,8 @@ function startBattle() {
         container.style.animation = 'floatE 2.2s infinite alternate ease-in-out'; 
         container.style.width = '200px'; container.style.height = '200px'; container.style.display = 'flex';
         container.style.filter = `drop-shadow(0 0 25px ${data.glow})`; 
+        container.style.opacity = '1';
+        container.style.transform = 'none';
     }
     
     const graphicEl = document.getElementById('e-sprite-graphic'); 
@@ -252,7 +361,6 @@ function startBattle() {
         if (data.type === "eyes") { graphicEl.style.transform = "scaleX(-1)"; } 
     }
     
-    // ➔ 出現ラグ皆無：透明画像を挟まず、アセット配列の初手を同期挿入
     if (graphicEl && typeof MASTER_ANIM_MAP !== 'undefined' && MASTER_ANIM_MAP[data.type]) {
         graphicEl.src = MASTER_ANIM_MAP[data.type][0];
     }
@@ -273,8 +381,11 @@ function startBattle() {
 function updateHpUI() {
     const scr = document.getElementById('eff-scr'); 
     const alertBadge = document.getElementById('p-hp-alert-badge'); 
-    if (!scr || typeof STAGES === 'undefined' || window.curIdx < 0) return;
-    let pPct = (window.pHp / window.pMaxHp) * 100; let ePct = (window.eHp / window.eMaxHp) * 100;
+    if (!scr || typeof STAGES === 'undefined' || window.curIdx < 0 || !STAGES[window.curIdx]) return;
+    
+    let pPct = (window.pHp / window.pMaxHp) * 100; 
+    let ePct = (window.eHp / window.eMaxHp) * 100;
+    
     document.getElementById('p-hp-bar').style.width = `${pPct}%`;
     document.getElementById('p-hp-bar-back').style.width = `${pPct}%`;
     document.getElementById('e-hp-bar').style.width = `${ePct}%`; 
@@ -294,10 +405,10 @@ function updateHpUI() {
 }
 
 // ==========================================
-// 🧙‍♂️ 6. プレイヤー行動戦闘ループ（★Ver 1.3 確定版）
+// 🧙‍♂️ 5. プレイヤー行動戦闘ループ（トドメの着弾カットイン）
 // ==========================================
 function turn(playerMove) {
-    if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || typeof STAGES === 'undefined') return; 
+    if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || typeof STAGES === 'undefined' || window.curIdx < 0) return; 
     window.isBusy = true;
     
     if (window.isPlayerStunned) { 
@@ -322,7 +433,7 @@ function turn(playerMove) {
 }
 
 function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
-    if (typeof STAGES === 'undefined') return;
+    if (typeof STAGES === 'undefined' || window.curIdx < 0) return;
     const data = STAGES[window.curIdx]; 
     const effectLayer = document.getElementById('spell-effect-layer'); 
     const frontLayer = document.getElementById('front-effect-layer');
@@ -334,7 +445,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     let spellName = playerMove === 'fire' ? "ファイア" : (playerMove === 'ice' ? "アイス" : "ホーリー"); 
     let flashColor = playerMove === 'fire' ? "#e11d48" : (playerMove === 'ice' ? "#0284c7" : "#eab308");
     
-    // 🧙‍♂️ 【粒子魔法の枠線完全滅殺スタイル】
+    // 🧙‍♂️ 粒子魔法の枠線滅殺スタイル
     let borderKillStyle = "position:absolute; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:plus-lighter !important; filter:contrast(130%) brightness(110%); pointer-events:none;";
 
     if (playerMove === 'ice') {
@@ -371,7 +482,6 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
             const relativeY = (targetRect.top - parentRect.top) + targetRect.height / 2;
             const hitBox = document.createElement('div'); 
             hitBox.style.position = 'absolute'; 
-            // 🛠 修正：hitBox.style.left に修正しグローバル構文エラーを完全破砕！
             hitBox.style.left = `${relativeX}px`; 
             hitBox.style.top = `${relativeY}px`; 
             hitBox.style.pointerEvents = 'none';
@@ -414,7 +524,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
         
         document.getElementById('battle-log').innerHTML = isCritical ? `💥 弱点適合！『${spellName}』直撃！【${calculatedDmg}】ダメージ！` : `『${spellName}』命中！敵に ${calculatedDmg} ダメージ！`;
           
-        // ➔ 弱点トドメ成立時に完全な割り込み演出を実行
+        // ➔ 弱点トドメ成立時のカットイン割り込み
         if (isCritical && window.eHp <= 0) {
             const darkLayer = document.getElementById('cutin-dark-layer');
             const cBar = document.getElementById('cutin-bar');
@@ -422,7 +532,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
                 darkLayer.style.display = "block";
                 cBar.style.display = "flex";
                 cBar.style.animation = "none";
-                void cBar.offsetWidth; // リフロー強制リセット
+                void cBar.offsetWidth; 
                 cBar.style.animation = "cutinSlide 1.0s ease-in-out forwards";
                 
                 setTimeout(() => {
@@ -444,10 +554,10 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
 }
 
 // ==========================================
-// 👹 7. エネミーターンAI行動
+// 👹 6. エネミーターンAI行動
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
-    if (window.eHp <= 0 || window.pHp <= 0 || typeof STAGES === 'undefined') return;
+    if (window.eHp <= 0 || window.pHp <= 0 || typeof STAGES === 'undefined' || window.curIdx < 0) return;
     const data = STAGES[window.curIdx];
     let isSpecial = (Math.random() < 0.36) && ['slime', 'spider', 'harpy', 'dragon'].includes(data.type);
     let pDamage = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.12)) : data.atk;
@@ -497,26 +607,39 @@ function postEnemyTurnCleanup() {
 }
 
 // ==========================================
-// 💥 8. 勝敗判定・ゲーム終了処理
+// 💥 7. 勝敗判定・ゲーム終了（★粒子四散を完全結合）
 // ==========================================
 function checkBattleEnd() {
-    if (window.pHp <= 0 || window.eHp <= 0) { 
+    if (window.pHp <= 0 || window.eHp <= 0 || typeof STAGES === 'undefined' || window.curIdx < 0) return false;
+    
+    if (window.eHp <= 0) {
         stopBGM(); 
         if (typeof stopSlimeAnimation === "function") stopSlimeAnimation();
-        if (window.eHp <= 0) {
-            playSE('boom'); triggerShake('critical_shake'); flashCritical('#ffffff');
-            const containerEl = document.getElementById('e-sprite-container');
-            if (containerEl) { 
-                containerEl.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'; 
-                containerEl.style.transform = 'scale(0.01) rotate(180deg)'; 
-                containerEl.style.opacity = '0';
-            }
-            if (window.curIdx === 0 || window.curIdx === 3) { window.itemInventory.potion++; } 
-            if (window.curIdx === 1 || window.curIdx === 5) { window.itemInventory.amulet++; }
-            setTimeout(() => { endBattle(); }, (typeof STAGES !== 'undefined' && STAGES[window.curIdx].floor === 10) ? 1200 : 650);
-        } else { 
-            endBattle(); 
-        } 
+        
+        playSE('boom'); triggerShake('critical_shake'); flashCritical('#ffffff');
+        
+        const containerEl = document.getElementById('e-sprite-container');
+        const data = STAGES[window.curIdx];
+        
+        if (containerEl) { 
+            // ① 既存の回転縮小カメラワークを高速適応
+            containerEl.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'; 
+            containerEl.style.transform = 'scale(0.01) rotate(180deg)'; 
+            containerEl.style.opacity = '0';
+            
+            // ② 課題：『粒子四散エンジン』をボスのオーラカラーを乗せて直列点火！
+            triggerParticle四散(containerEl, data.glow);
+        }
+        
+        if (window.curIdx === 0 || window.curIdx === 3) { window.itemInventory.potion++; } 
+        if (window.curIdx === 1 || window.curIdx === 5) { window.itemInventory.amulet++; }
+        
+        setTimeout(() => { endBattle(); }, (STAGES[window.curIdx] && STAGES[window.curIdx].floor === 10) ? 1400 : 800);
+        return true;
+    } else if (window.pHp <= 0) {
+        stopBGM();
+        if (typeof stopSlimeAnimation === "function") stopSlimeAnimation();
+        endBattle(); 
         return true;
     }
     window.isBusy = false; 
@@ -538,7 +661,7 @@ function endBattle() {
     if (auraLayer) auraLayer.style.display = "none"; 
     document.getElementById('battle-log').innerHTML = "コマンドを選択せよ。";
     
-    if (window.eHp <= 0 && typeof STAGES !== 'undefined') {
+    if (window.eHp <= 0 && typeof STAGES !== 'undefined' && window.curIdx >= 0) {
         if (window.curIdx === STAGES.length - 1) {
             if (rIcon) rIcon.innerText = "👑"; if (rTitle) { rTitle.innerText = "GRAND END"; rTitle.style.color = '#eab308'; }
             if (rText) rText.innerText = "最上階に君臨せし黒竜は消滅し、世界を包んでいた暗黒の呪縛は完全に霧散した。新星術式を極めし賢者ウィザードの英知により、螺旋の塔へ永遠の平穏が取り戻される。戦いは終わり、英雄の叙事詩が今ここに完結した。あなたの勝利は歴史に永久に刻まれ、新たな光の時代が幕を開ける。平和の光とともに歩みを進めよ。";
@@ -570,5 +693,5 @@ function resetGame() {
     clearCrisisAlertEffects(); 
 }
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 1.3]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 1.4]
 // ==========================================
