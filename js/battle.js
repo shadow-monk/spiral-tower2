@@ -1,11 +1,11 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 1.3 (モジュール分割・ReferenceError完全解決版)
+// 📦 VERSION: 1.3 (タイポ完全修復・ReferenceError鉄壁回避版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.3: 分割モジュール（V6.30）の変数の競合・未定義エラーを完全解決。トドメのカットイン＆枠線消滅を完全開通！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.3: 194行目の致命的なタイポを完全修復！未定義エラーを鉄壁回避しタイトルより爆速進行する確定版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
-// ⚔️ 1. グローバル戦闘ステータス管理変数の保護（存在しない場合のみ初期化）
+// ⚔️ 1. グローバル戦闘ステータス管理変数の保護
 // ==========================================
 if (window.curIdx === undefined) window.curIdx = -1;
 if (window.pMaxHp === undefined) window.pMaxHp = 100;
@@ -29,7 +29,6 @@ function startBGM(mode) {
     if (window.isMuted) return;
     let targetUrl = "";
     
-    // 外部定義（HTMLや別ファイル）のURL定数を安全にチェック
     const titleBgm = (typeof BGM_PEACE_FANTASY !== 'undefined') ? BGM_PEACE_FANTASY : "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/peace_bgm_fantasy14.mp3";
     const battleList = (typeof BGM_BATTLE_LIST !== 'undefined') ? BGM_BATTLE_LIST : [
         "https://raw.githubusercontent.com/shadow-monk/game1/main/assets/music/tactics12.mp3",
@@ -76,7 +75,6 @@ function toggleMute() {
 function playSE(type) {
     if (window.isMuted) return;
     
-    // 💥 エラー画像対策の核心：外部の SE_MAGIC の生存確認を行い、未定義ならWebAudioで即時自己生成してクラッシュを防ぐ
     if (typeof SE_MAGIC !== 'undefined' && SE_MAGIC[type]) { 
         try { 
             let mAudio = new Audio(SE_MAGIC[type]); 
@@ -86,7 +84,7 @@ function playSE(type) {
         } catch (e) {} 
     }
     
-    // フォールバック（未定義時のスタンドアロンWebAudio発振器）
+    // 未定義時のフォールバック（WebAudio発振器）
     try {
         let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let now = audioCtx.currentTime; 
@@ -159,7 +157,7 @@ function useItem(itemType) {
 }
 
 // ==========================================
-// 🎨 4. 付随視覚効果（演出ファイルとの多重定義を回避）
+// 🎨 4. 付随視覚効果
 // ==========================================
 function createDmgPop(dmg, isWeak, isPlayer) {
     const layer = document.getElementById("dmg-layer"); if(!layer) return;
@@ -191,14 +189,13 @@ function hideAll() { ['scr-start','scr-intro','scr-battle','scr-result'].forEach
 function clearCrisisAlertEffects() { const scr = document.getElementById('eff-scr'); const alertBadge = document.getElementById('p-hp-alert-badge'); if(scr) { scr.style.animation = 'none'; scr.style.borderColor = '#334155'; scr.style.backgroundColor = '#0f172a'; } if(alertBadge) alertBadge.style.display = "none"; }
 
 // ==========================================
-// 🚀 5. ステージ・戦闘遷移（★タイマーラグ完全撤廃＆HTML完全同期）
+// 🚀 5. ステージ・戦闘遷移（出現ラグ完全撤廃）
 // ==========================================
 function nextStage() {
     playSE('click'); 
     window.curIdx++; 
     clearCrisisAlertEffects();
     
-    // 外部ファイル（enemies.js等）の STAGES データベースに安全にアクセス
     if (typeof STAGES === 'undefined' || window.curIdx >= STAGES.length) { 
         resetGame(); hideAll(); 
         const scrStart = document.getElementById('scr-start');
@@ -240,7 +237,6 @@ function startBattle() {
     const itemB = document.getElementById('item-badge');
     if (itemB) itemB.style.display = "none";
     
-    // HTML側のCSSアニメーションとコンテナサイズを100%保護。外部競合スタイルをクリーン化
     const container = document.getElementById('e-sprite-container'); 
     if (container) { 
         container.removeAttribute("style");
@@ -256,7 +252,7 @@ function startBattle() {
         if (data.type === "eyes") { graphicEl.style.transform = "scaleX(-1)"; } 
     }
     
-    // ➔ 出現ラグ皆無処理：戦闘画面が立ち上がる「その瞬間」に本物のアセット配列の初手を同期挿入
+    // ➔ 出現ラグ皆無：透明画像を挟まず、アセット配列の初手を同期挿入
     if (graphicEl && typeof MASTER_ANIM_MAP !== 'undefined' && MASTER_ANIM_MAP[data.type]) {
         graphicEl.src = MASTER_ANIM_MAP[data.type][0];
     }
@@ -265,11 +261,9 @@ function startBattle() {
     if (scrBattle) scrBattle.style.display = 'block';
     document.getElementById('e-name').innerText = data.name;
     
-    // 外部ファイル（enemies.js）のアニメーション機構を安全にコール
     if (typeof startCustomAnimation === "function") startCustomAnimation(data.type); 
     updateHpUI(); 
     
-    // 外部のチェック関数がある場合のみ安全に実行（ReferenceError対策）
     if (typeof checkDevPassword === "function") { try { checkDevPassword(); } catch(e){} }
     
     document.getElementById('battle-log').innerHTML = `戦闘領域展開。${data.name}を駆逐せよ。 <span style='color:#38bdf8;'>[弱点: ${data.weak.toUpperCase()}]</span>`;
@@ -300,7 +294,7 @@ function updateHpUI() {
 }
 
 // ==========================================
-// 🧙‍♂️ 6. プレイヤー行動・戦闘ループ（★Ver 1.3 トドメのカットイン着弾同期＆枠線消滅）
+// 🧙‍♂️ 6. プレイヤー行動戦闘ループ（★Ver 1.3 確定版）
 // ==========================================
 function turn(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || typeof STAGES === 'undefined') return; 
@@ -340,7 +334,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     let spellName = playerMove === 'fire' ? "ファイア" : (playerMove === 'ice' ? "アイス" : "ホーリー"); 
     let flashColor = playerMove === 'fire' ? "#e11d48" : (playerMove === 'ice' ? "#0284c7" : "#eab308");
     
-    // 🧙‍♂️ 【粒子の枠線完全滅殺】plus-lighter ＋ 高コントラスト処理の自動合成スタイル
+    // 🧙‍♂️ 【粒子魔法の枠線完全滅殺スタイル】
     let borderKillStyle = "position:absolute; image-rendering:pixelated; background-color:transparent !important; mix-blend-mode:plus-lighter !important; filter:contrast(130%) brightness(110%); pointer-events:none;";
 
     if (playerMove === 'ice') {
@@ -376,7 +370,11 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
             const relativeX = (targetRect.left - parentRect.left) + targetRect.width / 2; 
             const relativeY = (targetRect.top - parentRect.top) + targetRect.height / 2;
             const hitBox = document.createElement('div'); 
-            hitBox.style.position = 'absolute'; left = `${relativeX}px`; hitBox.style.top = `${relativeY}px`; hitBox.style.pointerEvents = 'none';
+            hitBox.style.position = 'absolute'; 
+            // 🛠 修正：hitBox.style.left に修正しグローバル構文エラーを完全破砕！
+            hitBox.style.left = `${relativeX}px`; 
+            hitBox.style.top = `${relativeY}px`; 
+            hitBox.style.pointerEvents = 'none';
             hitBox.style.mixBlendMode = "plus-lighter"; hitBox.style.backgroundColor = "transparent";
 
             if (playerMove === 'ice' && typeof ANIMS_EFFECT_ICE !== 'undefined') {
@@ -416,7 +414,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
         
         document.getElementById('battle-log').innerHTML = isCritical ? `💥 弱点適合！『${spellName}』直撃！【${calculatedDmg}】ダメージ！` : `『${spellName}』命中！敵に ${calculatedDmg} ダメージ！`;
           
-        // ➔ 確定：被弾処理後のこのタイムラインで、弱点トドメ成立時に完全な割り込み演出を実行
+        // ➔ 弱点トドメ成立時に完全な割り込み演出を実行
         if (isCritical && window.eHp <= 0) {
             const darkLayer = document.getElementById('cutin-dark-layer');
             const cBar = document.getElementById('cutin-bar');
@@ -424,7 +422,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
                 darkLayer.style.display = "block";
                 cBar.style.display = "flex";
                 cBar.style.animation = "none";
-                void cBar.offsetWidth; // リフローによる強制再生リセット
+                void cBar.offsetWidth; // リフロー強制リセット
                 cBar.style.animation = "cutinSlide 1.0s ease-in-out forwards";
                 
                 setTimeout(() => {
@@ -538,7 +536,7 @@ function endBattle() {
     const rBtn = document.getElementById('res-btn');
     const auraLayer = document.getElementById('p-aura-layer');
     if (auraLayer) auraLayer.style.display = "none"; 
-    document.getElementById('battle-log').innerHTML = "コマンドを選択せよ．";
+    document.getElementById('battle-log').innerHTML = "コマンドを選択せよ。";
     
     if (window.eHp <= 0 && typeof STAGES !== 'undefined') {
         if (window.curIdx === STAGES.length - 1) {
