@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] ①ハニカム3D化・②魔法フェード・③巨大化・浮遊・本物突進完全実装！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] ①ハニカム3D化・②魔法フェード・③巨大化・浮遊・本物突進完全実装！ (出現ラグ解消版)", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数
@@ -23,33 +23,32 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🧙‍♂️👹 2. 【新設】③ キャラ巨大化・オーラ浮遊強制制御
+// 🧙‍♂️👹 2. ③ キャラ巨大化・オーラ浮遊強制制御
 // ==========================================
-// 戦闘開始時にJS側からスタイルを上書きし、昔の圧倒的なクオリティを復元する
 function applyMegaVisuals() {
     // 主人公：巨大化＆青い魔力オーラ＆浮遊アニメ直結
     const pContainer = document.getElementById('p-sprite-container');
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pContainer && pGraphic) {
-        pContainer.style.width = '200px'; // 130px -> 200px
+        pContainer.style.width = '200px'; 
         pContainer.style.height = '200px';
-        pContainer.style.animation = 'floatP_Mega 1.5s infinite alternate ease-in-out'; // 高速浮遊
-        pGraphic.style.filter = 'drop-shadow(0 0 15px #3b82f6)'; // 聖なる青オーラ
+        pContainer.style.animation = 'floatP_Mega 1.5s infinite alternate ease-in-out'; 
+        pGraphic.style.filter = 'drop-shadow(0 0 15px #3b82f6)'; 
     }
 
     // 敵：超巨大化＆赤い邪気オーラ＆重厚な浮遊アニメ直結
     const eContainer = document.getElementById('e-sprite-container');
     const eGraphic = document.getElementById('e-sprite-graphic');
     if (eContainer && eGraphic) {
-        eContainer.style.width = '280px'; // 180px -> 280px
+        eContainer.style.width = '280px'; 
         eContainer.style.height = '280px';
-        eContainer.style.animation = 'floatE_Mega 2.2s infinite alternate ease-in-out'; // 重厚なホバー
-        eGraphic.style.filter = 'drop-shadow(0 0 20px #ef4444)'; // 不気味な赤オーラ
+        eContainer.style.animation = 'floatE_Mega 2.2s infinite alternate ease-in-out'; 
+        eGraphic.style.filter = 'drop-shadow(0 0 20px #ef4444)'; 
     }
 }
 
 // ==========================================
-// 🔥 🛡️ ❄️ ✨ 3. 【新設計】①ハニカム3D＆②魔法フェード＆ホーリー完全実装
+// 🔥 🛡️ ❄️ ✨ 3. ①ハニカム3D＆②魔法フェード＆ホーリー完全実装
 // ==========================================
 function renderMagicVisual(type) {
     const layer = document.getElementById('spell-effect-layer');
@@ -64,7 +63,6 @@ function renderMagicVisual(type) {
     const holyPath = "assets/effects/standard/holy/";
 
     if (type === 'fire') {
-        // --- 🔥 ファイア：多層大炎上アニメ ---
         const ball = document.createElement('img');
         ball.src = firePath + "fire01.png";
         ball.style.position = 'absolute';
@@ -84,7 +82,6 @@ function renderMagicVisual(type) {
             storm.style.mixBlendMode = 'screen';
             layer.appendChild(storm);
             
-            // 🔥 フェードアウト：終了時にじわっと消して四角枠を防ぐ
             setTimeout(() => { storm.style.opacity = '0'; storm.style.transition = 'opacity 0.3s'; }, 300);
         }, 300);
 
@@ -101,16 +98,14 @@ function renderMagicVisual(type) {
                 p.style.mixBlendMode = 'screen';
                 layer.appendChild(p);
                 
-                // 🔥 各火柱もフェードアウト
                 setTimeout(() => { p.style.opacity = '0'; p.style.transition = 'opacity 0.25s'; }, 250);
             }, 350 + (index * 60));
         });
 
     } else if (type === 'ice') {
-        // --- ❄️ ②アイス：本物パラパラ漫画＆自然なフェードアウト ---
         for (let m = 1; m <= 8; m++) {
             setTimeout(() => {
-                layer.innerHTML = ""; // 前の氷コマをクリア
+                layer.innerHTML = ""; 
                 const iceFrame = document.createElement('img');
                 const numStr = m < 10 ? "0" + m : m;
                 iceFrame.src = icePath + `ICE_${numStr}.png`;
@@ -122,23 +117,17 @@ function renderMagicVisual(type) {
                 iceFrame.style.mixBlendMode = 'screen';
                 layer.appendChild(iceFrame);
 
-                // ❄️ 修正のコア：最終フレーム（08）をそのまま消さず、アルファ値を減衰させる
                 if (m === 8) {
                     setTimeout(() => { 
                         iceFrame.style.opacity = '0'; 
-                        iceFrame.style.transform = 'scale(0.8)'; // 少し縮小しながら消える余韻
+                        iceFrame.style.transform = 'scale(0.8)'; 
                         iceFrame.style.transition = 'all 0.4s ease-out'; 
-                    }, 400); // 表示時間を少し長めにとってからフェード
+                    }, 400);
                 }
             }, (m - 1) * 65);
         }
 
     } else if (type === 'holy') {
-        // ==========================================
-        // ✨ ホーリー：十字架＆シート爆発＆画面全体フラッシュ（完全復元）
-        // ==========================================
-        
-        // 1. 十字架の超高速垂直落下＆形状変化
         const cross = document.createElement('img');
         cross.src = holyPath + "cross_01.png";
         cross.style.position = 'absolute';
@@ -154,19 +143,17 @@ function renderMagicVisual(type) {
         setTimeout(() => { cross.src = holyPath + "cross_02.png"; }, 250);
         setTimeout(() => { cross.src = holyPath + "cross_03.png"; }, 400);
         
-        // ✨ ②ホーリー：十字架のフェードアウト（バリバリと砕ける余韻）
         setTimeout(() => { 
             cross.style.opacity = '0'; 
-            cross.style.transform = 'scale(1.2) rotate(15deg)'; // 拡大・回転しながら霧散
+            cross.style.transform = 'scale(1.2) rotate(15deg)'; 
             cross.style.transition = 'all 0.25s ease-out'; 
         }, 650);
 
-        // 2. pipo-btleffect171_480sheet.png による中心部爆発アニメ
         setTimeout(() => {
             const animDiv = document.createElement('div');
             animDiv.style.position = 'absolute';
-            animDiv.style.width = '120px';  // 1コマ
-            animDiv.style.height = '120px'; // 1コマ
+            animDiv.style.width = '120px';  
+            animDiv.style.height = '120px'; 
             animDiv.style.left = '400px';
             animDiv.style.top = '90px';
             animDiv.style.backgroundImage = `url('${holyPath}pipo-btleffect171_480sheet.png')`;
@@ -175,12 +162,10 @@ function renderMagicVisual(type) {
             animDiv.style.transform = 'scale(1.3)';
             frontLayer.appendChild(animDiv);
 
-            // 4x4 全16コマの高速背景座標ズラシ背景アニメ
             let frame = 0;
             const sheetTimer = setInterval(() => {
                 if (frame >= 16) {
                     clearInterval(sheetTimer);
-                    // ✨ ②シート爆発のフェードアウト：アニメ終了時にじわっと消す
                     animDiv.style.opacity = '0';
                     animDiv.style.transition = 'opacity 0.2s';
                     setTimeout(() => { if (animDiv.parentNode) animDiv.parentNode.removeChild(animDiv); }, 210);
@@ -193,7 +178,6 @@ function renderMagicVisual(type) {
             }, 40);
         }, 200);
 
-        // 3. ✨ ホーリー：画面全体の聖なるホワイトフラッシュ
         setTimeout(() => {
             const flash = document.createElement('div');
             flash.style.position = 'absolute';
@@ -201,8 +185,8 @@ function renderMagicVisual(type) {
             flash.style.backgroundColor = '#ffffff';
             flash.style.opacity = '0';
             flash.style.transition = 'opacity 0.1s';
-            flash.style.pointerEvents = 'none'; // クリック阻害を防ぐ
-            flash.style.mixBlendMode = 'overlay'; // 重なり方を調整
+            flash.style.pointerEvents = 'none'; 
+            flash.style.mixBlendMode = 'overlay'; 
             layer.appendChild(flash);
 
             setTimeout(() => { flash.style.opacity = '0.6'; }, 10);
@@ -210,19 +194,13 @@ function renderMagicVisual(type) {
         }, 250);
 
     } else if (type === 'def') {
-        // ==========================================
-        // 🛡️ ① シールド：3Dハニカムドーム（立体感のある輪郭）
-        // ==========================================
-        
-        // 前面レイヤーに立体的なハニカム防壁を生成
         const shield = document.createElement('div');
         shield.style.position = 'absolute';
-        shield.style.width = '240px'; // 巨大化キャラに合わせて拡大
+        shield.style.width = '240px'; 
         shield.style.height = '240px';
         shield.style.left = '40px';
         shield.style.top = '70px';
         
-        // 🛡️ 修正のコア：CSSグラデーションによる精密なハニカム構造
         shield.style.backgroundColor = 'transparent';
         shield.style.backgroundImage = 'linear-gradient(30deg, #10b981 12%, transparent 12.5%, transparent 87%, #10b981 87.5%, #10b981), \
                                          linear-gradient(150deg, #10b981 12%, transparent 12.5%, transparent 87%, #10b981 87.5%, #10b981), \
@@ -233,25 +211,21 @@ function renderMagicVisual(type) {
         shield.style.backgroundSize = '20px 35px';
         shield.style.backgroundPosition = '0 0, 0 0, 10px 18px, 10px 18px, 0 0, 10px 18px';
         
-        // 🛡️ 修正のコア：立体的な輪郭と球体感を出すボックスシャドウ多層張り
         shield.style.borderRadius = '50%';
-        shield.style.border = '8px solid #ffffff'; // 白い球体の輪郭
+        shield.style.border = '8px solid #ffffff'; 
         shield.style.boxShadow = '0 0 20px #10b981, 0 0 40px #34d399, inset 0 0 25px rgba(255,255,255,0.8), inset 0 0 50px rgba(16,185,129,0.5)';
         shield.style.filter = 'drop-shadow(0 0 20px #10b981)';
         
-        // アニメーション設定
         shield.style.transform = 'scale(0.2) rotate(-135deg)';
         shield.style.opacity = '0';
-        shield.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'; // ポップアップアニメ
+        shield.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'; 
         frontLayer.appendChild(shield);
 
-        // 瞬時に出現
         setTimeout(() => {
             shield.style.opacity = '1';
             shield.style.transform = 'scale(1) rotate(0deg)';
         }, 10);
 
-        // 自然なフェードアウト余韻（砕け散る感じ）
         setTimeout(() => {
             shield.style.opacity = '0';
             shield.style.transform = 'scale(0.3) rotate(90deg)';
@@ -300,10 +274,8 @@ function turn(playerMove) {
 
     window.isEnemyShieldActive = false;
 
-    // 画像演出回路のキック
     renderMagicVisual(playerMove);
 
-    // 外部演出のエラー監禁シールド呼び出し
     try {
         if (typeof startSpellEffect === "function") {
             startSpellEffect(playerMove);
@@ -314,7 +286,6 @@ function turn(playerMove) {
         console.warn("⚠️ 外部演出内のエラーを隔離:", spellError);
     }
 
-    // 効果音再生
     try {
         if (typeof playSE === "function") {
             if (playerMove === 'fire' && typeof SOUND_FIRE !== 'undefined') playSE(SOUND_FIRE);
@@ -345,7 +316,6 @@ function turn(playerMove) {
         return;
     }
 
-    // ダメージ適用確定タイマー
     setTimeout(() => {
         window.eHp = Math.max(0, window.eHp - dmg); 
         updateHpUI(); 
@@ -400,7 +370,6 @@ function useItem(itemType) {
 function nextStage() {
     if (typeof closeItemBag === "function") closeItemBag(); 
     
-    // 次のステージ移動命令が走った瞬間に、画面上の全演出残像を強制的に物理消去する
     const layer = document.getElementById('spell-effect-layer');
     const frontLayer = document.getElementById('front-effect-layer');
     if (layer) layer.innerHTML = "";
@@ -429,8 +398,8 @@ function nextStage() {
     if (typeof stopBGM === "function") stopBGM();
 }
 
+// ➔ 【ラグバスター箇所】50msのタイマーを完全除去・直列最適化
 function startBattle() {
-    // 新しい戦闘画面が組み上がる直前にも、すべてのエフェクトゴミ箱を空にして残像を完封する
     const layer = document.getElementById('spell-effect-layer');
     const frontLayer = document.getElementById('front-effect-layer');
     if (layer) layer.innerHTML = "";
@@ -449,38 +418,37 @@ function startBattle() {
     if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
+    
     const itemBadge = document.getElementById('item-badge');
     const chargeBadge = document.getElementById('charge-badge');
     const eName = document.getElementById('e-name');
     const eGraphic = document.getElementById('e-sprite-graphic');
-    
-    if (eGraphic) eGraphic.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-
     const logEl = document.getElementById('battle-log');
+    
     if (itemBadge) itemBadge.style.display = "none"; 
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
+    
+    // 1. 画面切り替えの瞬間に、透明ドットを挟まず直接モンスターの「本物のグラフィック」を代入
+    let folderType = data.type; 
+    if (eGraphic && MASTER_ANIM_MAP[folderType]) { 
+        eGraphic.src = MASTER_ANIM_MAP[folderType][0];
+    }
     
     showScreen('scr-battle'); 
     updateHpUI(); 
     checkDevPassword();
     
-    // 🚨 戦闘開始直前に③キャラ巨大化・オーラ浮遊を直結適用
+    // 2. 待機時間なしで、即座に巨大化・浮遊制御を連動点火（最初からバシッと佇む）
     applyMegaVisuals();
 
     if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     if (typeof startBGM === "function") startBGM("battle");
 
-    setTimeout(() => {
-        let folderType = data.type; 
-
-        if (eGraphic && MASTER_ANIM_MAP[folderType]) { 
-            eGraphic.src = MASTER_ANIM_MAP[folderType][0];
-        }
-        if (typeof startCustomAnimation === "function") {
-            startCustomAnimation(folderType); 
-        }
-    }, 50);
+    // 3. 外部アニメーションシステムもディレイ無しでノータイムで完全同期キック
+    if (typeof startCustomAnimation === "function") {
+        startCustomAnimation(folderType); 
+    }
 }
 
 // ==========================================
@@ -504,7 +472,6 @@ function enemyTurnAction(isPlayerDefending = false) {
         dmg = Math.floor(dmg * 0.5);
     }
 
-    // 敵行動開始時にプレイヤー側魔法エフェクトの残骸を即時消去
     const layer = document.getElementById('spell-effect-layer'); 
     const frontLayer = document.getElementById('front-effect-layer');
     if (layer) layer.innerHTML = "";
@@ -533,14 +500,11 @@ function enemyTurnAction(isPlayerDefending = false) {
     } else {
         if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】のダメージ！`;
         
-        // 🚨 ③本物物理突進（画面左までブチ抜く）の実装
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
-            // JS側から突進アニメーション（enemyAssault_Mega）を強制直結
             eContainer.style.animation = "enemyAssault_Mega 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards";
             
             setTimeout(() => { 
-                // 攻撃終了後に重厚な浮遊ホバー（floatE_Mega）へ戻す
                 if (eContainer) eContainer.style.animation = "floatE_Mega 2.2s infinite alternate ease-in-out"; 
             }, 460);
         }
