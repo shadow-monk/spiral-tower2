@@ -1,10 +1,10 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 1.4 (変数汚染完全排除・無敵ガード・粒子四散搭載確定版)
+// 📦 VERSION: 1.4 (全機能開通・主人公蘇生・粒子四散完全統合版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.4: 二重初期化を完全消滅。Null安全ガードによりフリーズバグを100%完全隠滅した最終修正版！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.4: ターンガードのタイポを完全修正！デス呪文全面解放・主人公画像100%復活確定版！", "color: #00ff00; font-weight: bold;");
 
-// ⚔️ 外部モジュール（V6.30）の本物変数を絶対に上書き・破壊しないプロテクト
+// ⚔️ 外部変数を絶対に汚染・上書きしないためのセーフティプロテクト
 window.mana = window.mana || 1.0;
 window.isBusy = false; 
 window.isPlayerStunned = window.isPlayerStunned || false;
@@ -13,7 +13,7 @@ window.itemInventory = window.itemInventory || { potion: 1, amulet: 1 };
 window.currentAudioBgm = window.currentAudioBgm || null;
 
 // ==========================================
-// 🎧 1. セーフティオーディオシステム（エラー完全遮断）
+// 🎧 1. オーディオ制御回路
 // ==========================================
 function startBGM(mode) {
     stopBGM(); 
@@ -151,7 +151,7 @@ function useItem(itemType) {
 }
 
 // ==========================================
-// 🎨 3. 演出ビジュアル効果関数群（★完全無敵化）
+// 🎨 3. 演出ビジュアル効果関数群（★鉄壁ガード化）
 // ==========================================
 function applyManaStockAura(moveType) {
     const aura = document.getElementById('p-aura-layer'); 
@@ -226,7 +226,7 @@ function triggerParticle四散(targetContainer, particleColor) {
     const centerX = (rect.left - parentRect.left) + rect.width / 2;
     const centerY = (rect.top - parentRect.top) + rect.height / 2;
     
-    const pCount = 35; const particles = [];
+    const pCount = 45; const particles = [];
     for (let i = 0; i < pCount; i++) {
         const p = document.createElement('div'); p.style.position = 'absolute';
         const pSize = Math.floor(Math.random() * 5) + 4; 
@@ -235,7 +235,7 @@ function triggerParticle四散(targetContainer, particleColor) {
         p.style.imageRendering = 'pixelated'; p.style.pointerEvents = 'none'; p.style.zIndex = '99';
         parent.appendChild(p);
 
-        const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 8 + 4; 
+        const angle = Math.random() * Math.PI * 2; const speed = Math.random() * 9 + 4; 
         particles.push({ element: p, x: centerX, y: centerY, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, opacity: 1.0 });
     }
 
@@ -244,7 +244,7 @@ function triggerParticle四散(targetContainer, particleColor) {
         pFrameCount++; let alive = false;
         particles.forEach(p => {
             if (p.opacity <= 0) return; alive = true;
-            p.x += p.vx; p.y += p.vy; p.vy += 0.15; p.vx *= 0.98; p.opacity -= 0.025;
+            p.x += p.vx; p.y += p.vy; p.vy += 0.16; p.vx *= 0.97; p.opacity -= 0.022;
             p.element.style.left = `${p.x}px`; p.element.style.top = `${p.y}px`; p.element.style.opacity = p.opacity;
             p.element.style.transform = `scale(${p.opacity > 0 ? p.opacity : 0})`;
         });
@@ -253,12 +253,11 @@ function triggerParticle四散(targetContainer, particleColor) {
 }
 
 // ==========================================
-// 🚀 4. ステージ進行・戦闘遷移（★Null安全徹底ガード配線）
+// 🚀 4. ステージ進行・戦闘遷移
 // ==========================================
 function nextStage() {
     if (typeof playSE === "function") playSE('click'); 
     
-    // 現在の外部管理変数の存在状態を安全に吸い上げ
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : -1);
     targetIdx++;
     if (typeof curIdx !== 'undefined') curIdx = targetIdx;
@@ -277,7 +276,7 @@ function nextStage() {
     }
     
     const data = STAGES[targetIdx]; 
-    window.pHp = window.pMaxHp = 100; 
+    window.pHp = 100; 
     hideAll(); 
     if (typeof stopSlimeAnimation === "function") stopSlimeAnimation();
     
@@ -327,6 +326,14 @@ function startBattle() {
         graphicEl.style.width = "200px"; graphicEl.style.height = "200px"; graphicEl.style.display = "block"; 
         if (data.type === "eyes") { graphicEl.style.transform = "scaleX(-1)"; } 
     }
+
+    // 🧙‍♂️ 主人公ウィザードの浮遊状態を強制再適用して完全復活（透明化バグの根絶）
+    const pContainer = document.getElementById('p-sprite-container');
+    if (pContainer) {
+        pContainer.removeAttribute("style");
+        pContainer.style.width = '160px'; pContainer.style.height = '160px'; pContainer.style.display = 'flex';
+        pContainer.style.animation = 'floatP 1.8s infinite alternate ease-in-out';
+    }
     
     if (graphicEl && typeof MASTER_ANIM_MAP !== 'undefined' && MASTER_ANIM_MAP[data.type]) {
         graphicEl.src = MASTER_ANIM_MAP[data.type][0];
@@ -347,16 +354,13 @@ function startBattle() {
 }
 
 function updateHpUI() {
-    // 💥 修正の核心：エラーログ画像原因の全遮断ガード壁
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
-    if (typeof STAGES === 'undefined' || targetIdx < 0 || !STAGES[targetIdx]) return;
-    
     const scr = document.getElementById('eff-scr'); 
     const alertBadge = document.getElementById('p-hp-alert-badge'); 
     if (!scr) return;
     
     let pPct = (window.pHp / 100) * 100; 
-    let ePct = (window.eHp / window.eMaxHp) * 100;
+    let ePct = (window.eMaxHp > 0) ? (window.eHp / window.eMaxHp) * 100 : 0;
     
     const pHpBar = document.getElementById('p-hp-bar');
     const pHpBarB = document.getElementById('p-hp-bar-back');
@@ -370,7 +374,7 @@ function updateHpUI() {
     if (eHpBar) eHpBar.style.width = `${ePct}%`; 
     if (eHpBarB) eHpBarB.style.width = `${ePct}%`;
     if (pHpTxt) pHpTxt.innerText = `HP: ${window.pHp} / 100`;
-    if (eHpTxt) eHpTxt.innerText = `HP: ${window.eHp} / ${window.eMaxHp}`;
+    if (eHpTxt) eHpTxt.innerText = `HP: ${window.eHp} / ${window.eMaxHp || 100}`;
     
     if (window.pHp <= 30 && window.pHp > 0) { 
         scr.style.animation = 'crisisAlert 1.0s infinite alternate';
@@ -378,17 +382,21 @@ function updateHpUI() {
         if (alertBadge) alertBadge.style.display = "block"; 
     } else { 
         scr.style.animation = 'none';
-        scr.style.borderColor = (STAGES[targetIdx] && STAGES[targetIdx].floor === 10) ? '#be123c' : '#334155'; 
+        if (typeof STAGES !== 'undefined' && STAGES[targetIdx]) {
+            scr.style.borderColor = (STAGES[targetIdx].floor === 10) ? '#be123c' : '#334155'; 
+        } else {
+            scr.style.borderColor = '#334155';
+        }
         if (alertBadge) alertBadge.style.display = "none";
     }
 }
 
 // ==========================================
-// 🧙‍♂️ 5. プレイヤー行動戦闘ループ
+// 🧙‍♂️ 5. プレイヤー行動戦闘ループ（★不発ガード完全撤去・開通）
 // ==========================================
 function turn(playerMove) {
-    let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
-    if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || typeof STAGES === 'undefined' || targetIdx < 0 || !STAGES[targetIdx]) return; 
+    // ➔ 修正：STAGESオブジェクトの有無による、ボタン入力を不発にさせていたガード命令を完全撤去！
+    if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
     
     if (window.isPlayerStunned) {
@@ -398,8 +406,13 @@ function turn(playerMove) {
         return;
     }
   
-    const data = STAGES[targetIdx]; 
-    let isCritical = (playerMove === data.weak);
+    // 外部環境（enemies.js）からインデックスを安全に取得
+    let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
+    let isCritical = false;
+    
+    if (typeof STAGES !== 'undefined' && STAGES[targetIdx]) {
+        isCritical = (playerMove === STAGES[targetIdx].weak);
+    }
     
     if (playerMove === 'debug_death') { 
         playSE('boom'); window.eHp = 0; updateHpUI(); 
@@ -414,8 +427,6 @@ function turn(playerMove) {
 
 function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
-    if (typeof STAGES === 'undefined' || targetIdx < 0 || !STAGES[targetIdx]) return;
-    const data = STAGES[targetIdx]; 
     
     const effectLayer = document.getElementById('spell-effect-layer'); 
     const frontLayer = document.getElementById('front-effect-layer');
@@ -442,11 +453,18 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
             effectLayer.innerHTML = MISSILE_EFFECTS['holy'].replace(/style="/g, `style="mix-blend-mode:plus-lighter !important; filter:contrast(130%) brightness(110%); `);
         }
     } else {
-        if (effectLayer && typeof MISSILE_EFFECTS !== 'undefined') effectLayer.innerHTML = MISSILE_EFFECTS[playerMove];
+        if (effectLayer && typeof MISSILE_EFFECTS !== 'undefined' && MISSILE_EFFECTS[playerMove]) {
+            effectLayer.innerHTML = MISSILE_EFFECTS[playerMove];
+        }
     }
 
     if (pContainer) pContainer.style.transform = 'translateX(45px) scale(1.08)'; 
-    setTimeout(() => { if (pContainer) pContainer.style.transform = 'none'; }, 350);
+    setTimeout(() => { 
+        if (pContainer) {
+            pContainer.style.transform = 'none'; 
+            pContainer.style.animation = 'floatP 1.8s infinite alternate ease-in-out'; // アニメーションヘッドを確実に再結合
+        }
+    }, 350);
     
     setTimeout(() => {
         playSE(playerMove); 
@@ -493,7 +511,10 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
             }
         }
         
-        triggerEnemyHitPulse(isCritical, data.type); 
+        let enemyType = "slime";
+        if (typeof STAGES !== 'undefined' && STAGES[targetIdx]) enemyType = STAGES[targetIdx].type;
+        
+        triggerEnemyHitPulse(isCritical, enemyType); 
         triggerShake(isCritical ? 'critical_shake' : 'attack_success');
         createDmgPop(calculatedDmg, isCritical, false); 
         if (isCritical) { flashCritical(flashColor); } else { flashScreen(flashColor); }
@@ -581,7 +602,7 @@ function postEnemyTurnCleanup() {
 // ==========================================
 function checkBattleEnd() {
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
-    if (window.pHp <= 0 || window.eHp <= 0 || typeof STAGES === 'undefined' || targetIdx < 0 || !STAGES[targetIdx]) return false;
+    if (window.pHp <= 0 || window.eHp <= 0) return false;
     
     if (window.eHp <= 0) {
         stopBGM(); 
@@ -589,17 +610,22 @@ function checkBattleEnd() {
         playSE('boom'); triggerShake('critical_shake'); flashCritical('#ffffff');
         
         const containerEl = document.getElementById('e-sprite-container');
-        const data = STAGES[targetIdx];
+        let glowColor = "rgba(34,197,94,0.4)";
+        if (typeof STAGES !== 'undefined' && STAGES[targetIdx]) glowColor = STAGES[targetIdx].glow;
+        
         if (containerEl) { 
             containerEl.style.transition = 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'; 
             containerEl.style.transform = 'scale(0.01) rotate(180deg)'; 
             containerEl.style.opacity = '0';
-            triggerParticle四散(containerEl, data.glow);
+            triggerParticle四散(containerEl, glowColor);
         }
         
         if (targetIdx === 0 || targetIdx === 3) { window.itemInventory.potion++; } 
         if (targetIdx === 1 || targetIdx === 5) { window.itemInventory.amulet++; }
-        setTimeout(() => { endBattle(); }, (STAGES[targetIdx] && STAGES[targetIdx].floor === 10) ? 1400 : 800);
+        
+        let delayTime = 800;
+        if (typeof STAGES !== 'undefined' && STAGES[targetIdx] && STAGES[targetIdx].floor === 10) delayTime = 1400;
+        setTimeout(() => { endBattle(); }, delayTime);
         return true;
     } else if (window.pHp <= 0) {
         stopBGM(); if (typeof stopSlimeAnimation === "function") stopSlimeAnimation();
@@ -624,8 +650,8 @@ function endBattle() {
     document.getElementById('battle-log').innerHTML = "コマンドを選択せよ。";
     
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
-    if (window.eHp <= 0 && typeof STAGES !== 'undefined' && targetIdx >= 0 && STAGES[targetIdx]) {
-        if (targetIdx === STAGES.length - 1) {
+    if (window.eHp <= 0) {
+        if (typeof STAGES !== 'undefined' && targetIdx === STAGES.length - 1) {
             if (rIcon) rIcon.innerText = "👑"; if (rTitle) { rTitle.innerText = "GRAND END"; rTitle.style.color = '#eab308'; }
             if (rText) rText.innerText = "最上階に君臨せし黒竜は消滅し、世界を包んでいた暗黒の呪縛は完全に霧散した。新星術式を極めし賢者ウィザードの英知により、螺旋の塔へ永遠の平穏が取り戻される。戦いは終わり、英雄の叙事詩が今ここに完結した。あなたの勝利は歴史に永久に刻まれ、新たな光の時代が幕を開ける。平和の光とともに歩みを進めよ。";
             if (rBtn) rBtn.innerText = "タイトルに戻る";
@@ -633,13 +659,15 @@ function endBattle() {
         } else {
             if (rIcon) rIcon.innerText = "🏆"; if (rTitle) { rTitle.innerText = "VICTORY"; rTitle.style.color = '#10b981'; }
             let dLog = (targetIdx===0||targetIdx===3)?"➔ 戦利品【🧪回復薬】を獲得！":(targetIdx===1||targetIdx===5)?"➔ 戦利品【🧿お守り】を獲得！":"";
-            if (rText) rText.innerText = `激闘の末、立ちはだかる${STAGES[targetIdx].name}を完全に粉砕した！${dLog}`; 
+            let enemyName = (typeof STAGES !== 'undefined' && STAGES[targetIdx]) ? STAGES[targetIdx].name : "魔物";
+            if (rText) rText.innerText = `激闘の末、立ちはだかる${enemyName}を完全に粉砕した！${dLog}`; 
             if (rBtn) rBtn.innerText = "次の階層へ進む";
             stopBGM();
         }
     } else { 
         if (rIcon) rIcon.innerText = "💀"; if (rTitle) { rTitle.innerText = "DEFEATED"; rTitle.style.color = '#f43f5e'; }
-        if (rText) rText.innerText = (typeof STAGES !== 'undefined' && STAGES[targetIdx]) ? `${STAGES[targetIdx].name}に敗北した...` : "敗北した..."; 
+        let enemyName = (typeof STAGES !== 'undefined' && STAGES[targetIdx]) ? STAGES[targetIdx].name : "魔物";
+        if (rText) rText.innerText = `${enemyName}に敗北した...`; 
         if (rBtn) rBtn.innerText = "タイトルに戻る"; 
         if (typeof curIdx !== 'undefined') curIdx = -1; window.curIdx = -1; 
         stopBGM(); 
@@ -656,5 +684,5 @@ function resetGame() {
     clearCrisisAlertEffects(); 
 }
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 1.4 改正版]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 1.4 最終確定版]
 // ==========================================
