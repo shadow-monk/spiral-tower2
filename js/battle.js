@@ -1,10 +1,11 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
+// 📦 VERSION: 1.2 (資料e65ffa6演出完全統合・出現ラグ無し確定版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] ①ハニカム3D化・②魔法フェード・③巨大化・浮遊・本物突進完全実装！ (出現ラグ解消版)", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.2：①ハニカム3D＆②魔法フェードを完全維持 ＋ 資料e65ffa6（体当たり・カットイン・酸糸・麻痺拘束）100%完全融合！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
-// ⚔️ 1. グローバル戦闘ステータス管理変数
+// ⚔️ 1. グローバル戦闘ステータス管理変数（Ver 1.1ベースを完全保護）
 // ==========================================
 window.curIdx = -1; 
 window.pMaxHp = 100; 
@@ -23,32 +24,92 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🧙‍♂️👹 2. ③ キャラ巨大化・オーラ浮遊強制制御
+// 🎨 2. 【新設】資料e65ffa6準拠：CSSアニメーション動的注入システム
+// ==========================================
+// HTML側に元の美しい@keyframesが存在しない場合でも、JS側から不壊の描画として強制注入する
+(function injectRequiredStyles() {
+    if (document.getElementById('v12-merged-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'v12-merged-styles';
+    style.innerHTML = `
+        /* 🧙‍♂️👹 キャラクター標準ホバー浮遊（資料e65ffa6完全復元） */
+        @keyframes floatP { 0% { transform: translateY(0px) scaleY(1); } 100% { transform: translateY(-12px) scaleY(1.02); } }
+        @keyframes floatE { 0% { transform: translateY(0px) scale(1); } 100% { transform: translateY(-10px) scale(1.03); } }
+        
+        /* 👹 敵通常攻撃：本物物理突進体当たり（資料e65ffa6完全復元） */
+        @keyframes enemyAssault { 
+            0% { transform: translateX(0); } 
+            20% { transform: translateX(30px); } 
+            45% { transform: translateX(-160px) scale(1.1); } 
+            70% { transform: translateX(15px); } 
+            100% { transform: translateX(0); } 
+        }
+        
+        /* ☠ トドメの映画風クリティカル帯スライド（資料e65ffa6完全復元） */
+        @keyframes cutinSlide { 
+            0% { transform: translateX(-100%) skewX(-15deg); opacity: 0; } 
+            15% { transform: translateX(0%) skewX(-15deg); opacity: 1; } 
+            85% { transform: translateX(0%) skewX(-15deg); opacity: 1; } 
+            100% { transform: translateX(100%) skewX(-15deg); opacity: 0; } 
+        }
+        
+        /* 🕸🧪 敵特殊行動：飛び道具飛翔エフェクト（資料e65ffa6完全復元） */
+        @keyframes enemyMissileFly {
+            0% { transform: translate(140px, -20px) scale(0.5); background-position: 0px 0px; opacity: 0; }
+            15% { opacity: 1; }
+            33% { background-position: -64px 0px; }
+            66% { background-position: -128px 0px; }
+            100% { transform: translate(-110px, 40px) scale(1.3); background-position: -192px 0px; opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+})();
+
+// ==========================================
+// 🧙‍♂️👹 3. キャラサイズ高画素浮遊・オーラ強制制御（資料e65ffa6完全適合化）
 // ==========================================
 function applyMegaVisuals() {
-    // 主人公：巨大化＆青い魔力オーラ＆浮遊アニメ直結
+    const data = STAGES[window.curIdx];
     const pContainer = document.getElementById('p-sprite-container');
-    const pGraphic = document.getElementById('p-sprite-graphic');
+    const pGraphic = document.getElementById('p-sprite-graphic') || document.getElementById('p-sprite-img');
+    
+    // 主人公：資料e65ffa6に完全準拠した140px高画素浮遊化
     if (pContainer && pGraphic) {
-        pContainer.style.width = '200px'; 
-        pContainer.style.height = '200px';
-        pContainer.style.animation = 'floatP_Mega 1.5s infinite alternate ease-in-out'; 
-        pGraphic.style.filter = 'drop-shadow(0 0 15px #3b82f6)'; 
+        pContainer.style.width = '160px'; 
+        pContainer.style.height = '160px';
+        pContainer.style.animation = 'floatP 1.8s infinite alternate ease-in-out'; 
+        pGraphic.style.width = '140px';
+        pGraphic.style.height = '140px';
+        pGraphic.style.imageRendering = 'pixelated';
+        pGraphic.style.filter = 'drop-shadow(0 0 15px rgba(79,70,229,0.4))'; 
     }
 
-    // 敵：超巨大化＆赤い邪気オーラ＆重厚な浮遊アニメ直結
+    // 敵：資料e65ffa6に完全準拠した200px高画素・ボス属性個有オーラ化
     const eContainer = document.getElementById('e-sprite-container');
     const eGraphic = document.getElementById('e-sprite-graphic');
     if (eContainer && eGraphic) {
-        eContainer.style.width = '280px'; 
-        eContainer.style.height = '280px';
-        eContainer.style.animation = 'floatE_Mega 2.2s infinite alternate ease-in-out'; 
-        eGraphic.style.filter = 'drop-shadow(0 0 20px #ef4444)'; 
+        eContainer.removeAttribute("style"); // 残像スタイルのデストロイ
+        eContainer.style.width = '200px'; 
+        eContainer.style.height = '200px';
+        eContainer.style.display = 'flex';
+        eContainer.style.justifyContent = 'center';
+        eContainer.style.alignItems = 'center';
+        eContainer.style.position = 'relative';
+        eContainer.style.animation = 'floatE 2.2s infinite alternate ease-in-out'; 
+        eContainer.style.filter = `drop-shadow(0 0 25px ${data ? data.glow : 'rgba(239,68,68,0.4)'})`; 
+        
+        eGraphic.removeAttribute("style");
+        eGraphic.style.width = '200px';
+        eGraphic.style.height = '200px';
+        eGraphic.style.objectFit = 'contain';
+        eGraphic.style.imageRendering = 'pixelated';
+        eGraphic.style.display = 'block';
+        if (data && data.type === "eyes") { eGraphic.style.transform = "scaleX(-1)"; }
     }
 }
 
 // ==========================================
-// 🔥 🛡️ ❄️ ✨ 3. ①ハニカム3D＆②魔法フェード＆ホーリー完全実装
+// 🔥 🛡️ ❄️ ✨ 4. ①ハニカム3D＆②魔法フェード＆ホーリー（Ver 1.1の聖域）
 // ==========================================
 function renderMagicVisual(type) {
     const layer = document.getElementById('spell-effect-layer');
@@ -236,16 +297,17 @@ function renderMagicVisual(type) {
 }
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー行動・基本戦闘ループ
+// 🧙‍♂️ 5. プレイヤー行動・基本戦闘ループ（資料e65ffa6トドメのカットイン搭載）
 // ==========================================
 function turn(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
 
+    // 麻痺（スタン）時：1ターン完全行動不能スキップ（資料e65ffa6設計完全マージ）
     if (window.isPlayerStunned) { 
         window.isPlayerStunned = false; 
         const logEl = document.getElementById('battle-log');
-        if (logEl) logEl.innerHTML = "🚨 <span style='color: #f59e0b; font-weight: bold;'>体が痺れて動けない！ ターンがスキップされた！</span>"; 
+        if (logEl) logEl.innerHTML = "🚨 <span style='color: #f59e0b; font-weight: bold;'>粘着糸に絡め取られて動けない！ ターンがスキップされた！</span>"; 
         setTimeout(() => { enemyTurnAction(); }, 1200); 
         return; 
     }
@@ -274,27 +336,51 @@ function turn(playerMove) {
 
     window.isEnemyShieldActive = false;
 
+    // トドメの一撃かつ弱点直撃（クリティカル）時の暗転カットイン割り込み（資料e65ffa6完全復元回路）
+    if (isCritical && (window.eHp - dmg <= 0)) {
+        try { if (typeof playSE === "function") playSE('boom'); } catch(e){}
+        
+        const darkLayer = document.getElementById('cutin-dark-layer');
+        const cutinBar = document.getElementById('cutin-bar');
+        
+        if (darkLayer && cutinBar) {
+            darkLayer.style.display = "block";
+            cutinBar.style.display = "flex";
+            cutinBar.style.animation = "cutinSlide 1.0s ease-in-out forwards";
+            
+            setTimeout(() => {
+                darkLayer.style.display = "none";
+                cutinBar.style.display = "none";
+                executeActualDamage(playerMove, isCritical, dmg);
+            }, 1000);
+            return;
+        }
+    }
+
+    executeActualDamage(playerMove, isCritical, dmg);
+}
+
+// ダメージ適用処理の分離カプセル
+function executeActualDamage(playerMove, isCritical, dmg) {
     renderMagicVisual(playerMove);
 
+    // 外部演出用エラー隔離シールド
     try {
         if (typeof startSpellEffect === "function") {
             startSpellEffect(playerMove);
         } else if (typeof openMagic === "function") {
             openMagic(playerMove);
         }
-    } catch (spellError) {
-        console.warn("⚠️ 外部演出内のエラーを隔離:", spellError);
-    }
+    } catch (spellError) { console.warn("⚠️ 外部演出内のエラーを隔離:", spellError); }
 
+    // 効果音再生
     try {
         if (typeof playSE === "function") {
             if (playerMove === 'fire' && typeof SOUND_FIRE !== 'undefined') playSE(SOUND_FIRE);
             else if (playerMove === 'ice' && typeof SOUND_ICE !== 'undefined') playSE(SOUND_ICE);
             else if (playerMove === 'holy' && typeof SOUND_HOLY !== 'undefined') playSE(SOUND_HOLY);
         }
-    } catch (seError) {
-        console.warn("⚠️ 効果音再生エラー隔離:", seError);
-    }
+    } catch (seError) { console.warn("⚠️ 効果音再生エラー隔離:", seError); }
 
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
@@ -338,7 +424,7 @@ function turn(playerMove) {
 }
 
 // ==========================================
-// 🎒 5. アイテムバッグ・ステージ進行管理
+// 🎒 6. アイテムバッグ・ステージ進行管理
 // ==========================================
 function useItem(itemType) {
     if (window.isBusy || window.itemInventory[itemType] <= 0) return;
@@ -391,14 +477,14 @@ function nextStage() {
     const chNum = document.getElementById('intro-ch-num');
     const chTitle = document.getElementById('intro-ch-title');
     const introTxt = document.getElementById('intro-text');
-    if (chNum) chNum.innerText = `FLOOR 0${data.floor}`; 
+    if (chNum) chNum.innerText = `FLOOR ${data.floor < 10 ? '0' + data.floor : data.floor}`; 
     if (chTitle) chTitle.innerText = data.name; 
     if (introTxt) introTxt.innerText = data.txt;
     showScreen('scr-intro'); 
     if (typeof stopBGM === "function") stopBGM();
 }
 
-// ➔ 【ラグバスター箇所】50msのタイマーを完全除去・直列最適化
+// 【Ver 1.1聖域】爆速出現ラグバスター直列処理システム
 function startBattle() {
     const layer = document.getElementById('spell-effect-layer');
     const frontLayer = document.getElementById('front-effect-layer');
@@ -415,8 +501,8 @@ function startBattle() {
     window.battleTurnCount = 1; 
 
     const eContainer = document.getElementById('e-sprite-container');
-    if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "scale(1)"; }
-    const pGraphic = document.getElementById('p-sprite-graphic');
+    if (eContainer) { eContainer.style.opacity = "1"; eContainer.style.transform = "none"; }
+    const pGraphic = document.getElementById('p-sprite-graphic') || document.getElementById('p-sprite-img');
     if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
     
     const itemBadge = document.getElementById('item-badge');
@@ -429,7 +515,7 @@ function startBattle() {
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
     
-    // 1. 画面切り替えの瞬間に、透明ドットを挟まず直接モンスターの「本物のグラフィック」を代入
+    // 画面遷移と同時に直接本物画像を流し込む（1ミリ秒の隙間も与えない出現ラグ潰し）
     let folderType = data.type; 
     if (eGraphic && MASTER_ANIM_MAP[folderType]) { 
         eGraphic.src = MASTER_ANIM_MAP[folderType][0];
@@ -439,32 +525,29 @@ function startBattle() {
     updateHpUI(); 
     checkDevPassword();
     
-    // 2. 待機時間なしで、即座に巨大化・浮遊制御を連動点火（最初からバシッと佇む）
+    // 即時、資料e65ffa6に最適化された高画素ホバーサイズを反映
     applyMegaVisuals();
 
-    if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
+    if (logEl) logEl.innerHTML = `戦闘領域展開。${data.name}を駆逐せよ。 <span style='color:#38bdf8;'>[弱点: ${data.weak.toUpperCase()}]</span>`;
     if (typeof startBGM === "function") startBGM("battle");
 
-    // 3. 外部アニメーションシステムもディレイ無しでノータイムで完全同期キック
     if (typeof startCustomAnimation === "function") {
         startCustomAnimation(folderType); 
     }
 }
 
 // ==========================================
-// 👹 6. エネミーターン行動AI・③本物物理突進実装
+// 👹 7. エネミーターン行動AI・資料e65ffa6（体当たり突進＆酸・糸特殊攻撃）完全同期版
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
     const data = STAGES[window.curIdx];
     const logEl = document.getElementById('battle-log');
     
-    let isSpecial = false;
-    if (window.battleTurnCount > 1 && Math.random() < 0.4) {
-        isSpecial = true;
-    }
+    // 資料基準の特殊行動発火判定（36%確率発動）
+    let isSpecial = (Math.random() < 0.36) && ['slime', 'spider', 'harpy', 'dragon'].includes(data.type);
 
-    let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
+    let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.12)) : data.atk;
     dmg = Math.floor(dmg * window.enemyMana); 
     window.enemyMana = 1.0; 
     
@@ -478,47 +561,68 @@ function enemyTurnAction(isPlayerDefending = false) {
     if (frontLayer) frontLayer.innerHTML = "";
 
     if (isSpecial) {
+        // 資料e65ffa6に内包されている各種毒・糸・スラッシュのスプライト動的インジェクション
         if (data.type === 'slime') {
-            if (logEl) logEl.innerHTML = `👹 ${data.name}の【緑の液体投げ】！`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) {}
+            if (layer) layer.innerHTML = '<div style="position:absolute; width:64px; height:64px; background-image:url(\'https://raw.githubusercontent.com/shadow-monk/game1/main/assets/effect/poison.png\'); background-size:256px 64px; left:220px; top:145px; animation:enemyMissileFly 0.45s ease-in forwards; image-rendering:pixelated; mix-blend-mode:screen;"></div>';
+            dmg = Math.floor(dmg * 0.9);
+            if (logEl) logEl.innerHTML = `🚨 ${data.name}の【溶解酸液】被弾！防御低下！`;
         } 
         else if (data.type === 'spider') {
-            if (logEl) logEl.innerHTML = `👹 ${data.name}の【粘着糸吐き】！`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) {}
-            window.isPlayerStunned = true; 
+            if (layer) layer.innerHTML = '<div style="position:absolute; width:64px; height:64px; background-image:url(\'https://raw.githubusercontent.com/shadow-monk/game1/main/assets/effect/GUS.png\'); background-size:256px 64px; left:220px; top:145px; animation:enemyMissileFly 0.45s ease-in forwards; image-rendering:pixelated; mix-blend-mode:screen;"></div>';
+            dmg = 5; 
+            window.isPlayerStunned = true; // 次ターン麻痺確定化
+            if (logEl) logEl.innerHTML = `🚨 ${data.name}の【粘着拘束糸】被弾！次ターン【麻痺行動不能】！`;
         } 
         else if (data.type === 'harpy') {
-            if (logEl) logEl.innerHTML = `👹 ${data.name}の【雷光急襲】！⚡`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('harpy_thunder'); } catch(e) {}
-            window.isPlayerStunned = (Math.random() < 0.5); 
+            if (layer) layer.innerHTML = '<div style="position:absolute; width:64px; height:64px; background-image:url(\'https://raw.githubusercontent.com/shadow-monk/game1/main/assets/effect/slash.png\'); background-size:256px 64px; left:220px; top:145px; animation:enemyMissileFly 0.45s ease-in forwards; image-rendering:pixelated; mix-blend-mode:screen;"></div>';
+            dmg = Math.floor(dmg * 1.1);
+            if (logEl) logEl.innerHTML = `🚨 ${data.name}の【真空引き裂き刃】！【${dmg}】被弾！`;
         }
         else if (data.type === 'dragon') {
-            if (logEl) logEl.innerHTML = `👹 ${data.name}の【滅びの烈火】！🔥`;
-            try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('dragon_breath'); } catch(e) {}
-            dmg = Math.floor(dmg * 1.5); 
+            if (layer) layer.innerHTML = '<div style="position:absolute; width:64px; height:64px; background-image:url(\'https://raw.githubusercontent.com/shadow-monk/game1/main/assets/effect/kaenbeam.png\'); background-size:256px 64px; left:220px; top:145px; animation:enemyMissileFly 0.45s ease-in forwards; image-rendering:pixelated; mix-blend-mode:screen;"></div>';
+            dmg = Math.floor(dmg * 1.3);
+            if (logEl) logEl.innerHTML = `🔥 黒竜激昂！【滅びのバーストブレス】！【${dmg}】被弾！`;
         }
+
+        setTimeout(() => {
+            try { if (typeof playSE === "function") playSE('boom'); } catch(e){}
+            if (typeof triggerShake === "function") triggerShake('attack_success');
+            if (typeof createDmgPop === "function") createDmgPop(dmg, false, true);
+            
+            window.pHp = Math.max(0, window.pHp - dmg); 
+            updateHpUI(); 
+            if (layer) layer.innerHTML = "";
+            postEnemyTurnCleanup();
+        }, 400);
+
     } else {
-        if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】のダメージ！`;
+        // 通常行動：資料e65ffa6準拠の『本物突進体当たり（enemyAssault）』発動回路
+        if (logEl) {
+            logEl.innerHTML = isPlayerDefending ? `🛡 絶対障壁適応！被弾を【${dmg}】に封滅！` : `${data.name}の突進体当たりを喰らい【${dmg}】被弾！`;
+        }
         
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
-            eContainer.style.animation = "enemyAssault_Mega 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards";
+            eContainer.style.transform = 'translateX(0)';
+            eContainer.style.animation = 'none'; 
+            void eContainer.offsetWidth; // リフローによるアニメーションの強制再着火
+            eContainer.style.animation = "enemyAssault 0.45s forwards";
             
             setTimeout(() => { 
-                if (eContainer) eContainer.style.animation = "floatE_Mega 2.2s infinite alternate ease-in-out"; 
+                if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
             }, 460);
         }
-    }
 
-    window.pHp = Math.max(0, window.pHp - dmg); 
-    updateHpUI(); 
-    
-    if (typeof createDmgPop === "function") {
-        createDmgPop(dmg, true);
+        setTimeout(() => {
+            try { if (typeof playSE === "function") playSE('boom'); } catch(e){}
+            if (typeof triggerShake === "function") triggerShake('attack_success');
+            if (typeof createDmgPop === "function") createDmgPop(dmg, false, true);
+            
+            window.pHp = Math.max(0, window.pHp - dmg); 
+            updateHpUI(); 
+            postEnemyTurnCleanup();
+        }, 220);
     }
-    
-    window.battleTurnCount++;
-    postEnemyTurnCleanup();
 }
 
 function postEnemyTurnCleanup() {
@@ -533,23 +637,35 @@ function postEnemyTurnCleanup() {
     setTimeout(() => { 
         window.isBusy = false;
         checkBattleEnd(); 
-    }, 800);
+    }, 500);
 }
 
 // ==========================================
-// 💥 7. 勝敗判定・ゲームリセット
+// 💥 8. 勝敗判定・ゲームリセット（資料e65ffa6回転縮小吹っ飛び死亡処理マージ）
 // ==========================================
 function checkBattleEnd() {
     if (window.pHp <= 0 || window.eHp <= 0) { 
         if (typeof stopBGM === "function") stopBGM(); 
-        if (typeof stopSlimeAnimation === "function") {
-            stopSlimeAnimation();
-        }
+        if (typeof stopSlimeAnimation === "function") { stopSlimeAnimation(); }
+        
         if (window.eHp <= 0) {
-            try { if (typeof playSE === "function" && typeof SOUND_FREEZE_DEAD !== 'undefined') playSE(SOUND_FREEZE_DEAD); } catch(e){}
+            try { if (typeof playSE === "function") playSE('boom'); } catch(e){}
+            if (typeof triggerShake === "function") triggerShake('critical_shake');
+            if (typeof flashCritical === "function") flashCritical('#ffffff');
+            
+            // 敵死亡時：資料e65ffa6に記載された美しい回転縮小吹っ飛び（scale(0.01) rotate(180deg)）を完全体現
             const eContainer = document.getElementById('e-sprite-container');
-            if (eContainer) { eContainer.style.opacity = "0"; eContainer.style.transform = "scale(0.5)"; }
-            setTimeout(() => { transitionToResult(); }, 800);
+            if (eContainer) { 
+                eContainer.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)'; 
+                eContainer.style.transform = 'scale(0.01) rotate(180deg)'; 
+                eContainer.style.opacity = '0'; 
+            }
+            
+            // 戦利品獲得フラグ（資料e65ffa6内部ロジックプロテクト）
+            if (window.curIdx === 0 || window.curIdx === 3) { window.itemInventory.potion++; } 
+            if (window.curIdx === 1 || window.curIdx === 5) { window.itemInventory.amulet++; }
+            
+            setTimeout(() => { transitionToResult(); }, STAGES[window.curIdx].floor === 10 ? 1200 : 650);
         } else { 
             transitionToResult(); 
         }
@@ -563,35 +679,48 @@ function transitionToResult() {
     const rTitle = document.getElementById('res-title'); 
     const rText = document.getElementById('res-text'); 
     const rBtn = document.getElementById('res-btn');
+    const rIcon = document.getElementById('res-icon');
+    
     if (window.eHp <= 0) {
         if (window.curIdx === STAGES.length - 1) {
-            if (rTitle) rTitle.innerText = "GRAND END"; 
-            if (rText) rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！"; 
-            if (rBtn) rBtn.innerText = "タイトルへ戻る"; 
+            if (rIcon) rIcon.innerText = "👑";
+            if (rTitle) { rTitle.innerText = "GRAND END"; rTitle.style.color = '#eab308'; }
+            if (rText) rText.innerText = "最上階に君臨せし黒竜は消滅し、世界を包んでいた暗黒の呪縛は完全に霧散した。新星術式を極めし賢者ウィザードの英知により、螺旋の塔へ永遠の平穏が取り戻される。戦いは終わり、英雄の叙事詩が今ここに完結した。あなたの勝利は歴史に永久に刻まれ、新たな光の時代が幕を開ける。平和 of 光とともに歩みを進めよ。";
+            if (rBtn) rBtn.innerText = "タイトルに戻る"; 
             if (typeof startBGM === "function") startBGM("grand_end"); 
         } else {
-            if (rTitle) rTitle.innerText = "VICTORY"; 
-            if (rText) rText.innerText = `${STAGES[window.curIdx].name}を撃破した！次の階層への扉が開く。`; 
-            if (rBtn) rBtn.innerText = "次へ進む";
+            if (rIcon) rIcon.innerText = "🏆";
+            if (rTitle) { rTitle.innerText = "VICTORY"; rTitle.style.color = '#10b981'; }
+            let dLog = (window.curIdx === 0 || window.curIdx === 3) ? "➔ 戦利品【🧪回復薬】を獲得！" : (window.curIdx === 1 || window.curIdx === 5) ? "➔ 戦利品【🧿お守り】を獲得！" : "";
+            if (rText) rText.innerText = `激闘の末、立ちはだかる${STAGES[window.curIdx].name}を完全に粉砕した！${dLog}`; 
+            if (rBtn) rBtn.innerText = "次の階層へ進む";
+            if (typeof stopBGM === "function") stopBGM(); // 道中完全無音プロテクト
         }
     } else {
-        if (rTitle) rTitle.innerText = "DEFEATED"; 
-        if (rText) rText.innerText = "目の前が真っ暗になった..."; 
-        if (rBtn) rBtn.innerText = "タイトルへ戻る"; 
+        if (rIcon) rIcon.innerText = "💀";
+        if (rTitle) { rTitle.innerText = "DEFEATED"; rTitle.style.color = '#f43f5e'; }
+        if (rText) rText.innerText = `${STAGES[window.curIdx].name}に敗北した...`; 
+        if (rBtn) rBtn.innerText = "タイトルに戻る"; 
         window.curIdx = -1;
+        if (typeof stopBGM === "function") stopBGM();
     }
     window.isBusy = false;
 }
 
 function resetGame() { 
-    if (!window.isDebugUnlocked) { window.pMaxHp = 100; window.pHp = 100; } else { window.pMaxHp = 8000; window.pHp = 8000; } 
+    window.pMaxHp = 100; 
+    window.pHp = 100; 
     window.mana = 1.0; 
     window.curIdx = -1; 
     window.isBusy = false; 
     window.itemInventory = { potion: 1, amulet: 1 }; 
     window.isAmuletActive = 0; 
+    const logEl = document.getElementById('battle-log');
+    if (logEl) logEl.innerHTML = "コマンドを選択せよ。";
     if (typeof stopBGM === "function") stopBGM(); 
-    if (typeof stopSlimeAnimation === "function") {
-        stopSlimeAnimation(); 
-    }
+    if (typeof stopSlimeAnimation === "function") { stopSlimeAnimation(); }
+    if (typeof clearCrisisAlertEffects === "function") { clearCrisisAlertEffects(); }
 }
+// ==========================================
+// 🕒 📦 END OF FILE - js/battle.js [Ver 1.2]
+// ==========================================
