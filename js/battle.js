@@ -1,8 +1,8 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 1.4 (全機能開通・主人公蘇生・粒子四散完全統合版)
+// 📦 VERSION: 1.4.2 (シールド・チャージ本来機能完全復旧版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.4: ターンガードのタイポを完全修正！デス呪文全面解放・主人公画像100%復活確定版！", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 1.4.2: シールドとチャージのホーリー誤爆を完全隠滅。本来の防御・充填機能を100%復旧した改正確定版！", "color: #00ff00; font-weight: bold;");
 
 // ⚔️ 外部変数を絶対に汚染・上書きしないためのセーフティプロテクト
 window.mana = window.mana || 1.0;
@@ -151,7 +151,7 @@ function useItem(itemType) {
 }
 
 // ==========================================
-// 🎨 3. 演出ビジュアル効果関数群（★鉄壁ガード化）
+// 🎨 3. 演出ビジュアル効果関数群
 // ==========================================
 function applyManaStockAura(moveType) {
     const aura = document.getElementById('p-aura-layer'); 
@@ -215,7 +215,7 @@ function hideAll() { ['scr-start','scr-intro','scr-battle','scr-result'].forEach
 function clearCrisisAlertEffects() { const scr = document.getElementById('eff-scr'); const alertBadge = document.getElementById('p-hp-alert-badge'); if(scr) { scr.style.animation = 'none'; scr.style.borderColor = '#334155'; scr.style.backgroundColor = '#0f172a'; } if(alertBadge) alertBadge.style.display = "none"; }
 
 // ==========================================
-// 🌌 ②課題：『ドット粒子四散デストロイ』独立エンジン
+// 🌌 『ドット粒子四散デストロイ』独立エンジン
 // ==========================================
 function triggerParticle四散(targetContainer, particleColor) {
     if (!targetContainer) return;
@@ -253,106 +253,8 @@ function triggerParticle四散(targetContainer, particleColor) {
 }
 
 // ==========================================
-// 🚀 4. ステージ進行・戦闘遷移
+// 📊 UI同期機能（Null安全徹底プロテクト）
 // ==========================================
-function nextStage() {
-    if (typeof playSE === "function") playSE('click'); 
-    
-    let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : -1);
-    targetIdx++;
-    if (typeof curIdx !== 'undefined') curIdx = targetIdx;
-    window.curIdx = targetIdx;
-    
-    clearCrisisAlertEffects();
-    
-    if (typeof STAGES === 'undefined' || targetIdx >= STAGES.length || targetIdx < 0 || !STAGES[targetIdx]) { 
-        resetGame(); hideAll(); 
-        const scrStart = document.getElementById('scr-start');
-        const fInd = document.getElementById('floor-indicator');
-        if (scrStart) scrStart.style.display = 'block'; 
-        if (fInd) fInd.style.visibility = 'hidden'; 
-        startBGM("title"); 
-        return;
-    }
-    
-    const data = STAGES[targetIdx]; 
-    window.pHp = 100; 
-    hideAll(); 
-    if (typeof stopSlimeAnimation === "function") stopSlimeAnimation();
-    
-    const fInd = document.getElementById('floor-indicator');
-    if (fInd) { fInd.style.visibility = 'visible'; fInd.innerText = `${data.floor}階`; }
-    
-    const scrIntro = document.getElementById('scr-intro');
-    if (scrIntro) scrIntro.style.display = 'block';
-    
-    const chNum = document.getElementById('intro-ch-num');
-    const chTitle = document.getElementById('intro-ch-title');
-    const introTxt = document.getElementById('intro-text');
-    if (chNum) chNum.innerText = `FLOOR ${data.floor < 10 ? '0'+data.floor : data.floor}`; 
-    if (chTitle) chTitle.innerText = data.name; 
-    if (introTxt) introTxt.innerText = data.txt;
-    stopBGM(); 
-}
-
-function startBattle() {
-    if (typeof playSE === "function") playSE('click'); 
-    let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
-    if (typeof STAGES === 'undefined' || targetIdx < 0 || !STAGES[targetIdx]) return;
-    
-    const data = STAGES[targetIdx];
-    window.eHp = window.eMaxHp = data.hp; 
-    hideAll(); 
-    window.isBusy = false; 
-    window.isPlayerStunned = false;
-    window.isAmuletActive = 0;
-    
-    clearCrisisAlertEffects(); 
-    const itemB = document.getElementById('item-badge');
-    if (itemB) itemB.style.display = "none";
-    
-    const container = document.getElementById('e-sprite-container'); 
-    if (container) { 
-        container.removeAttribute("style");
-        container.style.animation = 'floatE 2.2s infinite alternate ease-in-out'; 
-        container.style.width = '200px'; container.style.height = '200px'; container.style.display = 'flex';
-        container.style.filter = `drop-shadow(0 0 25px ${data.glow})`; 
-        container.style.opacity = '1'; container.style.transform = 'none';
-    }
-    
-    const graphicEl = document.getElementById('e-sprite-graphic'); 
-    if (graphicEl) { 
-        graphicEl.removeAttribute("style"); 
-        graphicEl.style.width = "200px"; graphicEl.style.height = "200px"; graphicEl.style.display = "block"; 
-        if (data.type === "eyes") { graphicEl.style.transform = "scaleX(-1)"; } 
-    }
-
-    // 🧙‍♂️ 主人公ウィザードの浮遊状態を強制再適用して完全復活（透明化バグの根絶）
-    const pContainer = document.getElementById('p-sprite-container');
-    if (pContainer) {
-        pContainer.removeAttribute("style");
-        pContainer.style.width = '160px'; pContainer.style.height = '160px'; pContainer.style.display = 'flex';
-        pContainer.style.animation = 'floatP 1.8s infinite alternate ease-in-out';
-    }
-    
-    if (graphicEl && typeof MASTER_ANIM_MAP !== 'undefined' && MASTER_ANIM_MAP[data.type]) {
-        graphicEl.src = MASTER_ANIM_MAP[data.type][0];
-    }
-    
-    const scrBattle = document.getElementById('scr-battle');
-    if (scrBattle) scrBattle.style.display = 'block';
-    const eNameEl = document.getElementById('e-name');
-    if (eNameEl) eNameEl.innerText = data.name;
-    
-    if (typeof startCustomAnimation === "function") startCustomAnimation(data.type); 
-    updateHpUI(); 
-    if (typeof checkDevPassword === "function") { try { checkDevPassword(); } catch(e){} }
-    
-    const logEl = document.getElementById('battle-log');
-    if (logEl) logEl.innerHTML = `戦闘領域展開。${data.name}を駆逐せよ。 <span style='color:#38bdf8;'>[弱点: ${data.weak.toUpperCase()}]</span>`;
-    startBGM("battle");
-}
-
 function updateHpUI() {
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
     const scr = document.getElementById('eff-scr'); 
@@ -392,11 +294,49 @@ function updateHpUI() {
 }
 
 // ==========================================
-// 🧙‍♂️ 5. プレイヤー行動戦闘ループ（★不発ガード完全撤去・開通）
+// 🧙‍♂️ 4. プレイヤー行動戦闘ループ（★③シールド・チャージ本来の機能へ修復）
 // ==========================================
 function turn(playerMove) {
-    // ➔ 修正：STAGESオブジェクトの有無による、ボタン入力を不発にさせていたガード命令を完全撤去！
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
+    
+    // 🛡️ ➔ ③修復の核心：シールド（防御）が押された場合の本物の機能への優先仕分け
+    if (playerMove === 'def') {
+        window.isBusy = true;
+        playSE('def');
+        flashScreen('rgba(51, 65, 85, 0.5)'); // 防御用のシックなシールドフラッシュ
+        document.getElementById('battle-log').innerHTML = "🛡️ 魔力結界を展開。防衛絶対障壁を構築！";
+        
+        // 外部のエフェクトレイヤーを即クリーン化してホーリー誤爆を完全遮断
+        const effectLayer = document.getElementById('spell-effect-layer');
+        if (effectLayer) effectLayer.innerHTML = "";
+        
+        // 自力防御フラグ（true）を立ててエネミーターンに安全にパス（被ダメージを極限カット）
+        setTimeout(() => { enemyTurnAction(true); }, 1000);
+        return;
+    }
+    
+    // ⚡ ➔ ③修復の核心：チャージ（充填）が押された場合の本物の機能への優先仕分け
+    if (playerMove === 'chg') {
+        window.isBusy = true;
+        playSE('chg');
+        window.mana = 2.3; // 次ターンの呪術術式威力を2.3倍にチャージホールド
+        flashScreen('rgba(234, 179, 8, 0.3)');
+        document.getElementById('battle-log').innerHTML = "⚡ 新星魔力を全脳に充填！次ターンの呪術威力【2.3倍】限界突破！";
+        
+        const effectLayer = document.getElementById('spell-effect-layer');
+        if (effectLayer) effectLayer.innerHTML = "";
+        
+        const chgBadge = document.getElementById('charge-badge');
+        if (chgBadge) { chgBadge.style.display = "block"; chgBadge.innerText = "⚡ 魔力暴走中"; }
+        
+        // プレイヤーアスペクトのチャージオーラを纏わせる
+        applyManaStockAura('holy');
+        
+        setTimeout(() => { enemyTurnAction(false); }, 1000);
+        return;
+    }
+    
+    // 💥 魔法攻撃（またはデバッグデス）の場合のみ、ここから先の戦闘処理に進行
     window.isBusy = true;
     
     if (window.isPlayerStunned) {
@@ -406,7 +346,6 @@ function turn(playerMove) {
         return;
     }
   
-    // 外部環境（enemies.js）からインデックスを安全に取得
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
     let isCritical = false;
     
@@ -428,6 +367,9 @@ function turn(playerMove) {
 function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
     
+    // 💥 防御やチャージが紛れ込んでも、視覚演出スレッドにホーリー画像を絶対に流さない絶対隔離壁
+    if (playerMove !== 'fire' && playerMove !== 'ice' && playerMove !== 'holy') return;
+
     const effectLayer = document.getElementById('spell-effect-layer'); 
     const frontLayer = document.getElementById('front-effect-layer');
     const pContainer = document.getElementById('p-sprite-container'); 
@@ -462,7 +404,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
     setTimeout(() => { 
         if (pContainer) {
             pContainer.style.transform = 'none'; 
-            pContainer.style.animation = 'floatP 1.8s infinite alternate ease-in-out'; // アニメーションヘッドを確実に再結合
+            pContainer.style.animation = 'floatP 1.8s infinite alternate ease-in-out'; 
         }
     }, 350);
     
@@ -544,7 +486,7 @@ function executePlayerAttack(playerMove, isCritical, calculatedDmg) {
 }
 
 // ==========================================
-// 👹 6. エネミーターンAI行動
+// 👹 5. エネミーターンAI行動
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
@@ -598,7 +540,7 @@ function postEnemyTurnCleanup() {
 }
 
 // ==========================================
-// 💥 7. 勝敗判定・ゲーム終了処理（粒子四散）
+// 💥 6. 勝敗判定・ゲーム終了処理（粒子四散）
 // ==========================================
 function checkBattleEnd() {
     let targetIdx = (typeof curIdx !== 'undefined') ? curIdx : (window.curIdx !== undefined ? window.curIdx : 0);
@@ -684,5 +626,5 @@ function resetGame() {
     clearCrisisAlertEffects(); 
 }
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 1.4 最終確定版]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 1.4.2]
 // ==========================================
