@@ -1,4 +1,134 @@
 // ==========================================
+// 🛡 安定化パッチ Ver SAFE-1
+// battle.js の最上部へ追加
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+
+console.log("🛡 SAFE MODE 起動");
+
+// ------------------------------
+// null安全取得
+// ------------------------------
+function safeEl(id){
+    return document.getElementById(id);
+}
+
+// ------------------------------
+// AudioContext共有化
+// ------------------------------
+window.audioCtx = window.audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+
+// ------------------------------
+// 必須データ存在チェック
+// ------------------------------
+if(typeof STAGES === "undefined"){
+    console.error("❌ STAGES が未読込");
+}
+
+if(typeof MASTER_ANIM_MAP === "undefined"){
+    console.error("❌ MASTER_ANIM_MAP が未読込");
+}
+
+// ------------------------------
+// 安全HTML書込
+// ------------------------------
+window.safeHTML = function(id, text){
+    const el = safeEl(id);
+    if(el) el.innerHTML = text;
+}
+
+// ------------------------------
+// 安全表示変更
+// ------------------------------
+window.safeDisplay = function(id, mode){
+    const el = safeEl(id);
+    if(el) el.style.display = mode;
+}
+
+// ------------------------------
+// タイマー暴走防止
+// ------------------------------
+window.stopAllBattleTimers = function(){
+    if(window.animeTimeout){
+        clearTimeout(window.animeTimeout);
+        window.animeTimeout = null;
+    }
+}
+
+// ==========================================
+// 既存関数の安全上書き
+// ==========================================
+
+// アニメ開始前に旧タイマー停止
+const _oldStartCustomAnimation = startCustomAnimation;
+
+startCustomAnimation = function(type){
+
+    stopAllBattleTimers();
+
+    try{
+        _oldStartCustomAnimation(type);
+    }catch(e){
+        console.error("startCustomAnimation error", e);
+    }
+};
+
+// BGM安全化
+const _oldStartBGM = startBGM;
+
+startBGM = function(mode){
+
+    try{
+        _oldStartBGM(mode);
+    }catch(e){
+        console.error("BGM error", e);
+    }
+};
+
+// removeAttribute暴走対策
+const _oldStartBattle = startBattle;
+
+startBattle = function(){
+
+    try{
+
+        const container = safeEl('e-sprite-container');
+        const graphicEl = safeEl('e-sprite-graphic');
+
+        // removeAttribute禁止
+        if(container){
+            container.style.animation = 'floatE 2.2s infinite alternate ease-in-out';
+        }
+
+        if(graphicEl){
+            graphicEl.style.display = 'block';
+        }
+
+        _oldStartBattle();
+
+    }catch(e){
+        console.error("startBattle error", e);
+    }
+};
+
+// updateHpUI安全化
+const _oldUpdateHpUI = updateHpUI;
+
+updateHpUI = function(){
+
+    try{
+        _oldUpdateHpUI();
+    }catch(e){
+        console.error("updateHpUI error", e);
+    }
+};
+
+console.log("✅ SAFE PATCH 適用完了");
+
+});
+
+// ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // 📦 VERSION: 1.2 (資料e65ffa6・HTML完全同期・出現ラグ無し確定版)
 // ==========================================
@@ -380,7 +510,6 @@ function startBattle() {
     // JS側からの勝手なサイズ書き換えプロパティ変更を完全破壊。HTML/CSSの floatE 構造を100%保護する
     const container = document.getElementById('e-sprite-container'); 
     if (container) { 
-        container.removeAttribute("style");
         container.style.animation = 'floatE 2.2s infinite alternate ease-in-out'; 
         container.style.width = '200px'; 
         container.style.height = '200px'; 
@@ -390,7 +519,6 @@ function startBattle() {
     
     const graphicEl = document.getElementById('e-sprite-graphic'); 
     if (graphicEl) { 
-        graphicEl.removeAttribute("style"); 
         graphicEl.style.width = "200px";
         graphicEl.style.height = "200px"; 
         graphicEl.style.display = "block"; 
