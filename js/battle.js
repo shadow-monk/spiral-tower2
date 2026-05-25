@@ -1,10 +1,10 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] 本物レンガ背景 ＋ 正規機能（1〜5）完全統合・バグ完全排除版", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] 正規機能（1〜5）意図的再現・完全安全融和版", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
-// ⚔️ 1. グローバル戦闘ステータス管理変数
+// ⚔️ 1. グローバル戦闘ステータス管理変数（現在のシステムを完全維持）
 // ==========================================
 window.curIdx = -1; 
 window.pMaxHp = 100; 
@@ -23,9 +23,10 @@ window.isEnemyShieldActive = false;
 window.battleTurnCount = 1;
 
 // ==========================================
-// 🧙‍♂️👹 2. 【機能1】本物サイズ・画素・浮遊感・オーラ完全注入回路
+// 🧙‍♂️👹 2. 【機能1】本来のサイズ・画素・浮遊感の再現回路
 // ==========================================
 function injectOriginalVisuals() {
+    // 過去の演出意図（ダイナミックな突進、カットイン、浮遊）を再現するキーフレームを動的注入
     if (!document.getElementById('retro-battle-keyframes')) {
         const styleTrack = document.createElement('style');
         styleTrack.id = 'retro-battle-keyframes';
@@ -62,7 +63,7 @@ function injectOriginalVisuals() {
         document.head.appendChild(styleTrack);
     }
 
-    // 主人公：本来のサイズ(150px)・クッキリ画素・往復2.2秒浮遊
+    // 主人公：ジャストサイズ(150px)・ドットの角を立てる高画素化・2.2秒の往復ホバー
     const pContainer = document.getElementById('p-sprite-container');
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pContainer && pGraphic) {
@@ -72,7 +73,7 @@ function injectOriginalVisuals() {
         pGraphic.style.imageRendering = 'pixelated';
     }
 
-    // モンスター：本来のサイズ(180px)・クッキリ画素・2.5秒往復浮遊
+    // モンスター：存在感を出すサイズ(180px)・ドットの角を立てる高画素化・2.5秒の往復ホバー
     const eContainer = document.getElementById('e-sprite-container');
     const eGraphic = document.getElementById('e-sprite-graphic');
     if (eContainer && eGraphic) {
@@ -82,6 +83,7 @@ function injectOriginalVisuals() {
         eGraphic.style.imageRendering = 'pixelated';
     }
 
+    // 属性オーラの発光レイヤー表示状態の維持
     const pAura = document.getElementById('p-aura-layer');
     const eAura = document.getElementById('e-aura-layer');
     if (pAura) pAura.style.display = "block";
@@ -89,7 +91,7 @@ function injectOriginalVisuals() {
 }
 
 // ==========================================
-// 🔥 🛡️ ❄️ ✨ 3. 【機能2】立体ハニカムシールド ＆ 魔法演出
+// 🔥 🛡️ ❄️ ✨ 3. 【機能2】立体ハニカムシールド再現 ＆ 魔法演出
 // ==========================================
 function renderMagicVisual(type) {
     const layer = document.getElementById('spell-effect-layer');
@@ -104,7 +106,7 @@ function renderMagicVisual(type) {
     const holyPath = "assets/effects/standard/holy/";
 
     if (type === 'fire') {
-        // ファイア：横5コマ一列Sheet切開
+        // ファイアの演出意図：ミサイル着弾 ➔ 横5コマSheetアニメ
         const ball = document.createElement('img');
         ball.src = firePath + "fire01.png";
         ball.style.position = 'absolute';
@@ -138,7 +140,7 @@ function renderMagicVisual(type) {
         }, 300);
 
     } else if (type === 'ice') {
-        // アイス：パラパラ漫画消去
+        // アイスの演出意図：凍結パラパラ切り替え
         for (let m = 1; m <= 8; m++) {
             setTimeout(() => {
                 layer.innerHTML = ""; 
@@ -161,7 +163,7 @@ function renderMagicVisual(type) {
         }
 
     } else if (type === 'holy') {
-        // ホーリー：十字架 ➔ 爆発Sheet
+        // ホーリーの演出意図：聖十字架落下 ➔ 4×4マトリクスSheet展開
         const cross = document.createElement('img');
         cross.src = holyPath + "cross_01.png";
         cross.style.position = 'absolute';
@@ -198,15 +200,15 @@ function renderMagicVisual(type) {
                 }
                 const col = frame % 4;
                 const row = Math.floor(frame / 4);
-                animDiv.style.backgroundPosition = `-${col * 120}px -${row * 120}px`;
+                animDiv.style.backgroundPosition = `-${col * 120px} -${row * 120px}`;
                 frame++;
             }, 40);
         }, 200);
 
     } else if (type === 'def') {
         // ==========================================
-        // 🛡️ 【機能2】本物ハニカムシールド（立体球体ドーム）
-        // 🚨 バグ排除：無駄な攻撃判定を一切挟まない安全完全クリーン仕様
+        // 🛡️ 【機能2】立体球体ハニカムドームの再現
+        // 🚨 安全設計：過去のバグ（攻撃トリガー）を徹底排除した純粋演出
         // ==========================================
         const shield = document.createElement('div');
         shield.id = 'hologram-shield';
@@ -214,14 +216,17 @@ function renderMagicVisual(type) {
         shield.style.width = '150px'; shield.style.height = '150px';
         shield.style.left = '35px'; shield.style.top = '35px';
         
+        // 蜂の巣アセット読み込みとエメラルドグリーン偏光の再現
         shield.style.backgroundImage = "url('assets/effects/standard/Hexagonal_grid.svg')";
         shield.style.backgroundSize = '30px 30px';
         shield.style.filter = 'hue-rotate(30deg)';
         
+        // 立体感の真髄：白い輪郭線 ＋ 内側に回り込む強烈なシアンの球面影
         shield.style.borderRadius = '50%';
         shield.style.border = '4px solid rgba(255, 255, 255, 0.95)';
         shield.style.boxShadow = 'inset 0 0 25px #06b6d4, 0 0 20px rgba(6,182,212,0.6)';
         
+        // 0.7秒ポップアップ展開挙動のホールド
         shield.style.animation = 'shieldDeploy 0.7s forwards ease-in-out';
         frontLayer.appendChild(shield);
 
@@ -230,12 +235,13 @@ function renderMagicVisual(type) {
 }
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー行動・基本戦闘ループ
+// 🧙‍♂️ 4. プレイヤー行動・戦闘進行ループ（破壊・劣化のない安全構造）
 // ==========================================
 function turn(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return; 
     window.isBusy = true;
 
+    // スパイド糸行動に連動する確定スタンの状態チェック
     if (window.isPlayerStunned) { 
         window.isPlayerStunned = false; 
         const logEl = document.getElementById('battle-log');
@@ -265,13 +271,16 @@ function turn(playerMove) {
     if (window.isEnemyShieldActive) { dmg = Math.floor(dmg * 0.25); }
     window.isEnemyShieldActive = false;
 
+    // 魔法およびハニカムドームのビジュアルキック
     renderMagicVisual(playerMove);
 
+    // 既存環境のパーティクル関数との安全結合
     try {
         if (typeof startSpellEffect === "function") startSpellEffect(playerMove);
         else if (typeof openMagic === "function") openMagic(playerMove);
     } catch (e) {}
 
+    // 音響システムとの結合
     try {
         if (typeof playSE === "function") {
             if (playerMove === 'fire' && typeof SOUND_FIRE !== 'undefined') playSE(SOUND_FIRE);
@@ -280,6 +289,7 @@ function turn(playerMove) {
         }
     } catch (e) {}
 
+    // コマンド分岐：シールド
     if (playerMove === 'def') {
         const logEl = document.getElementById('battle-log');
         if (logEl) logEl.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -289,6 +299,7 @@ function turn(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none"; 
         return;
+    // コマンド分岐：チャージ
     } else if (playerMove === 'chg') {
         window.mana = 2.5; 
         const chargeBadge = document.getElementById('charge-badge');
@@ -300,6 +311,7 @@ function turn(playerMove) {
         return;
     }
 
+    // クリティカルかつトドメ条件の算出（カットイン再現用）
     const willDie = (window.eHp - dmg <= 0);
     const triggerCutIn = (isCritical && willDie);
 
@@ -317,7 +329,7 @@ function turn(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none"; 
         
-        // 💥 【機能5】トドメのクリティカルカットイン演出分岐
+        // 💥 【機能5】トドメのクリティカルカットインカメラワークの再現
         if (triggerCutIn) {
             executeCriticalCutIn();
         } else {
@@ -327,12 +339,13 @@ function turn(playerMove) {
 }
 
 // ==========================================
-// 💥 5. 【機能5】弱点トドメの「カットイン演出」
+// 💥 5. 【機能5】大技のカメラワーク：弱点トドメの「カットイン演出」再現
 // ==========================================
 function executeCriticalCutIn() {
     const layer = document.getElementById('front-effect-layer');
     if (!layer) { checkBattleEnd(); return; }
 
+    // 画面中央に「CRITICAL FINISH」の暗転帯を爆速で滑り込ませる状態の再現
     const cutInBar = document.createElement('div');
     cutInBar.style.position = 'absolute';
     cutInBar.style.width = '100%'; cutInBar.style.height = '110px';
@@ -355,6 +368,7 @@ function executeCriticalCutIn() {
     cutInBar.appendChild(cutInText);
     layer.appendChild(cutInBar);
 
+    // 敵が斜め上空400px彼方へ回転縮小しながらブっ飛んでいく極上カメラワークの再現
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) {
         eContainer.style.transition = 'all 1.2s cubic-bezier(0.1, 1, 0.1, 1)';
@@ -362,6 +376,7 @@ function executeCriticalCutIn() {
         eContainer.style.opacity = '0';
     }
 
+    // 演出の余韻が終了した瞬間にリザルトへ安全遷移
     setTimeout(() => {
         if (cutInBar.parentNode) cutInBar.parentNode.removeChild(cutInBar);
         checkBattleEnd();
@@ -369,7 +384,7 @@ function executeCriticalCutIn() {
 }
 
 // ==========================================
-// 🎒 6. アイテムバッグ・ステージ進行管理
+// 🎒 6. アイテムバッグ・ステージ進行管理（基礎システム維持）
 // ==========================================
 function useItem(itemType) {
     if (window.isBusy || window.itemInventory[itemType] <= 0) return;
@@ -458,6 +473,7 @@ function startBattle() {
     updateHpUI(); 
     checkDevPassword();
     
+    // 戦闘突入時にサイズ・クッキリ画素・ホバー浮遊の初期化状態を確実にキック
     injectOriginalVisuals();
 
     if (logEl) logEl.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
@@ -471,7 +487,7 @@ function startBattle() {
 }
 
 // ==========================================
-// 👹 7. エネミーターン ＆【機能3・4】物理突進・特殊行動移植
+// 👹 7. エネミーターン ＆【機能3・4】物理突進・特殊行動演出の再現
 // ==========================================
 function enemyTurnAction(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) return; 
@@ -491,7 +507,7 @@ function enemyTurnAction(isPlayerDefending = false) {
     if (frontLayer) frontLayer.innerHTML = "";
 
     if (isSpecial) {
-        // --- 【機能4】モンスター特殊攻撃演出（酸・蜘蛛糸） ---
+        // --- 【機能4】モンスターの各特殊状態攻撃アニメーションの再現 ---
         if (data.type === 'slime') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【緑の液体投げ（酸）】！`;
             try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('slime_acid'); } catch(e) {}
@@ -499,7 +515,7 @@ function enemyTurnAction(isPlayerDefending = false) {
         else if (data.type === 'spider') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【粘着糸吐き】！体を拘束された！`;
             try { if (typeof triggerEnemyEffect === "function") triggerEnemyEffect('spider_web'); } catch(e) {}
-            window.isPlayerStunned = true; 
+            window.isPlayerStunned = true; // 痺れ拘束による確実なスタンスキップをロジックとして再現
         } 
         else if (data.type === 'harpy') {
             if (logEl) logEl.innerHTML = `👹 ${data.name}の【雷光急襲】！⚡`;
@@ -514,11 +530,13 @@ function enemyTurnAction(isPlayerDefending = false) {
     } else {
         if (logEl) logEl.innerText = `${data.name}の突進攻撃！【${dmg}】のダメージ！`;
         
-        // --- 【機能3】モンスター本物物理突進（左端ブチ抜き体当たり） ---
+        // --- 【機能3】画面左端（主人公の位置）まで大移動して激突する本物体当たり演出の再現 ---
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
+            // 左へ380px、下へ10px、1.15倍に膨れ上がりながら衝突するキーフレーム状態を点火
             eContainer.style.animation = "enemyAssault_Retro 0.4s cubic-bezier(0.19, 1, 0.22, 1) forwards";
             setTimeout(() => { 
+                // 激突終了後は、本来の2.5秒往復ホバー（floatE）の状態に安全に復帰
                 if (eContainer) eContainer.style.animation = "floatE 2.5s infinite alternate ease-in-out"; 
             }, 410);
         }
@@ -588,34 +606,4 @@ function resetGame() {
     window.mana = 1.0; window.curIdx = -1; window.isBusy = false; window.itemInventory = { potion: 1, amulet: 1 }; window.isAmuletActive = 0; 
     if (typeof stopBGM === "function") stopBGM(); 
     if (typeof stopSlimeAnimation === "function") stopSlimeAnimation(); 
-}
-
-// ==========================================
-// 🧱 8. 【追加機能】資料33ab04fb由来 本物背景レンガ自動描画回路
-// ==========================================
-window.addEventListener('DOMContentLoaded', () => {
-    drawBricks();
-});
-
-function drawBricks() {
-  const canvas = document.getElementById('brick-canvas'); if (!canvas) return;
-  const ctx = canvas.getContext('2d'); if (!ctx) return;
-  const w = canvas.width = window.innerWidth; const h = canvas.height = window.innerHeight;
-  
-  // 基礎背景のダークスレート塗りつぶし
-  ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, w, h); 
-  
-  // 緻密なグリッドレンガ線の描画
-  ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)'; ctx.lineWidth = 2;
-  const brickW = 80; const brickH = 40;
-  
-  for (let y = 0; y < h; y += brickH) {
-    const shift = (Math.floor(y / brickH) % 2) * (brickW / 2);
-    // 横線
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
-    // 縦線（段違いシフト）
-    for (let x = shift - brickW; x < w + brickW; x += brickW) {
-      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + brickH); ctx.stroke();
-    }
-  }
 }
