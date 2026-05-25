@@ -123,6 +123,7 @@ window.startBattle = function() {
     }
     
     // ⑨"battle" に統一してオーディオJSへ電波を飛ばす
+// ⑨"battle" に統一してオーディオJSへ電波を飛ばす
     startBGM(data.floor === 10 ? "battle");
 };
 
