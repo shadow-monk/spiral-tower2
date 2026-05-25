@@ -122,8 +122,8 @@ window.startBattle = function() {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
     
-    // ⑨オーディオJSに直結し、10階のボス曲（boss）か、通常戦闘曲（horror）を正確に自動ストリーミング
-    startBGM(data.floor === 10 ? "boss" : "horror");
+    // ⑨"battle" に統一してオーディオJSへ電波を飛ばす
+    startBGM(data.floor === 10 ? "battle");
 };
 
 // ==========================================
