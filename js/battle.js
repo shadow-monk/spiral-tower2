@@ -75,8 +75,15 @@ window.nextStage = function() {
 /**
  * 3階層ボタン（onclick="startBattle()"）から叩かれる、グローバル開通版startBattle
  */
+
+/**
+ * 導入画面から戦闘画面へ移行し、各種ステータスを初期化のうえ、
+ * ウィザード画像を通信ラグのないローカルキャッシュパスで安全に起動する関数
+ */
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
+    
+    // 戦闘開始ステータスの完全初期回路
     window.eHp = window.eMaxHp = data.hp;
     window.isBusy = false;
     window.isPlayerStunned = false;
@@ -84,15 +91,18 @@ window.startBattle = function() {
     window.enemyMana = 1.0;
     window.isEnemyShieldActive = false;
 
+    // 敵グラフィックのコンテナを可視化
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
     }
 
-    // 🔮 ウィザードのグラフィックを⑤ステージJS経由のリモートアセットに同期直撃
+    // 🧙‍♂️ 【高速化修正】ウィザードの画像を通信ラグのないローカルキャッシュパスへ変更
     const pGraphic = document.getElementById('p-sprite-graphic');
-    if (pGraphic) pGraphic.src = getAssetPath('hero', 'Wizard.png');
+    if (pGraphic) {
+        pGraphic.src = 'assets/hero/Wizard.png';
+    }
 
     const itemBadge = document.getElementById('item-badge');
     const chargeBadge = document.getElementById('charge-badge');
@@ -104,17 +114,24 @@ window.startBattle = function() {
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
 
-    // ➔ ラグ潰しの真髄：画面が表示されるその瞬間に、④エネミーJSが生成したローカルの1コマ目を直撃流し込み
+    // ➔ ラグ潰しの真髄：画面が表示されるその瞬間に、ローカルの1コマ目を直撃流し込み
     if (eSpriteGraphic && MASTER_ANIM_MAP[data.type]) {
         eSpriteGraphic.src = MASTER_ANIM_MAP[data.type][0];
     }
 
     showScreen('scr-battle');
 
-    // ④エネミーJSに実装されている、生物的ゆらぎアニメーション回路（startCustomAnimation）をキック
-    startCustomAnimation(data.type);
+    // 👾 敵のアニメーション制御マシンを安全に起動（enemies.js側を100%信用）
+    if (typeof startCustomAnimation === 'function') {
+        startCustomAnimation(data.type);
+    }
+    
     updateHpUI();
-    checkDevPassword();
+    
+    // パスワード1192のデバッグロック解放状態をチェック
+    if (typeof checkDevPassword === 'function') {
+        checkDevPassword();
+    }
 
     if (effScr) {
         effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155';
@@ -125,7 +142,7 @@ window.startBattle = function() {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
 
-    // 音楽大開通
+    // BGMの再生キック
     startBGM("battle");
 };
 
