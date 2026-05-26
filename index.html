@@ -126,29 +126,13 @@
         </div>
     </div>
 
-
-
-<div id="dev-console-window" style="margin-top:25px; width:100%; background:#0b0f19; border:2px solid #334155; border-radius:16px; padding:15px; text-align:left; box-sizing:border-box;">
+  <div id="dev-console-window" style="margin-top:25px; width:100%; background:#0b0f19; border:2px solid #334155; border-radius:16px; padding:15px; text-align:left; box-sizing:border-box;">
         <div style="font-size:0.9rem; font-weight:800; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between;">
             <span>🔧 開発者コンソール (PW「1192」)</span>
             <span id="dev-status-badge" style="color:#ef4444; font-weight:900;">LOCKED</span>
         </div>
-        
-        <div id="dev-input-area" style="display: block;">
-            <input type="password" id="dev-password-input" oninput="checkDevPassword(); if(this.value==='1192'){document.getElementById('btn-debug-death').style.display='grid'; this.style.display='none';}" placeholder="PASSWORDを入力..." style="width:100%; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; outline:none;">
-        </div>
-
-        <div id="btn-debug-death" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; margin-top: 5px;">
-            <button onclick="turn('debug_death')" style="background:#ef4444; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">☠️ 敵瞬殺 (デス)</button>
-            
-            <button onclick="pMaxHp=8000; pHp=8000; if(typeof updateHpUI==='function')updateHpUI();" style="background:#10b981; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">❤️ HP全回復</button>
-            
-            <button onclick="window.mana=2.5; const bg=document.getElementById('charge-badge'); if(bg)bg.style.display='block';" style="background:#3b82f6; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">⚡ 魔力満タン</button>
-            
-            <button onclick="window.curIdx++; if(typeof nextStage==='function')nextStage();" style="background:#8b5cf6; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">🔮 階層ワープ</button>
-        </div>
-    </div>
-    
+        <input type="password" id="dev-password-input" oninput="checkDevPassword()" placeholder="PASSWORDを入力..." style="width:100%; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; outline:none;">
+    </div>  
     <div style="width:100%; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold; padding:0 5px;">
         <span>改訂 V6.30（💎完全外部ファイルモジュール化完結版028）</span>
         <span>Update: 2026.05.23 15:25:00</span>
