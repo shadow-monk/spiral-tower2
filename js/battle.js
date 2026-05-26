@@ -98,10 +98,10 @@ window.startBattle = function() {
         eContainer.style.transform = "scale(1)";
     }
 
-    // 🧙‍♂️ 【高速化修正】ウィザードの画像を通信ラグのないローカルキャッシュパスへ変更
-    const pGraphic = document.getElementById('p-sprite-graphic');
-    if (pGraphic) {
-        pGraphic.src = 'assets/hero/Wizard.png';
+ // 🧙‍♂️ 【画像パス確定版修正】主人公の画像を正しいGitHubアセットURLへ直結
+const pGraphic = document.getElementById('p-sprite-graphic');
+if (pGraphic) {
+    pGraphic.src = 'https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/enemies/player/player_wizard.png';
     }
 
     const itemBadge = document.getElementById('item-badge');
