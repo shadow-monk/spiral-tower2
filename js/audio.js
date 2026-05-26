@@ -27,18 +27,24 @@ function triggerFirstAudio() {
     startBGM("title"); 
 }
 
+// ⚡ 【メモリリーク対策】音楽・効果音プレイヤーの「固定の器」を最上部に開通（オブジェクトの使い回し）
+if (!window._globalSePlayer)  window._globalSePlayer = new Audio();
+if (!window._globalBgmPlayer) window._globalBgmPlayer = new Audio();
+
 function playSE(url) {
     if (isMuted) return;
     try { 
-        const se = new Audio(url); 
-        se.volume = 0.5; 
-        se.play().catch(e => console.log("SE blocked/deferred:", e)); 
+        // 毎回新しく作らず、用意された器の中身(src)だけを入れ替えることでゴミデータを出さない
+        window._globalSePlayer.src = url; 
+        window._globalSePlayer.volume = 0.5; 
+        window._globalSePlayer.play().catch(e => console.log("SE blocked/deferred:", e)); 
     } catch(e){}
 }
 
 function startBGM(mode) {
     stopBGM(); 
     if (isMuted) return;
+    
     let url = "";
     if (mode === "title") url = BGM_BATTLE_PLAYLIST[4]; 
     else if (mode === "grand_end") url = BGM_PEACE_GRAND_END;   
@@ -46,31 +52,20 @@ function startBGM(mode) {
         const randIdx = Math.floor(Math.random() * BGM_BATTLE_PLAYLIST.length);
         url = BGM_BATTLE_PLAYLIST[randIdx];
     }
+    
     if (url) {
         try { 
-            currentAudioBgm = new Audio(url); 
-            currentAudioBgm.loop = (mode !== "grand_end"); 
-            currentAudioBgm.volume = 0.33; 
-            currentAudioBgm.play().catch(e=>console.log("BGM blocked/deferred:", e)); 
+            // BGMプレイヤーの器も破棄せず再利用
+            window._globalBgmPlayer.src = url;
+            window._globalBgmPlayer.loop = (mode !== "grand_end"); 
+            window._globalBgmPlayer.volume = 0.33; 
+            window._globalBgmPlayer.play().catch(e => console.log("BGM blocked/deferred:", e)); 
         } catch(e){}
     }
 }
 
 function stopBGM() { 
-    if (currentAudioBgm) { 
-        try { currentAudioBgm.pause(); currentAudioBgm = null; } catch(e){} 
-    } 
-}
-
-function toggleMute() { 
-    isMuted = !isMuted; 
-    const muteBtn = document.getElementById('btn-mute');
-    if (muteBtn) muteBtn.innerText = isMuted ? "🔇 OFF" : "🔊 ON"; 
-    if (isMuted) {
-        stopBGM(); 
-    } else {
-        const battleScr = document.getElementById('scr-battle');
-        const isBattleScreen = (battleScr && battleScr.style.display === 'block');
-        startBGM(isBattleScreen ? 'battle' : 'title');
-    }
+    try { 
+        window._globalBgmPlayer.pause(); 
+    } catch(e){}
 }
