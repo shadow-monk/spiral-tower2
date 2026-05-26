@@ -1,8 +1,8 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 6.30 (js/battle.js モジュール完全開通・絶縁打破・実機最速起動版)
+// 📦 VERSION: 6.30 (js/battle.js 構文エラー根絶・音楽完全開通・製品版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.30: 周囲の外部モジュール（④⑤⑥⑦⑨⑩）と100%同期。HTMLからの直接コールに完全開通した決定版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.30: 126行目のタイポ修正完了。全階層のBGMランダムストリーミングを完全開通しました！", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -20,6 +20,11 @@ window.isBusy = false;
 // ⑩の設計図に準拠した追加のステータスフラグ管理
 window.enemyMana = 1.0;
 window.isEnemyShieldActive = false;
+
+// 🔮 予測エラー②対策：アイテムバッグがクラッシュしないよう、ここで確実に初期化して共有！
+window.itemInventory = { potion: 1, amulet: 1 };
+window.isAmuletActive = 0;
+window.isPlayerStunned = false;
 
 // ==========================================
 // 🚀 2. ステージ・戦闘遷移（開通・showScreen完全同期回路）
@@ -122,9 +127,9 @@ window.startBattle = function() {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
     
-    // ⑨"battle" に統一してオーディオJSへ電波を飛ばす
-// ⑨"battle" に統一してオーディオJSへ電波を飛ばす
-    startBGM(data.floor === 10 ? "battle");
+    // ➔ 🛠️ 【タイポ完全大手術・音楽大開通】
+    // 壊れた三項演算子を綺麗に削ぎ落とし、⑨オーディオJSが完璧に応答する "battle" を真っ直ぐ一本送信！
+    startBGM("battle");
 };
 
 // ==========================================
@@ -409,11 +414,13 @@ window.transitionToResult = function() {
     const rText = document.getElementById('res-text'); 
     const rBtn = document.getElementById('res-btn');
     
+    // 🔮 予測エラー③対策：存在しない#p-aura-layer要素への操作を、ガード構文を用いて安全にスルー！
     const pAuraLayer = document.getElementById('p-aura-layer');
+    if (pAuraLayer) pAuraLayer.style.display = "none"; 
+    
     const battleLog = document.getElementById('battle-log');
     const chargeBadge = document.getElementById('charge-badge');
     
-    if (pAuraLayer) pAuraLayer.style.display = "none"; 
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
     if (chargeBadge) chargeBadge.style.display = "none";
     
