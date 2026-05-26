@@ -8,39 +8,40 @@
 function checkDevPassword() {\r
     const inputField = document.getElementById("dev-password-input");\r
     const badge = document.getElementById("dev-status-badge");\r
-    const oldDebugBtn = document.querySelector("#cmd-panel #btn-debug-death"); // コマンド側の旧デスボタン\r
-    const customPanel = document.getElementById("btn-debug-death");           // コンソール側の新4連パネル\r
+    const consoleWindow = document.getElementById("dev-console-window");\r
+    const oldDebugBtn = document.getElementById("btn-debug-death"); // コマンド側の旧デスボタン\r
     \r
     // パスワード「1192」でロック解除\r
     if (inputField && inputField.value === "1192") { \r
         if (badge) {\r
             badge.innerText = "UNLOCKED"; \r
-            badge.style.color = '#10b981';\r\n        }\r
+            badge.style.color = '#10b981';\r
+        }\r
         window.isDebugUnlocked = true;\r
         \r
-        // コマンドエリアの旧デスボタンの暴発・重複を完全に隠蔽・消去する\r
+        // コマンドエリア側の古いデスボタンを強制非表示にして、画面のダブりを完全に防ぐ\r
         if (oldDebugBtn) oldDebugBtn.style.setProperty("display", "none", "important");\r
         \r
-        // コンソール窓内の4連ボタンパネルを「gridレイアウト」で強制起動し、入力欄を消去する\r
-        if (customPanel) {\r
-            customPanel.style.setProperty("display", "grid", "important");\r
+        // 【核心】HTML側のコンソール窓内部を、4連ボタンのHTMLコードへ丸ごと動的に上書き・置換する\r
+        if (consoleWindow) {\r
+            consoleWindow.innerHTML = `\r
+                <div style="font-size:0.9rem; font-weight:800; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between;">\r
+                    <span>🔧 開発者コンソール (PW「1192」)</span>\r
+                    <span id="dev-status-badge" style="color:#10b981; font-weight:900;">UNLOCKED</span>\r
+                </div>\r
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; width: 100%; margin-top: 5px;">\r
+                    <button onclick="turn('debug_death')" style="background:#ef4444; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">☠️ 敵瞬殺 (デス)</button>\r
+                    <button onclick="window.pMaxHp=8000; window.pHp=8000; if(typeof updateHpUI==='function')updateHpUI();" style="background:#10b981; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">❤️ HP全回復</button>\r
+                    <button onclick="window.mana=2.5; const bg=document.getElementById('charge-badge'); if(bg)bg.style.display='block';" style="background:#3b82f6; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">⚡ 魔力満タン</button>\r
+                    <button onclick="window.curIdx++; if(typeof nextStage==='function')nextStage();" style="background:#8b5cf6; color:white; border:none; border-radius:8px; padding:12px; font-size:0.9rem; font-weight:bold; cursor:pointer;">🔮 階層ワープ</button>\r
+                </div>\r
+            `;\r
         }\r
-        if (inputField) inputField.style.display = "none";\r
         \r
         // 初期HP特典の上書き反映\r
         window.pMaxHp = 8000; \r
         window.pHp = 8000; \r
         if (typeof updateHpUI === 'function') updateHpUI();\r
-    } \r
-    // 間違っている、または空欄なら即時ロック\r
-    else { \r
-        if (badge) {\r
-            badge.innerText = "LOCKED"; \r
-            badge.style.color = '#ef4444';\r
-        }\r
-        window.isDebugUnlocked = false;\r
-        if (customPanel) customPanel.style.display = "none";\r
-        if (inputField) inputField.style.display = "block";\r
     }\r
 }
 
