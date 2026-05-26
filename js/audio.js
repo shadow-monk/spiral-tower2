@@ -63,9 +63,14 @@ function startBGM(mode) {
         } catch(e){}
     }
 }
-
 function stopBGM() { 
     try { 
-        window._globalBgmPlayer.pause(); 
+        // 固定の器（プレイヤー）を確実に一時停止させ、再生位置をリセットする
+        if (window._globalBgmPlayer) {
+            window._globalBgmPlayer.pause(); 
+            window._globalBgmPlayer.currentTime = 0; // 曲を最初に戻す安全弁
+        }
     } catch(e){}
 }
+
+
