@@ -6,6 +6,10 @@ const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');
 const SOUND_HOLY = getAssetPath('se_clean', 'se_holy_hit.mp3'); 
 const SOUND_FREEZE_DEAD = getAssetPath('se_clean', 'se_freeze_hit.mp3'); 
 
+// 🎯【体当たり専用SE登録】
+// 他の既存アセットに一切傷をつけず、新キック音のみを最上部データベースへ安全にマッピング
+const SOUND_KICK = "https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/effects/standard/others/se_lightkick.mp3";
+
 const BGM_BATTLE_PLAYLIST = [
     getAssetPath('bgm_clean', 'bgm_battle_arch03.mp3'),
     getAssetPath('bgm_clean', 'bgm_battle_piano11.mp3'),
@@ -39,7 +43,7 @@ function toggleMute() {
     }
     
     if (isMuted) {
-        // 🔒【ミュートバグ根絶コア】
+        // 🔒【ミュートバグ根できたコア】
         // 他のファイルから流れている「すべての音源」をaudio.js側から強制的にねじ伏せ、無音化します。
         if (window._globalBgmPlayer) {
             window._globalBgmPlayer.pause();
