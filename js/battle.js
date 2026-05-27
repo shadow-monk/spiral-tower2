@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.45: 【デバッグ版】プレイヤー全SE消去・敵体当たり音のみ残し・検証用ビルド。", "color: #f59e0b; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.50: 呪文SE完全復活・多重タイマー競合プロテクトガード開通完了。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -22,6 +22,9 @@ window.isEnemyShieldActive = false;
 window.itemInventory = { potion: 1, amulet: 1 };
 window.isAmuletActive = 0;
 window.isPlayerStunned = false;
+
+// ⚡ 【多重衝突バグ根絶】魔法タイマーの予約チケット管理番号を保持する安全弁
+window._activeMagicTimeout = null;
 
 // ==========================================
 // 🚀 2. ステージ・戦闘遷移
@@ -81,6 +84,12 @@ window.startBattle = function() {
     window.enemyMana = 1.0;
     window.isEnemyShieldActive = false;
 
+    // 前の試合の魔法タイマーの残像を完全抹殺
+    if (window._activeMagicTimeout) {
+        clearTimeout(window._activeMagicTimeout);
+        window._activeMagicTimeout = null;
+    }
+
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) {
         eContainer.style.opacity = "1";
@@ -129,7 +138,6 @@ window.startBattle = function() {
 
     startBGM("battle");
 };
-
 // ==========================================
 // 🎒 3. 消耗品アイテム使用連携回路
 // ==========================================
@@ -156,11 +164,16 @@ window.useItem = function(itemType) {
 };
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー魔導アクション（★検証用：全呪文無音化）
+// 🧙‍♂️ 4. プレイヤー魔導アクション（SE完全精密マッピング版）
 // ==========================================
 window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
     window.isBusy = true;
+
+    // 🔒【連打・混線ガード】もし前ターンの未爆発タイマーが残っていたら、その場で破棄して上書き汚染を完全遮断！
+    if (window._activeMagicTimeout) {
+        clearTimeout(window._activeMagicTimeout);
+    }
 
     // 麻痺行動不能インターセプト
     if (window.isPlayerStunned) {
@@ -215,14 +228,22 @@ window.turn = function(playerMove) {
         return;
     }
 
-    // 呪文ラベルの定義
+    // 🎯【ディレクター指名】定数とラベルを完全にカプセル化（ローカル化）し、enemies.jsへの混線を永久切断
+    let currentSE = SOUND_FIRE;
     let spellLabel = "ファイア";
-    if (playerMove === 'ice') spellLabel = "アイス";
-    if (playerMove === 'holy') spellLabel = "ホーリー";
 
-    // 💡【検証用の引き算】playSEを完全に排除！無音で純粋にダメージとターン移行のみを行う
-    setTimeout(() => {
-        // ※ ここにあった playSE(targetSE) は完全に消去されました。
+    if (playerMove === 'ice') {
+        currentSE = SOUND_ICE;
+        spellLabel = "アイス";
+    } else if (playerMove === 'holy') {
+        currentSE = SOUND_HOLY;
+        spellLabel = "ホーリー";
+    }
+
+    // 400ms後に音を鳴らし、ダメージを安全に同期発火させる予約
+    window._activeMagicTimeout = setTimeout(() => {
+        // ラジカセ（audio.js）へ100%安全にURLカプセルを直撃流し込み！音が絶対に化けない
+        playSE(currentSE);
         
         window.eHp = Math.max(0, window.eHp - dmg);
         updateHpUI();
@@ -237,7 +258,8 @@ window.turn = function(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
 
-        // 敵の行動へバトンタッチ
+        // 800ms後、エネミーターンが始まる前に自身のタイマー登録を綺麗に消去してバトンタッチ
+        window._activeMagicTimeout = null;
         setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 800);
     }, 400);
 };
@@ -263,7 +285,8 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     }
 
     if (isSpecial) {
-        // 💡 敵の特殊攻撃時の音（SOUND_HOLYの風切り音）も混線防止のため一旦排除！
+        // 敵の特殊行動音（混線を完全に防いだクリアな状態で発火）
+        playSE(SOUND_HOLY);
         const battleLog = document.getElementById('battle-log');
 
         if (data.type === 'skelton') {
@@ -283,7 +306,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
 
         if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        // 🌟【唯一残すSE】敵の体当たり通常攻撃音だけは、予定通りしっかり鳴らします！
+        // 敵の体当たり通常攻撃音：SOUND_KICKがジャスト連動
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -318,6 +341,7 @@ window.postEnemyTurnCleanup = function() {
     }
     setTimeout(() => {
         if (!window.checkBattleEnd()) {
+            // 🔒【フリーズ絶対拒絶】ここで確実にBusyの鍵を開けて次の入力を受け付ける
             window.isBusy = false;
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerText = "コマンドを選択せよ。";
@@ -334,7 +358,7 @@ window.checkBattleEnd = function() {
         stopSlimeAnimation();
 
         if (window.eHp <= 0) {
-            // 💡 撃破時の無音化検証のため、一旦ここもSEをオミット
+            playSE(SOUND_FREEZE_DEAD);
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) {
                 eContainer.style.opacity = "0";
@@ -417,5 +441,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.45]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.50]
 // ==========================================
