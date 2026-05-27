@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.60: クリティカル激震・火傷/凍結/暗闇カウンター・スライム黄色完全同期版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.65: クリティカルヒット！！（トドメ or 25%暴発1.6倍型）大溶接マスター全コード。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -108,7 +108,6 @@ window.startBattle = function() {
     const eSpriteGraphic = document.getElementById('e-sprite-graphic');
     
     // 👑【最凶スライム青化ゾンビバグ・絶対即死回路】
-    // CSSの旧キャッシュを跡形もなく粉砕するため、一旦フィルターを完全にクリアしてインラインで黄金化を強制溶接！
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
@@ -229,7 +228,7 @@ window.turn = function(playerMove) {
 
     window.isBusy = true;
     
-    // 🔮【核心のバグ修正】魔法を選んだその瞬間に、下部スロットを自動でA面（メイン行動選択）へ最速格納！
+    // 🔮 呪文選択後、下部インラインスロットを自動でA面（メイン行動選択）へ最速格納！
     if (typeof closeMagicBag === 'function') closeMagicBag(); 
 
     if (window._activeMagicTimeout) { clearTimeout(window._activeMagicTimeout); }
@@ -243,16 +242,16 @@ window.turn = function(playerMove) {
     }
 
     const data = STAGES[window.curIdx];
-    let isCritical = (playerMove === data.weak);
-    let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
-
-    if (window.isEnemyShieldActive) { dmg = Math.floor(dmg * 0.25); }
+    
+    // ─── 📊 基礎ダメージおよび特殊倍率計算フェーズ ───
+    let isWeak = (playerMove === data.weak);
+    // 弱点なら2.2倍の基礎ボーナス
+    let baseDmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isWeak ? 2.2 : 1) * window.mana);
+    
+    if (window.isEnemyShieldActive) { baseDmg = Math.floor(baseDmg * 0.25); }
     window.isEnemyShieldActive = false;
 
-    const effScr = document.getElementById('eff-scr');
-    let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
-
-    // 🛡️ シールド展開！
+    // 🛡️ シールド展開
     if (playerMove === 'def') {
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -260,12 +259,14 @@ window.turn = function(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
         
+        const effScr = document.getElementById('eff-scr');
+        let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
         if (effScr) { effScr.className = baseClass + "anim-player-def"; setTimeout(() => { effScr.className = (data.type === 'slime') ? "anim-slime-yellow" : ""; }, 1100); }
         setTimeout(() => { window.enemyTurnAction(true); }, 1200);
         return;
     }
     
-    // ⚡ チャージ！
+    // ⚡ チャージ
     if (playerMove === 'chg') {
         window.mana = 2.5;
         const chargeBadge = document.getElementById('charge-badge');
@@ -273,10 +274,19 @@ window.turn = function(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "block";
         if (battleLog) battleLog.innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
         
+        const effScr = document.getElementById('eff-scr');
+        let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
         if (effScr) { effScr.className = baseClass + "anim-player-chg"; setTimeout(() => { effScr.className = (data.type === 'slime') ? "anim-slime-yellow" : ""; }, 1100); }
         setTimeout(() => { window.enemyTurnAction(false); }, 1200);
         return;
     }
+
+    // ─── 🎯 新・クリティカルヒット判定トリガー（25%暴発 or 弱点トドメ殺し） ───
+    let isLuckRoll = (Math.random() < 0.25);                  // 確率25%ガチャの合致
+    let isOverkillRoll = (isWeak && baseDmg >= window.eHp);   // 弱点かつこの一撃で殺せる（トドメ）
+    
+    let isCriticalHit = (isLuckRoll || isOverkillRoll);       // どちらか成立でクリティカル確定！
+    let finalDmg = isCriticalHit ? Math.floor(baseDmg * 1.6) : baseDmg; // 発生時はダメージをさらに1.6倍乗算！
 
     let currentSE = SOUND_FIRE;
     let spellLabel = "ファイア";
@@ -288,22 +298,28 @@ window.turn = function(playerMove) {
         currentSE = SOUND_HOLY; spellLabel = "ホーリー"; magicClass = "anim-player-holy"; 
     }
 
-    // 🎬【最凶カットイン＆激震フラッシュ着火回路】
-    // 弱点属性を突いた瞬間、htmlのカットインバーを展開し、ゲーム外枠を激しくシェイク！
-    if (isCritical) {
+    // 🎬 新・クリティカルヒット！！演出カットイン着火
+    if (isCriticalHit) {
         const cutin = document.getElementById('cutin-bar');
+        const cutinText = cutin ? cutin.querySelector('.cutin-text') : null;
         const board = document.getElementById('sq-board'); // 白い特大ボード
+        
+        // 文字列を「クリティカルヒット！！」へ動的上書き
+        if (cutinText) cutinText.innerText = "🧙‍♂️ クリティカルヒット！！";
+        
         if (cutin) { cutin.style.display = "flex"; setTimeout(() => { cutin.style.display = "none"; }, 1000); }
-        if (board) { board.classList.add("screen-shake-flash"); setTimeout(() => { board.classList.remove("screen-shake-flash"); }, 500); }
+        if (board) { board.classList.add("screen-shake-flash"); setTimeout(() => { board.classList.remove("screen-shake-flash"); }, 450); }
     }
 
+    const effScr = document.getElementById('eff-scr');
+    let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
     if (effScr) effScr.className = baseClass + magicClass;
 
     window._activeMagicTimeout = setTimeout(() => {
         playSE(currentSE);
-        window.eHp = Math.max(0, window.eHp - dmg);
+        window.eHp = Math.max(0, window.eHp - finalDmg);
         if (typeof updateHpUI === 'function') updateHpUI();
-        createDmgPop(dmg, false);
+        createDmgPop(finalDmg, false);
 
         // 🧪 属性ごとの「状態異常カウンター」付与判定（実況テキスト同期）
         let statusLog = "";
@@ -320,7 +336,11 @@ window.turn = function(playerMove) {
 
         const battleLog = document.getElementById('battle-log');
         if (battleLog) {
-            battleLog.innerText = isCritical ? `💥 弱点直撃！『${spellLabel}』で ${dmg} ダメージ！${statusLog}` : `『${spellLabel}』で ${dmg} ダメージ！${statusLog}`;
+            if (isCriticalHit) {
+                battleLog.innerText = `💥 会心の一撃！『${spellLabel}』で ${finalDmg} の超絶ダメージ！！${statusLog}`;
+            } else {
+                battleLog.innerText = `『${spellLabel}』で ${finalDmg} ダメージ！${statusLog}`;
+            }
         }
 
         window.mana = 1.0;
@@ -345,13 +365,13 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     const data = STAGES[window.curIdx];
     const battleLog = document.getElementById('battle-log');
 
-    // ─── 🧪 敵の状態異常判定フェーズ（追加足し算） ───
+    // ─── 🧪 敵の状態異常判定フェーズ ───
     
     // 1. 🔥 火傷のスリップダメージ処理
     if (window.enemyBurnTurns > 0) {
         window.eHp = Math.max(0, window.eHp - 15);
         window.enemyBurnTurns--;
-        createDmgPop(15, false); // 敵の脳天へ15ダメ
+        createDmgPop(15, false);
         if (typeof updateHpUI === 'function') updateHpUI();
         if (battleLog) battleLog.innerText = `🔥 火傷が蝕む！スリップダメージで${data.name}に【15】ダメージ！`;
         
@@ -385,7 +405,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
             return;
         }
     } else if (window.enemyBlindTurns > 0) {
-        window.enemyBlindTurns--; // 特殊技の場合は必中とするが残りターン数は消費
+        window.enemyBlindTurns--;
     }
 
     window.isPlayerMuted = false; window.isItemBlocked = false; window.isPlayerCorroded = false;
