@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.65: 背面オーラ仕様の完全統合・二重宣言エラー根絶版開通。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.70: デバッグ暴走正常化 ＆ コマンドフリーズ沼完全撲滅版がリリースされました。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -95,7 +95,7 @@ window.startBattle = function() {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
         
-        // 🎨【1か所目の変更：背面オーラ同期】敵が現れる瞬間に、
+        // 🎨【背面オーラ同期】敵が現れる瞬間に、
         // データベースから取得した属性カラー（data.glow）で敵の真後ろだけを美しい後光で染める
         if (data.glow) {
             eContainer.style.background = `radial-gradient(circle, ${data.glow} 0%, rgba(15,23,42,0) 70%)`;
@@ -131,7 +131,11 @@ window.startBattle = function() {
         startCustomAnimation(data.type);
     }
     
-    updateHpUI();
+    // 🛡️【①デバッグ正常化ガード策】
+    // ui.jsが読み込まれる前に外部デバッグからここが叩かれてクラッシュ・混線するのを100%防ぐ防波堤
+    if (typeof updateHpUI === 'function') {
+        updateHpUI();
+    }
 
     if (typeof checkDevPassword === 'function') {
         checkDevPassword();
@@ -157,7 +161,7 @@ window.startBattle = function() {
 // 🎒 3. 消耗品アイテム使用連携回路
 // ==========================================
 window.useItem = function(itemType) {
-    if (window.isBusy || window.itemInventory[itemType] <= 0) return;
+    if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || window.itemInventory[itemType] <= 0) return;
     window.isBusy = true;
     window.itemInventory[itemType]--;
     closeItemBag();
@@ -174,7 +178,7 @@ window.useItem = function(itemType) {
         if (battleLog) battleLog.innerText = "🎒 お守りを使用！3ターン被ダメ半減！";
     }
 
-    updateHpUI();
+    if (typeof updateHpUI === 'function') updateHpUI();
     setTimeout(window.enemyTurnAction, 1000);
 };
 
@@ -190,22 +194,27 @@ window.turn = function(playerMove) {
         clearTimeout(window._activeMagicTimeout);
     }
 
-    // 麻痺行動不能インターセプト
+    // 🛡️【②フリーズ対策：麻痺ルートのロック解除漏れ撲滅】
+    // 麻痺行動不能インターセプト時に、window.isBusy を解除しないまま敵に進んでいた致命的バグを完治
     if (window.isPlayerStunned) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🚨 麻痺して動けない！";
-        setTimeout(window.enemyTurnAction, 1000);
+        
+        setTimeout(() => {
+            window.isBusy = false; // 敵ターンへ渡る前に、プレイヤーの入力権フラグを一度正常に解放する
+            window.enemyTurnAction();
+        }, 1000);
         return;
     }
 
     const data = STAGES[window.curIdx];
     let isCritical = (playerMove === data.weak);
 
-    // デスコード（デバッグワンパン）
+    // デスコード（デバッグワンパン窓口の保護強化）
     if (playerMove === 'debug_death') {
         window.eHp = 0;
-        updateHpUI();
+        if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "☠ デスコード起動。";
         setTimeout(window.checkBattleEnd, 500);
@@ -260,7 +269,7 @@ window.turn = function(playerMove) {
         playSE(currentSE);
         
         window.eHp = Math.max(0, window.eHp - dmg);
-        updateHpUI();
+        if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, false);
 
         const battleLog = document.getElementById('battle-log');
@@ -317,6 +326,11 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         if (data.type === 'spider') window.isPlayerStunned = true;
 
         if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
+        
+        window.pHp = Math.max(0, window.pHp - dmg);
+        if (typeof updateHpUI === 'function') updateHpUI();
+        createDmgPop(dmg, true);
+        window.postEnemyTurnCleanup();
     } else {
         // 敵の体当たり通常攻撃音：SOUND_KICKがジャスト連動
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
@@ -332,12 +346,15 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
 
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = `${data.name}の突進体当たり攻撃！【${dmg}】ダメージ！`;
+        
+        window.pHp = Math.max(0, window.pHp - dmg);
+        if (typeof updateHpUI === 'function') updateHpUI();
+        createDmgPop(dmg, true);
+        
+        // 🛡️【②フリーズ対策：通常攻撃ルートのロック解除漏れ撲滅】
+        // 通常攻撃（突進体当たり）を喰らった直後に postEnemyTurnCleanup が呼ばれず、isBusy が true で固まるバグを完全粉砕！
+        window.postEnemyTurnCleanup();
     }
-
-    window.pHp = Math.max(0, window.pHp - dmg);
-    updateHpUI();
-    createDmgPop(dmg, true);
-    window.postEnemyTurnCleanup();
 };
 
 /**
@@ -444,8 +461,7 @@ window.resetGame = function() {
     window.itemInventory = { potion: 1, amulet: 1 };
     window.isAmuletActive = 0;
 
-    // 🎨【2か所目の変更：オーラ完全消灯消去】タイトルへ戻る際、
-    // 敵キャラクターコンテナの背面グラデーションオーラと真ん丸の角設定を物理的に完全リセット
+    // 🎨【オーラ完全消灯】タイトルへ戻る際、敵キャラクターコンテナの背面を完全にリセット
     const cleanContainer = document.getElementById('e-sprite-container');
     if (cleanContainer) {
         cleanContainer.style.background = "none";
@@ -460,5 +476,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.65]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.70]
 // ==========================================
