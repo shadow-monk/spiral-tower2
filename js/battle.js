@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.80: 操作ロックフリーズ・デバッグデス沈黙を100%完全撲滅しました。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.99: デバッグ通信線完全結合 ＆ 操作ロックフリーズ沼完全撲滅版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -94,14 +94,7 @@ window.startBattle = function() {
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
-        
-        // 🎨【超軽量背面オーラ】変形計算（borderRadius）を排除し、
-        // 四角いコンテナの背景に円形グラデーションだけを描画して高負荷を100%カット！
-        if (data.glow) {
-            eContainer.style.background = `radial-gradient(circle, ${data.glow} 0%, rgba(15,23,42,0) 70%)`;
-        } else {
-            eContainer.style.background = "none";
-        }
+        eContainer.style.background = "none"; // ❌ GLOWエフェクト撤去
     }
 
     const pGraphic = document.getElementById('p-sprite-graphic');
@@ -138,9 +131,9 @@ window.startBattle = function() {
     }
 
     if (effScr) {
-        effScr.style.backgroundColor = '#0f172a'; // 画面全体はクリアでクッキリした漆黒
-        effScr.style.boxShadow = 'none';           // 画面全体の曇りを完全にシャットアウト
-        effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155'; // 10階ボスのみ赤、他は通常枠線
+        effScr.style.backgroundColor = '#0f172a'; // 完全な漆黒背景
+        effScr.style.boxShadow = 'none';           // ❌ 発光シャドウ撤去
+        effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155'; // ボス赤、他グレー固定
     }
 
     // ログエリアの正常点灯
@@ -178,13 +171,13 @@ window.useItem = function(itemType) {
 };
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー魔導アクション（SE完全精密マッピング版）
+// 🧙‍♂️ 4. プレイヤー魔導アクション
 // ==========================================
 window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
     window.isBusy = true;
 
-    // 🔒【連打ガード】もし前ターンの未爆発タイマーが残っていたら、その場で破棄して上書き汚染を完全遮断！
+    // 🔒【連打ガード】
     if (window._activeMagicTimeout) {
         clearTimeout(window._activeMagicTimeout);
     }
@@ -196,21 +189,19 @@ window.turn = function(playerMove) {
         if (battleLog) battleLog.innerText = "🚨 麻痺して動けない！";
         
         setTimeout(() => {
-            window.isBusy = false; // 敵にバトンを渡す前に、一度操作ロックを正常に解除する
+            window.isBusy = false; // 操作ロックを正常解放
             window.enemyTurnAction();
         }, 1000);
         return;
     }
 
-    // ☠️【デスコード完全正常化】
-    // デスを押した瞬間に、かかってしまっていた「window.isBusy = true」の呪いをその場で即時解除！
+    // ☠️【デスコード予備用窓口】
     if (playerMove === 'debug_death') {
         window.eHp = 0;
-        window.isBusy = false; // 👈 ロックをその場で強制解放！！これでリザルトへ100%遷移します！
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "☠ デスコード起動。";
-        setTimeout(window.checkBattleEnd, 500);
+        window.checkBattleEnd(); 
         return;
     }
 
@@ -226,7 +217,7 @@ window.turn = function(playerMove) {
 
     window.isEnemyShieldActive = false;
 
-    // 🛡️ シールドコマンド時の即時分岐
+    // 🛡️ シールドコマンド
     if (playerMove === 'def') {
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -237,7 +228,7 @@ window.turn = function(playerMove) {
         return;
     }
     
-    // ⚡ チャージコマンド時の即時分岐
+    // ⚡ チャージコマンド
     if (playerMove === 'chg') {
         window.mana = 2.5;
         const chargeBadge = document.getElementById('charge-badge');
@@ -248,7 +239,6 @@ window.turn = function(playerMove) {
         return;
     }
 
-    // 定数とラベルをローカルカプセル化
     let currentSE = SOUND_FIRE;
     let spellLabel = "ファイア";
 
@@ -260,7 +250,6 @@ window.turn = function(playerMove) {
         spellLabel = "ホーリー";
     }
 
-    // 400ms後に音を鳴らし、ダメージを安全に同期発火させる予約
     window._activeMagicTimeout = setTimeout(() => {
         playSE(currentSE);
         
@@ -286,6 +275,18 @@ window.turn = function(playerMove) {
 // 👹 5. エネミーターン行動AI＆カウンター処理
 // ==========================================
 window.enemyTurnAction = function(isPlayerDefending = false) {
+    // ✨【①デバッグデス完全正常化の心臓部】
+    // main.js側のデスボタンが叩いてくる「die」という文字をここで100%完璧にインターセプト！
+    if (isPlayerDefending === 'die') {
+        window.eHp = 0;
+        window.isBusy = false; // 操作ロックを安全に即時全面解除
+        if (typeof updateHpUI === 'function') updateHpUI();
+        const battleLog = document.getElementById('battle-log');
+        if (battleLog) battleLog.innerText = "☠ デスコード起動。";
+        window.checkBattleEnd(); // 即座に勝利判定をキックしてリザルト画面へ進行を突き抜かせる！
+        return;
+    }
+
     if (window.eHp <= 0 || window.pHp <= 0) {
         window.isBusy = false;
         return;
@@ -328,7 +329,6 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         createDmgPop(dmg, true);
         window.postEnemyTurnCleanup();
     } else {
-        // 敵の体当たり通常攻撃音
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -347,9 +347,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
         
-        // 🛡️【フリーズ対策：通常攻撃ルートのロック解除漏れ撲滅】
-        // 通常体当たりを喰らった直後に、きっちり操作ロックを解放する防衛網を結合！
-        window.postEnemyTurnCleanup();
+        window.postEnemyTurnCleanup(); // 🛡️【②フリーズ対策】通常突進後のロック強制解除
     }
 };
 
@@ -388,7 +386,7 @@ window.checkBattleEnd = function() {
                 eContainer.style.opacity = "0";
                 eContainer.style.transform = "scale(0.5)";
             }
-            setTimeout(() => { window.transitionToResult(); }, 800);
+            setTimeout(() => { window.transitionToResult(); }, 400); 
         } else {
             window.transitionToResult();
         }
@@ -457,7 +455,6 @@ window.resetGame = function() {
     window.itemInventory = { potion: 1, amulet: 1 };
     window.isAmuletActive = 0;
 
-    // 🎨【オーラ消灯】タイトルへ戻る際、背面オーラをリセット
     const cleanContainer = document.getElementById('e-sprite-container');
     if (cleanContainer) {
         cleanContainer.style.background = "none";
@@ -471,5 +468,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.80]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.99]
 // ==========================================
