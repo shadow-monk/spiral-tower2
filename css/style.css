@@ -298,3 +298,145 @@
     50% { transform: scaleX(0.9) skewX(5deg); }
     100% { transform: scaleX(1.8) translateY(-30px); opacity: 0; filter: blur(10px); }
 }
+/* ==========================================================================
+   🎬 🔄 【V8.00適合】クリティカル・カットイン ＆ 画面全体ストロボ激震大結界
+   ========================================================================== */
+
+/* ⚡ 弱点直撃！格闘ゲーム風スライド・カットインバー 
+   初期状態は目隠し(display: none)され、弱点を突いた瞬間にJSから点灯。斜め20度傾いて高速スライド！ */
+#cutin-bar {
+    position: absolute;
+    width: 100%;
+    height: 65px;
+    background: linear-gradient(90deg, transparent, #eab308 15%, #ef4444 50%, #eab308 85%, transparent);
+    top: 125px;
+    left: 0;
+    z-index: 90;
+    display: none; /* JS連動用初期化 */
+    align-items: center;
+    justify-content: center;
+    border-top: 3px solid #ffffff;
+    border-bottom: 3px solid #ffffff;
+    box-shadow: 0 0 25px #facc15;
+    animation: cutinSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+}
+
+@keyframes cutinSlideIn {
+    0% { transform: scaleY(0) skewX(-20deg); opacity: 0; }
+    100% { transform: scaleY(1) skewX(-20deg); opacity: 1; }
+}
+
+/* カットイン内の特攻ネオンテキスト（不気味に脈動鼓動する） */
+.cutin-text {
+    color: #ffffff;
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-style: italic;
+    letter-spacing: 3px;
+    text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
+    animation: cutinPulse 0.15s infinite alternate ease-in-out;
+}
+
+@keyframes cutinPulse {
+    0% { transform: scale(0.95); filter: brightness(1); }
+    100% { transform: scale(1.05); filter: brightness(1.6) drop-shadow(0 0 8px #facc15); }
+}
+
+/* 💥 クリティカル発生時、外枠ゲームコンテナ全体を一瞬真っ白にさせながらガガガッと震わせる超激震フラッシュ */
+.screen-shake-flash {
+    animation: shakeFlashAnim 0.45s cubic-bezier(.36, .07, .19, .97) both;
+    background-color: #ffffff !important; /* 一瞬のホワイトアウト */
+}
+
+@keyframes shakeFlashAnim {
+    10%, 90% { transform: translate3d(-5px, 0, 0); filter: brightness(2); }
+    20%, 80% { transform: translate3d(6px, 3px, 0); }
+    30%, 50%, 70% { transform: translate3d(-8px, -3px, 0); filter: brightness(1.5); }
+    40%, 60% { transform: translate3d(8px, 0, 0); }
+}
+
+/* 🔮 新設：呪文＆アイテムの「トリプル・インベントリ」画面オーバーレイ要塞 
+   下部パネルを3つに削った跡地。中央に映画のUIのように半透明に浮かび上がらせる。 */
+.bag-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(2, 6, 23, 0.88); /* 深海の漆黒半透明 */
+    z-index: 500;
+    display: none; /* UI.js からの flex 命令を待機 */
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px); /* 背景をボカして没入感を足し算 */
+}
+
+/* カバンの中身（魔導書）の共通コンテナ */
+.bag-content {
+    width: 85%;
+    background: #1e293b;
+    border: 4px double #475569;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+}
+
+.bag-title {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.1rem;
+    color: #facc15;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #000;
+}
+
+/* 2列に美しく整列させるグリッドシステム */
+.bag-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+/* カバン内の各呪文ボタンの基本顔料（押し心地をレトロゲーム風に統一） */
+.btn-bag-action {
+    height: 48px;
+    border-radius: 6px;
+    font-weight: 900;
+    border: 2px solid #475569;
+    background: #334155;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 0.95rem;
+    text-shadow: 1px 1px 0 #000;
+    box-shadow: 0 3px 0 #1e293b;
+}
+
+.btn-bag-action:active {
+    transform: translateY(2px);
+    box-shadow: none;
+}
+
+/* 🔮 各属性魔法のインベントリ専用カラーコーディネート */
+.btn-fire { border-color: #f87171; background: linear-gradient(180deg, #b91c1c, #991b1b); }
+.btn-ice { border-color: #7dd3fc; background: linear-gradient(180deg, #0369a1, #075985); }
+.btn-holy { border-color: #fef08a; background: linear-gradient(180deg, #a16207, #854d0e); }
+.btn-def { border-color: #6ee7b7; background: linear-gradient(180deg, #047857, #065f46); }
+
+/* カバンを閉じる「戻る」ボタン */
+.btn-bag-close {
+    width: 100%;
+    height: 42px;
+    background: #475569;
+    border: none;
+    color: #ffffff;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 3px 0 #1e293b;
+}
+.btn-bag-close:active { transform: translateY(2px); box-shadow: none; }
+
+/* 🎮 下部コマンドの大型3枚看板専用デザイン */
+.btn-magic-main { background: linear-gradient(180deg, #6366f1, #4f46e5); border-color: #818cf8; box-shadow: 0 4px 0 #3730a3; }
+.btn-charge-main { background: linear-gradient(180deg, #a855f7, #7e22ce); border-color: #c084fc; box-shadow: 0 4px 0 #581c87; }
+.btn-item-main { background: linear-gradient(180deg, #f59e0b, #d97706); border-color: #fbbf24; box-shadow: 0 4px 0 #92400e; }
