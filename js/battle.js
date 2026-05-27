@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.06: 10大魔物特殊攻撃（表記・効果・CSS演出合図）完全バトルJS単体完結版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.07: 実在コンテナ（e-container / p-container）ターゲット完全修正版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -22,7 +22,7 @@ window.isEnemyShieldActive = false;
 window.itemInventory = { potion: 1, amulet: 1 };
 window.isAmuletActive = 0;
 
-// 🌟 状態異常・特殊効果用追加フラグの完全一括管理
+// 状態異常・特殊効果用追加フラグの一括管理
 window.isPlayerStunned = false;       // 2階: ブラッドスパイダー（麻痺状態）
 window.isPlayerCorroded = false;     // 1階: ヘドロスライム（酸による防御不可状態）
 window.isHarpySpeedActive = false;   // 4階: ハーピィ（敵の次のターン待機時間が半分）
@@ -77,7 +77,7 @@ window.nextStage = function() {
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
     
-    // 🛡️ 新たな全状態異常フラグを試合開始時に根こそぎ初期化
+    // 全状態異常フラグを試合開始時に初期化
     window.isBusy = false; 
     window.isPlayerStunned = false;
     window.isPlayerCorroded = false;
@@ -95,13 +95,18 @@ window.startBattle = function() {
         window._activeMagicTimeout = null;
     }
 
+    // ✨ 実在するコンテナの初期化と残像除去
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
         eContainer.style.background = "none";
-        // 過去の演出残像クラスを根こそぎクリア
         eContainer.className = ""; 
+    }
+
+    const pContainer = document.getElementById('p-sprite-container');
+    if (pContainer) {
+        pContainer.className = ""; 
     }
 
     const pGraphic = document.getElementById('p-sprite-graphic');
@@ -113,7 +118,6 @@ window.startBattle = function() {
     const chargeBadge = document.getElementById('charge-badge');
     const eName = document.getElementById('e-name');
     const eSpriteGraphic = document.getElementById('e-sprite-graphic');
-    const effScr = document.getElementById('eff-scr');
 
     if (itemBadge) itemBadge.style.display = "none";
     if (chargeBadge) chargeBadge.style.display = "none";
@@ -139,13 +143,6 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-    if (effScr) {
-        effScr.style.backgroundColor = '#0f172a';
-        effScr.style.boxShadow = 'none';
-        effScr.style.borderColor = '#334155';
-        effScr.className = ""; // 演出クラスリセット
-    }
-
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
@@ -160,7 +157,6 @@ window.startBattle = function() {
 window.useItem = function(itemType) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || window.itemInventory[itemType] <= 0) return;
     
-    // 🚨 8階 ファントムのアイテム封印チェック
     if (window.isItemBlocked) {
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🚨 呪いでアイテムバッグが石化していて開けない！";
@@ -193,7 +189,6 @@ window.useItem = function(itemType) {
 window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
 
-    // 🚨 9階 エビルアイの魔法封印（沈黙）チェック
     if (window.isPlayerMuted && (playerMove === 'fire' || playerMove === 'ice' || playerMove === 'holy')) {
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🚨 魔力封印により、呪文が唱えられない！";
@@ -206,7 +201,6 @@ window.turn = function(playerMove) {
         clearTimeout(window._activeMagicTimeout);
     }
 
-    // 2階 ブラッドスパイダーの麻痺チェック
     if (window.isPlayerStunned) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
@@ -317,7 +311,6 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     const data = STAGES[window.curIdx];
     let isSpecial = (Math.random() < 0.4); 
 
-    // 🚨 1階 ヘドロスライムの効果（溶解液による防御効果完全消滅）
     if (window.isPlayerCorroded && isPlayerDefending) {
         isPlayerDefending = false; 
     }
@@ -331,7 +324,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         dmg = Math.floor(dmg * 0.5);
     }
 
-    // ⚔️ 次の状態異常（沈黙、アイテム封印、溶解液）は敵が行動した瞬間に自然解除される仕様
+    // 状態異常は敵が行動を起こした瞬間にクリーンに解除
     window.isPlayerMuted = false;
     window.isItemBlocked = false;
     window.isPlayerCorroded = false;
@@ -339,25 +332,25 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     if (isSpecial) {
         playSE(SOUND_HOLY);
         const battleLog = document.getElementById('battle-log');
-        const effScr = document.getElementById('eff-scr');
         const eContainer = document.getElementById('e-sprite-container');
+        const pContainer = document.getElementById('p-sprite-container');
 
         // ==========================================
-        // 🔮 【1〜10階層】 特殊攻撃・個別ロジック大要塞
+        // 🔮 【1〜10階層】 実在コンテナ合図・完全送信回路
         // ==========================================
 
         // 1階：ヘドロスライム
         if (data.type === 'slime') {
             window.isPlayerCorroded = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の溶解液を吐きかけた！【${dmg}】ダメージ！(次回防御不可)`;
-            if (effScr) { effScr.className = "anim-slime-acid"; setTimeout(() => { effScr.className = ""; }, 800); }
+            if (eContainer) { eContainer.className = "anim-slime-acid"; setTimeout(() => { eContainer.className = ""; }, 800); }
         }
         
         // 2階：ブラッドスパイダー
         else if (data.type === 'spider') {
             window.isPlayerStunned = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の麻痺毒糸を吐いた！【${dmg}】ダメージ！(次回スタン)`;
-            if (effScr) { effScr.className = "anim-spider-poison"; setTimeout(() => { effScr.className = ""; }, 800); }
+            if (eContainer) { eContainer.className = "anim-spider-poison"; setTimeout(() => { eContainer.className = ""; }, 800); }
         }
         
         // 3階：スケルトンナイト
@@ -373,16 +366,16 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         else if (data.type === 'harpy') {
             window.isHarpySpeedActive = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}のストームウイング！【${dmg}】ダメージ！(敵次ターン爆速化)`;
-            if (effScr) { effScr.className = "anim-harpy-storm"; setTimeout(() => { effScr.className = ""; }, 600); }
+            if (eContainer) { eContainer.className = "anim-harpy-storm"; setTimeout(() => { eContainer.className = ""; }, 600); }
         }
         
         // 5階：ロックゴーレム
         else if (data.type === 'golem') {
-            window.mana = 1.0; // チャージ強制リセット
+            window.mana = 1.0; 
             const chargeBadge = document.getElementById('charge-badge');
             if (chargeBadge) chargeBadge.style.display = "none";
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の大地鳴動！【${dmg}】ダメージ！(チャージ強制解除)`;
-            if (effScr) { effScr.className = "anim-golem-earthquake"; setTimeout(() => { effScr.className = ""; }, 800); }
+            if (eContainer) { eContainer.className = "anim-golem-earthquake"; setTimeout(() => { eContainer.className = ""; }, 800); }
         }
         
         // 6階：ガーゴイル
@@ -396,33 +389,32 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         
         // 7階：マイコニド
         else if (data.type === 'myconid') {
-            window.mana = 0.5; // 次回魔法威力半減
+            window.mana = 0.5; 
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の胞子拡散！【${dmg}】ダメージ！(次回魔法威力半減)`;
-            if (effScr) { effScr.className = "anim-myconid-spore"; setTimeout(() => { effScr.className = ""; }, 900); }
+            if (eContainer) { eContainer.className = "anim-myconid-spore"; setTimeout(() => { eContainer.className = ""; }, 900); }
         }
         
         // 8階：ファントム
         else if (data.type === 'ghost' || data.type === 'phantom') {
             window.isItemBlocked = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の呪いの視線！【${dmg}】ダメージ！(次回アイテム使用不可)`;
-            if (effScr) { effScr.className = "anim-phantom-curse"; setTimeout(() => { effScr.className = ""; }, 1000); }
+            if (pContainer) { pContainer.className = "anim-phantom-curse"; setTimeout(() => { pContainer.className = ""; }, 1000); }
         }
         
         // 9階：エビルアイ
         else if (data.type === 'eyes') {
             window.isPlayerMuted = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の魔力封印の邪眼！【${dmg}】ダメージ！(次回魔法不可)`;
-            if (effScr) { effScr.className = "anim-evileye-mute"; setTimeout(() => { effScr.className = ""; }, 800); }
+            if (pContainer) { pContainer.className = "anim-evileye-mute"; setTimeout(() => { pContainer.className = ""; }, 800); }
         }
         
-        // 10階：カリスドラゴン（大ボス）
+        // 10階：カリスドラゴン
         else if (data.type === 'dragon') {
-            window.eHp = Math.min(window.eMaxHp, window.eHp + 30); // 敵HP30回復
+            window.eHp = Math.min(window.eMaxHp, window.eHp + 30); 
             if (battleLog) battleLog.innerText = `🚨 ${data.name}のカタストロフィ・ブレス！【${dmg}】ダメージ！(敵のHPが30回復)`;
-            if (effScr) { effScr.className = "anim-dragon-breath"; setTimeout(() => { effScr.className = ""; }, 1200); }
+            if (eContainer) { eContainer.className = "anim-dragon-breath"; setTimeout(() => { eContainer.className = ""; }, 1200); }
         }
         
-        // 汎用予備
         else {
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
         }
@@ -432,7 +424,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         createDmgPop(dmg, true);
         window.postEnemyTurnCleanup();
     } else {
-        // 通常攻撃（体当たり）
+        // 通常突進攻撃
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -464,9 +456,8 @@ window.postEnemyTurnCleanup = function() {
         }
     }
     
-    // 4階 ハーピィの次のターン爆速化処理（ウェイト時間を800msから400msへ引き算）
     let nextTurnDelay = window.isHarpySpeedActive ? 400 : 800;
-    window.isHarpySpeedActive = false; // フラグ消費
+    window.isHarpySpeedActive = false; 
 
     setTimeout(() => {
         if (!window.checkBattleEnd()) {
@@ -477,9 +468,6 @@ window.postEnemyTurnCleanup = function() {
     }, nextTurnDelay);
 };
 
-// ==========================================
-// 💥 6. 勝敗・終了判定およびリザルト遷移
-// ==========================================
 window.checkBattleEnd = function() {
     if (window.pHp <= 0 || window.eHp <= 0) {
         stopBGM();
@@ -562,6 +550,11 @@ window.resetGame = function() {
         cleanContainer.className = "";
     }
 
+    const pContainer = document.getElementById('p-sprite-container');
+    if (pContainer) {
+        pContainer.className = "";
+    }
+
     const battleLog = document.getElementById('battle-log');
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
 
@@ -569,5 +562,5 @@ window.resetGame = function() {
     if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
 };
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 7.06]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 7.07]
 // ==========================================
