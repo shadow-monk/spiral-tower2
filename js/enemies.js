@@ -113,16 +113,10 @@ function startCustomAnimation(type) {
         
         currentFrameIdx = (currentFrameIdx + 1) % dynamicArr.length;
         
-        // 🛠️ パス解決とキャッシュの完全両立
-        // getAssetPathが存在する場合はそれを使用し、存在しない場合も相対パスの原点を維持します。
-        let basePath = dynamicArr[currentFrameIdx];
-        if (typeof window.getAssetPath === 'function') {
-            graphicEl.src = window.getAssetPath(basePath);
-        } else {
-            graphicEl.src = basePath;
-        }
+        // ✨ 余計な関数を通さず、完成している手書きパスをそのままノータイムで代入
+        graphicEl.src = dynamicArr[currentFrameIdx];
         
-        // モンスターの重量感に合わせた速度設定（負荷を引き算するため前バージョンより少し間引いています）
+        // 0.25秒〜0.3秒間隔の超軽量等速ループ
         let fps = (cType === 'slime') ? 250 : (cType === 'phantom' ? 300 : (cType === 'dragon' ? 220 : 250));
         animeTimeout = setTimeout(step, fps); 
     }
@@ -136,4 +130,4 @@ function stopSlimeAnimation() {
     } 
 }
 
-console.log("enemies.js: パス互換性を確保した独立型アセットデータ＆アニメーション制御統合版が正常に起動しました。");
+console.log("enemies.js: パス直結・完全軽量化版が正常に起動しました。");
