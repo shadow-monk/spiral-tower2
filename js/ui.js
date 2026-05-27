@@ -1,10 +1,10 @@
 // ==========================================
-// 📺 1. 画面表示切り替え・UI制御ロジック（透明バリア・進行不能完全完治版）
+// 📺 1. 画面表示切り替え・UI制御ロジック
 // ==========================================
-console.log("%c🎨 [UI SYSTEMS] Ver 7.40: 既存の鉄壁バリア破壊を完全保持し、呪文バッグ開閉安全弁を新規溶接した『真の全コード』です。", "color: #00ffff; font-weight: bold;");
+console.log("%c🎨 [UI SYSTEMS] Ver 7.50: カバンの画面覆いを引き算し、メイン下のインラインスロットトグル化に完全成功しました。", "color: #00ffff; font-weight: bold;");
 
 /**
- * スタート・導入・バトル・リザルトの各画面（div）を表示制御する関数
+ * 各画面（div）を表示制御する関数
  */
 function showScreen(screenId) {
     ['scr-start', 'scr-intro', 'scr-battle', 'scr-result'].forEach(id => {
@@ -56,8 +56,7 @@ function createDmgPop(dmg, isPlayer) {
         window[layerKey].style.textShadow = "3px 3px 0 #000";
         window[layerKey].style.zIndex = "999";
         
-        // 🛡️【最前面アクリル板バグ・完全粉砕】
-        // 看板の要素自体に、クリックを100%下層へ透過させる絶対命令を刻印！
+        // 🛡️ 看板要素自体に、クリックを100%下層へ透過させる絶対命令を刻印！
         window[layerKey].style.pointerEvents = "none";
         
         window[layerKey].style.width = "100%";
@@ -86,27 +85,31 @@ function createDmgPop(dmg, isPlayer) {
 
 
 // ==========================================
-// 🔮 2. 新設：呪文バッグUI制御ロジック
+// 🔮 2. 呪文スロット（メイン下トグル変形）制御ロジック
 // ==========================================
 
 /**
- * 新設された呪文インベントリパネルをパカッと開く関数
- * 🛡️【二重フリーズ防止安全弁】戦闘ロック中（window.isBusy）なら、開くこと自体を即座に弾く！
+ * 🔮 呪文ボタンエリアを展開（A面メインを隠し、B面呪文をハキハキ点灯！）
  */
 function openMagicBag() {
-    // 敵のアニメ演出中などに連打されても、パネルの誤作動起動を100%シャットアウト！
     if (window.isBusy || pHp <= 0 || eHp <= 0) return;
 
-    const magPanel = document.getElementById('magic-bag-panel');
-    if (magPanel) magPanel.style.display = 'flex';
+    const mainPanel = document.getElementById('panel-main-mode');
+    const magicPanel = document.getElementById('panel-magic-mode');
+    
+    if (mainPanel) mainPanel.style.display = 'none';
+    if (magicPanel) magicPanel.style.display = 'block';
 }
 
 /**
- * 呪文インベントリパネルを閉じる関数
+ * ↩️ 呪文ボタンエリアを閉じて元の行動選択へ（B面呪文を隠し、A面メインを大復活！）
  */
 function closeMagicBag() {
-    const magPanel = document.getElementById('magic-bag-panel');
-    if (magPanel) magPanel.style.display = 'none';
+    const mainPanel = document.getElementById('panel-main-mode');
+    const magicPanel = document.getElementById('panel-magic-mode');
+    
+    if (magicPanel) magicPanel.style.display = 'none';
+    if (mainPanel) mainPanel.style.display = 'block';
 }
 
 
@@ -116,10 +119,8 @@ function closeMagicBag() {
 
 /**
  * 所持数を反映させたうえでアイテムバッグパネルを開く関数
- * 🛡️【二重矛盾バグ根絶】戦闘ロック中（isBusy）なら、開くこと自体を物理拒絶する安全弁！
  */
 function openItemBag() { 
-    // 潜伏中のロックを検知したら、パネルの起動を即座に弾く！
     if (window.isBusy || pHp <= 0 || eHp <= 0) return;
 
     const slotPotion = document.getElementById('item-slot-potion');
