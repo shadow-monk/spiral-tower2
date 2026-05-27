@@ -3,20 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>スパイラルタワー 2</title>
-<style>
-  @keyframes fireMissile {
-    0% { left: 120px; top: 180px; transform: scale(0.3); opacity: 0.2; }
-    20% { opacity: 1; transform: scale(1.1); }
-    100% { left: 400px; top: 130px; transform: scale(1.0); opacity: 1; }
-  }
-  @keyframes firePillarGlow {
-    0% { transform: scaleX(0.1) scaleY(0.1); bottom: 20px; opacity: 0; filter: blur(5px); }
-    15% { transform: scaleX(1.4) scaleY(1.3); opacity: 1; filter: blur(0px); box-shadow: 0 0 50px #ef4444; }
-    50% { transform: scaleX(1.0) scaleY(1.1); background: #f97316; }
-    100% { transform: scaleX(0.8) scaleY(0.0); bottom: 180px; opacity: 0; filter: blur(8px); }
-  }
-</style>
-<link rel="stylesheet" href="css/style.css?v=23">
+<link rel="stylesheet" href="css/style.css?v=6.50">
 </head>
 <body class="game-body" style="margin:0 !important; padding:0 !important; background-color:#0f172a !important;">
 
@@ -39,7 +26,7 @@
                         ある地域の周辺の街から民が掻き消え、不穏な静寂が訪れた。しばらくして、霧の中から姿を現した──禍々しき螺旋の古塔。凶悪な魔物どもが巣くう、その終わらぬスパイラルタワーへと潜入し、最上階の闇を討て。
                     </p>
                 </div>
-                <button onclick="nextStage(); triggerFirstAudio();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3); box-sizing:border-box;">塔へ侵入する</button>
+                <button onclick="nextStage();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3); box-shadow:box-sizing:border-box;">塔へ侵入する</button>
             </div>
 
             <div id="scr-intro" style="display:none; padding:20px 10px; width:100%; box-sizing:border-box;">
@@ -74,8 +61,6 @@
                     <div id="cutin-bar" style="position:absolute; width:100%; height:80px; background:linear-gradient(90deg, #4f46e5, #f43f5e); top:130px; left:0; z-index:40; display:none; align-items:center; justify-content:center; box-shadow:0 0 20px #facc15;">
                          <div style="color:white; font-size:1.8rem; font-weight:900; text-shadow:2px 2px 0 #000;">🧙‍♂️ 一撃必殺！クリティカルアタック！！</div>
                     </div>
-
-                    <div id="spell-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:5; mix-blend-mode:screen !important; box-sizing:border-box !important;"></div>
                     
                     <div id="icon-stage" style="display:flex; justify-content:space-around; align-items:center; width:100%; height:100%; box-sizing:border-box !important; padding:0 15px;">
                         <div id="p-sprite-container" style="width:130px; height:130px; animation: floatP 1.8s infinite alternate ease-in-out;">
@@ -86,7 +71,6 @@
                         </div>
                     </div>
                     
-                    <div id="front-effect-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:6; box-sizing:border-box !important;"></div>
                     <div id="dmg-layer" style="position:absolute; width:100%; height:100%; top:0; left:0; pointer-events:none; z-index:7; box-sizing:border-box !important;"></div>
                     <div id="charge-badge" style="position:absolute; top:15px; left:15px; background:linear-gradient(135deg,#e11d48,#4f46e5); color:#ffffff; font-size:1rem; font-weight:900; padding:4px 12px; border-radius:99px; display:none; z-index:6;">魔力解放：威力2.5倍</div>
                     <div id="item-badge" style="position:absolute; top:15px; right:15px; background:#059669; color:white; font-size:0.9rem; font-weight:900; padding:4px 12px; border-radius:6px; display:none; z-index:6;">🛡 お守り結界中</div>
@@ -133,17 +117,16 @@
         <input type="password" id="dev-password-input" oninput="checkDevPassword()" placeholder="PASSWORDを入力..." style="width:100%; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; outline:none;">
     </div>  
     <div style="width:100%; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold; padding:0 5px;">
-        <span>改訂 V6.30（05271758）</span>
-        <span>Update: 2026.05.23 15:25:00</span>
+        <span>改訂 V6.50（05271817）</span>
+        <span>Update: 2026.05.27 18:15:00</span>
     </div>
 
-<script src="js/stages.js?v=6.31"></script>
-<script src="js/audio.js?v=05271711"></script>
-<script src="js/ui.js?v=05271633"></script>
-<script src="js/enemies.js?v=6.55"></script>
-<script src="js/effects.js?v=00"></script>
-<script src="js/main.js?v=1.4"></script>
-<script src="js/battle.js?v=05271758"></script>
+<script src="js/stages.js?v=05271817"></script>
+<script src="js/audio.js?v=05271817"></script>
+<script src="js/ui.js?v=05271817"></script>
+<script src="js/enemies.js?v=05271817"></script>
+<script src="js/main.js?v=05271817"></script>
+<script src="js/battle.js?v=05271817"></script>
 
 </body>
 </html>
