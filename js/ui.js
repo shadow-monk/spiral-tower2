@@ -1,7 +1,7 @@
 // ==========================================
 // 📺 1. 画面表示切り替え・UI制御ロジック（透明バリア・進行不能完全完治版）
 // ==========================================
-console.log("%c🔄 [UI SYSTEMS] Ver 7.30: アイテムバッグ二重矛盾・最前面アクリル板バグを完全封印しました。", "color: #00ffff; font-weight: bold;");
+console.log("%c🎨 [UI SYSTEMS] Ver 7.40: 既存の鉄壁バリア破壊を完全保持し、呪文バッグ開閉安全弁を新規溶接した『真の全コード』です。", "color: #00ffff; font-weight: bold;");
 
 /**
  * スタート・導入・バトル・リザルトの各画面（div）を表示制御する関数
@@ -56,7 +56,8 @@ function createDmgPop(dmg, isPlayer) {
         window[layerKey].style.textShadow = "3px 3px 0 #000";
         window[layerKey].style.zIndex = "999";
         
-        // 🛡️【最重要・バリア爆破】看板の要素自体に、クリックを100%下層へ透過させる絶対命令を刻印！
+        // 🛡️【最前面アクリル板バグ・完全粉砕】
+        // 看板の要素自体に、クリックを100%下層へ透過させる絶対命令を刻印！
         window[layerKey].style.pointerEvents = "none";
         
         window[layerKey].style.width = "100%";
@@ -85,12 +86,37 @@ function createDmgPop(dmg, isPlayer) {
 
 
 // ==========================================
-// 🎒 2. アイテムバッグUI制御ロジック
+// 🔮 2. 新設：呪文バッグUI制御ロジック
+// ==========================================
+
+/**
+ * 新設された呪文インベントリパネルをパカッと開く関数
+ * 🛡️【二重フリーズ防止安全弁】戦闘ロック中（window.isBusy）なら、開くこと自体を即座に弾く！
+ */
+function openMagicBag() {
+    // 敵のアニメ演出中などに連打されても、パネルの誤作動起動を100%シャットアウト！
+    if (window.isBusy || pHp <= 0 || eHp <= 0) return;
+
+    const magPanel = document.getElementById('magic-bag-panel');
+    if (magPanel) magPanel.style.display = 'flex';
+}
+
+/**
+ * 呪文インベントリパネルを閉じる関数
+ */
+function closeMagicBag() {
+    const magPanel = document.getElementById('magic-bag-panel');
+    if (magPanel) magPanel.style.display = 'none';
+}
+
+
+// ==========================================
+// 🎒 3. アイテムバッグUI制御ロジック
 // ==========================================
 
 /**
  * 所持数を反映させたうえでアイテムバッグパネルを開く関数
- * 🛡️【最重要・二重矛盾バグ根絶】戦闘ロック中（isBusy）なら、開くこと自体を物理拒絶する安全弁を配備！
+ * 🛡️【二重矛盾バグ根絶】戦闘ロック中（isBusy）なら、開くこと自体を物理拒絶する安全弁！
  */
 function openItemBag() { 
     // 潜伏中のロックを検知したら、パネルの起動を即座に弾く！
