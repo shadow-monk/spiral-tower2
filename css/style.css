@@ -166,3 +166,135 @@
     75% { top: 45%; left: 15%; transform: scale(2.2) rotate(360deg); opacity: 1; filter: blur(0); }
     100% { top: 45%; left: 5%; transform: scale(4); opacity: 0; filter: blur(15px); background: #ffffff; }
 }
+
+/* ==========================================================================
+   🧙‍♂️ 主人公（ウィザード）選定5大魔法・超絶CSS演出大要塞 (Ver 1.00)
+   ========================================================================== */
+
+/* 🔥 ファイア（案A）：放物線火炎弾バースト
+   魔法使い（左）から敵（右）へ、激しく燃える火炎球が美しい放物線を描いて着弾爆発！ */
+#eff-scr.anim-player-fire::after {
+    content: "";
+    position: absolute;
+    width: 35px;
+    height: 35px;
+    background: radial-gradient(circle, #f97316 20%, #ef4444 60%, transparent 80%);
+    border-radius: 50%;
+    filter: drop-shadow(0 0 15px #f97316);
+    z-index: 60;
+    pointer-events: none;
+    animation: launchFireBall 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes launchFireBall {
+    0% { top: 50%; left: 20%; transform: scale(0.4); opacity: 1; }
+    40% { top: 15%; left: 45%; transform: scale(1.3); }
+    75% { top: 45%; left: 75%; transform: scale(1); opacity: 1; filter: blur(0); }
+    100% { top: 48%; left: 80%; transform: scale(3.5); opacity: 0; filter: blur(12px); background: radial-gradient(circle, #facc15 10%, transparent 60%); }
+}
+/* 着火フラッシュ（敵が一瞬真っ赤に染まる） */
+#eff-scr.anim-player-fire #e-sprite-container {
+    animation: enemyBurnFlash 0.6s ease-in-out;
+}
+@keyframes enemyBurnFlash {
+    0%, 60% { filter: brightness(1) sepia(0); }
+    75% { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: scale(1.1); }
+    100% { filter: brightness(1) sepia(0); }
+}
+
+/* ❄️ アイス（案A）：頭上からの氷結結晶落とし
+   敵の脳天上に、シアンブルーの巨大な幾何学氷結結晶が出現し、垂直落下して砕け凍らせる！ */
+#eff-scr.anim-player-ice::after {
+    content: "❄️";
+    font-size: 55px;
+    position: absolute;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0;
+    filter: drop-shadow(0 0 15px #38bdf8);
+    animation: dropIceCrystal 0.6s ease-in forwards;
+}
+@keyframes dropIceCrystal {
+    0% { top: -60px; left: 74%; transform: scale(0.3) rotate(0deg); opacity: 0; }
+    30% { top: 10%; left: 74%; transform: scale(1.4) rotate(180deg); opacity: 1; }
+    70% { top: 40%; left: 74%; transform: scale(1) rotate(360deg); opacity: 1; filter: blur(0); }
+    100% { top: 45%; left: 74%; transform: scale(2.5); opacity: 0; filter: blur(10px); }
+}
+/* 敵の氷結静止（激突した瞬間に真っ白にフリーズ） */
+#eff-scr.anim-player-ice #e-sprite-container {
+    animation: enemyFreezeFreeze 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+@keyframes enemyFreezeFreeze {
+    0%, 50% { filter: brightness(1) saturate(1); }
+    65% { filter: brightness(2.5) saturate(0) hue-rotate(180deg); transform: scale(0.95); }
+    100% { filter: brightness(1) saturate(1); }
+}
+
+/* ✨ ホーリー（案C）：多重聖結晶ビット
+   敵を包囲するように4つの黄金の聖結晶（ひし形ビット）が湧き、猛烈に超高速圧縮大爆発！ */
+#eff-scr.anim-player-holy::after {
+    content: "❖ \A ❖       ❖ \A ❖";
+    white-space: pre;
+    line-height: 1.1;
+    font-size: 32px;
+    color: #facc15 !important;
+    text-align: center;
+    position: absolute;
+    top: 33%; left: 66%;
+    width: 130px; height: 130px;
+    z-index: 60;
+    pointer-events: none;
+    opacity: 0;
+    text-shadow: 0 0 15px #eab308, 0 0 30px #ffffff;
+    animation: holyBitsCompress 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+@keyframes holyBitsCompress {
+    0% { transform: scale(2.2) rotate(0deg); opacity: 0; }
+    30% { transform: scale(1.3) rotate(180deg); opacity: 1; }
+    65% { transform: scale(0.2) rotate(720deg); opacity: 1; filter: brightness(3); }
+    100% { transform: scale(4); opacity: 0; filter: blur(15px); background: #ffffff; }
+}
+
+/* 🛡️ シールド（案A）：ハニカム構造エネルギー壁
+   魔法使い（左）の目前に、美しいSF調の薄緑色ハニカム格子シールドが力強く明滅展開！ */
+#eff-scr.anim-player-def::after {
+    content: "";
+    position: absolute;
+    top: 25%; left: 24%;
+    width: 60px; height: 150px;
+    background: linear-gradient(45deg, rgba(52,211,153,0.2) 25%, transparent 25%), linear-gradient(-45deg, rgba(52,211,153,0.2) 25%, transparent 25%);
+    background-size: 10px 10px;
+    border: 3px double #10b981;
+    border-radius: 6px;
+    box-shadow: 0 0 20px #34d399, inset 0 0 15px #10b981;
+    z-index: 59;
+    pointer-events: none;
+    animation: spawnHoneycomb 1.1s ease-in-out forwards;
+}
+@keyframes spawnHoneycomb {
+    0% { transform: scaleY(0); opacity: 0; }
+    15%, 85% { transform: scaleY(1); opacity: 0.85; }
+    50% { opacity: 0.3; filter: brightness(1.5); }
+    100% { transform: scaleY(0); opacity: 0; }
+}
+
+/* ⚡ チャージ（案A）：足元からのオーラ湧き上がり
+   チャージボタンを押した瞬間、ウィザードの足元から天へ向かって、激しい魔力の光柱オーラが爆発！ */
+#eff-scr.anim-player-chg::after {
+    content: "";
+    position: absolute;
+    bottom: 5%; left: 5%;
+    width: 140px;
+    height: 250px;
+    background: linear-gradient(0deg, rgba(168,85,247,0.4) 0%, rgba(59,130,246,0.2) 70%, transparent 100%);
+    border-left: 2px dashed rgba(168,85,247,0.5);
+    border-right: 2px dashed rgba(59,130,246,0.5);
+    z-index: 58;
+    pointer-events: none;
+    animation: auraEruption 1.1s ease-out forwards;
+}
+@keyframes auraEruption {
+    0% { transform: scaleX(0.2) translateY(50px); opacity: 0; }
+    20%, 80% { transform: scaleX(1.2) translateY(0); opacity: 1; filter: contrast(1.5); }
+    50% { transform: scaleX(0.9) skewX(5deg); }
+    100% { transform: scaleX(1.8) translateY(-30px); opacity: 0; filter: blur(10px); }
+}
