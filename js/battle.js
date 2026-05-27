@@ -385,7 +385,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         }
         
         // 7階：マイコニド (※あらゆる登録スペルに対応する防衛網を敷設)
-        else if (data.type === 'myconid' || data.type === 'fungus' || data.type === 'mushroom') {
+        else if (data.type === 'myconid' || data.type === 'mush') {
             window.mana = 0.5; 
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の胞子拡散！【${dmg}】ダメージ！(次回魔法威力半減)`;
             if (effScr) { effScr.className = "anim-myconid-spore"; setTimeout(() => { effScr.className = ""; }, 900); }
