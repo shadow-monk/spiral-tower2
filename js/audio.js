@@ -17,24 +17,47 @@ const BGM_BATTLE_PLAYLIST = [
 const BGM_PEACE_GRAND_END = getAssetPath('bgm_clean', 'bgm_peace_fantasy14.mp3');
 
 window.isMuted = false;
-window.currentAudioBgm = null;
 
-// ==========================================
-// 🔊 4. オーディオシステム制御ロジック
-// ==========================================
-function triggerFirstAudio() { 
-    // ユーザーがボタンをクリックしたこの瞬間にBGMを開始することで、ブラウザの音制限を完全回避
-    startBGM("title"); 
-}
-
-// ⚡ 【メモリリーク対策】音楽・効果音プレイヤーの「固定の器」を最上部に開通（オブジェクトの使い回し）
+// ⚡ 【メモリリーク対策】音楽プレイヤーの固定の器を最上部に用意（再利用型）
 if (!window._globalSePlayer)  window._globalSePlayer = new Audio();
 if (!window._globalBgmPlayer) window._globalBgmPlayer = new Audio();
 
+// ==========================================
+// 🔊 4. オーディオ制御コアロジック
+// ==========================================
+
+/**
+ * ミュート（音声ON/OFF）を切り替えるグローバル有線回路
+ * 他のJSファイルを一切いじらずにBGMとSEを完全コントロールします
+ */
+function toggleMute() {
+    isMuted = !isMuted;
+    
+    const btn = document.getElementById("btn-mute");
+    if (btn) {
+        btn.innerText = isMuted ? "🔇 音声: OFF" : "🔊 音声: ON";
+    }
+    
+    if (isMuted) {
+        // 🔒【ミュートバグ根絶コア】
+        // 他のファイルから流れている「すべての音源」をaudio.js側から強制的にねじ伏せ、無音化します。
+        if (window._globalBgmPlayer) {
+            window._globalBgmPlayer.pause();
+        }
+        if (window._globalSePlayer) {
+            window._globalSePlayer.pause();
+        }
+    } else {
+        // ミュート解除時はタイトル画面であればBGMを安全に復帰
+        if (window.curIdx === -1) {
+            startBGM("title");
+        }
+    }
+}
+
 function playSE(url) {
-    if (isMuted) return;
+    if (isMuted) return; // ミュート中は絶対に鳴らさない
     try { 
-        // 毎回新しく作らず、用意された器の中身(src)だけを入れ替えることでゴミデータを出さない
         window._globalSePlayer.src = url; 
         window._globalSePlayer.volume = 0.5; 
         window._globalSePlayer.play().catch(e => console.log("SE blocked/deferred:", e)); 
@@ -43,7 +66,7 @@ function playSE(url) {
 
 function startBGM(mode) {
     stopBGM(); 
-    if (isMuted) return;
+    if (isMuted) return; // ミュート中は絶対に新しい再生をキックしない
     
     let url = "";
     if (mode === "title") url = BGM_BATTLE_PLAYLIST[4]; 
@@ -55,7 +78,6 @@ function startBGM(mode) {
     
     if (url) {
         try { 
-            // BGMプレイヤーの器も破棄せず再利用
             window._globalBgmPlayer.src = url;
             window._globalBgmPlayer.loop = (mode !== "grand_end"); 
             window._globalBgmPlayer.volume = 0.33; 
@@ -63,14 +85,11 @@ function startBGM(mode) {
         } catch(e){}
     }
 }
+
 function stopBGM() { 
     try { 
-        // 固定の器（プレイヤー）を確実に一時停止させ、再生位置をリセットする
         if (window._globalBgmPlayer) {
             window._globalBgmPlayer.pause(); 
-            window._globalBgmPlayer.currentTime = 0; // 曲を最初に戻す安全弁
         }
     } catch(e){}
 }
-
-
