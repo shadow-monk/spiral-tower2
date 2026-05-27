@@ -130,10 +130,10 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-    if (effScr) {
+   if (effScr) {
         effScr.style.backgroundColor = '#0f172a'; // 完全な漆黒背景
-        effScr.style.boxShadow = 'none';           // ❌ 発光シャドウ撤去
-        effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155'; // ボス赤、他グレー固定
+        effScr.style.boxShadow = 'none';           // 発光シャドウ撤去
+        effScr.style.borderColor = '#334155';      // 枠線はいつでも標準グレーに一律固定！
     }
 
     // ログエリアの正常点灯
