@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.99: デバッグ通信線完全結合 ＆ 操作ロックフリーズ沼完全撲滅版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.01: 構文エラー完全修復 ＆ 戦闘テンポ正常化統合版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -94,7 +94,7 @@ window.startBattle = function() {
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
-        eContainer.style.background = "none"; // ❌ GLOWエフェクト撤去
+        eContainer.style.background = "none";
     }
 
     const pGraphic = document.getElementById('p-sprite-graphic');
@@ -130,13 +130,12 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-   if (effScr) {
-        effScr.style.backgroundColor = '#0f172a'; // 完全な漆黒背景
-        effScr.style.boxShadow = 'none';           // 発光シャドウ撤去
-        effScr.style.borderColor = '#334155';      // 枠線はいつでも標準グレーに一律固定！
+    if (effScr) {
+        effScr.style.backgroundColor = '#0f172a';
+        effScr.style.boxShadow = 'none';
+        effScr.style.borderColor = '#334155';
     }
 
-    // ログエリアの正常点灯
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
@@ -177,42 +176,39 @@ window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
     window.isBusy = true;
 
-    // 🔒【連打ガード】
     if (window._activeMagicTimeout) {
         clearTimeout(window._activeMagicTimeout);
     }
 
-    // 🛡️【フリーズ対策：麻痺ルートのロック解除漏れ撲滅】
     if (window.isPlayerStunned) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🚨 麻痺して動けない！";
         
         setTimeout(() => {
-            window.isBusy = false; // 操作ロックを正常解放
+            window.isBusy = false;
             window.enemyTurnAction();
         }, 1000);
         return;
     }
 
-    // ☠️【デスコード予備用窓口】
+    // ☠️【デスコード予備用窓口（修正完了）】
     if (playerMove === 'debug_death') {
         window.eHp = 0;
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
-if (battleLog) battleLog.innerText = "☠ デスコード起動。";
-    // 🛡️ 1200ms（1.2秒）のディレイを挟み、ログを読ませてから次画面へ進める
-    setTimeout(() => {
-        window.checkBattleEnd();
-    }, 1200);
-    return;
- 
+        if (battleLog) battleLog.innerText = "☠ デスコード起動。";
+        
+        // 1200msの猶予を確実に処理
+        setTimeout(() => {
+            window.checkBattleEnd();
+        }, 1200);
+        return;
     }
 
     const data = STAGES[window.curIdx];
     let isCritical = (playerMove === data.weak);
 
-    // 威力計算
     let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
 
     if (window.isEnemyShieldActive) {
@@ -221,7 +217,6 @@ if (battleLog) battleLog.innerText = "☠ デスコード起動。";
 
     window.isEnemyShieldActive = false;
 
-    // 🛡️ シールドコマンド
     if (playerMove === 'def') {
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -232,7 +227,6 @@ if (battleLog) battleLog.innerText = "☠ デスコード起動。";
         return;
     }
     
-    // ⚡ チャージコマンド
     if (playerMove === 'chg') {
         window.mana = 2.5;
         const chargeBadge = document.getElementById('charge-badge');
@@ -254,7 +248,7 @@ if (battleLog) battleLog.innerText = "☠ デスコード起動。";
         spellLabel = "ホーリー";
     }
 
-window._activeMagicTimeout = setTimeout(() => {
+    window._activeMagicTimeout = setTimeout(() => {
         playSE(currentSE);
         
         window.eHp = Math.max(0, window.eHp - dmg);
@@ -271,25 +265,23 @@ window._activeMagicTimeout = setTimeout(() => {
         if (chargeBadge) chargeBadge.style.display = "none";
 
         window._activeMagicTimeout = null;
-        // 🛡️ 800ms から 1400ms（1.4秒）に延長：プレイヤーがダメージログを読む時間を確保
         setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 1400);
-    }, 600); // 🛡️ 400ms から 600ms（0.6秒）に延長：魔法発動までのタメ（余韻）を少し追加
-    
+    }, 600);
 };
 
 // ==========================================
 // 👹 5. エネミーターン行動AI＆カウンター処理
 // ==========================================
 window.enemyTurnAction = function(isPlayerDefending = false) {
-    // ✨【①デバッグデス完全正常化の心臓部】
-    // main.js側のデスボタンが叩いてくる「die」という文字をここで100%完璧にインターセプト！
     if (isPlayerDefending === 'die') {
         window.eHp = 0;
-        window.isBusy = false; // 操作ロックを安全に即時全面解除
+        window.isBusy = false;
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "☠ デスコード起動。";
-        window.checkBattleEnd(); // 即座に勝利判定をキックしてリザルト画面へ進行を突き抜かせる！
+        setTimeout(() => {
+            window.checkBattleEnd();
+        }, 1200);
         return;
     }
 
@@ -353,7 +345,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
         
-        window.postEnemyTurnCleanup(); // 🛡️【②フリーズ対策】通常突進後のロック強制解除
+        window.postEnemyTurnCleanup();
     }
 };
 
@@ -381,18 +373,20 @@ window.postEnemyTurnCleanup = function() {
 // 💥 6. 勝敗・終了判定およびリザルト遷移
 // ==========================================
 window.checkBattleEnd = function() {
-if (window.eHp <= 0) {
+    if (window.pHp <= 0 || window.eHp <= 0) {
+        stopBGM();
+        if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
+
+        if (window.eHp <= 0) {
             playSE(SOUND_FREEZE_DEAD);
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) {
                 eContainer.style.opacity = "0";
                 eContainer.style.transform = "scale(0.5)";
             }
-            // 🛡️ 400msから1400ms（1.4秒）へ引き延ばし、撃破の余韻を確保
             setTimeout(() => { window.transitionToResult(); }, 1400);
         } else {
-
-    
+            // プレイヤー敗北時も確実に対応
             window.transitionToResult();
         }
         return true;
@@ -469,9 +463,9 @@ window.resetGame = function() {
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
 
     stopBGM();
-    stopSlimeAnimation();
+    if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.99]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 7.01]
 // ==========================================
