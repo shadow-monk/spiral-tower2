@@ -1,1 +1,127 @@
+/* ==========================================================================
+   👹 10大魔物・画像不要 特殊攻撃CSS演出エフェクト大要塞 (Ver 1.00)
+   ========================================================================== */
 
+/* 🟢 1階：ヘドロスライム 【緑のぶよぶよ溶解液】
+   敵コンテナの背景から蛍光グリーンの酸の粒子をブシャッと噴射させます */
+#e-sprite-container.anim-slime-acid {
+    animation: slimeAcidAtk 0.8s ease-in-out forwards;
+}
+@keyframes slimeAcidAtk {
+    0% { transform: scale(1); background: radial-gradient(circle, rgba(34,197,94,0.8) 10%, transparent 60%); }
+    40% { transform: scale(1.2) translateX(-40px); background: radial-gradient(circle, #22c55e 30%, rgba(34,197,94,0.5) 50%, transparent 70%); }
+    100% { transform: scale(1) translateX(0); background: none; }
+}
+
+/* 🍇 2階：ブラッドスパイダー 【紫の毒霧＆プレイヤー画面麻痺】
+   敵が怪しく震え、喰らったプレイヤーの箱（左側）をガタガタと麻痺させます */
+#e-sprite-container.anim-spider-poison {
+    animation: spiderPoisonAtk 0.8s ease-in-out forwards;
+}
+@keyframes spiderPoisonAtk {
+    0% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+    30% { transform: scale(1.1) rotate(5deg); filter: drop-shadow(0 0 25px #a855f7); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0 transparent); }
+}
+/* プレイヤー側のマヒ連動震え（バトルJSがp-containerを揺らす副次効果用） */
+#p-sprite-container.anim-spider-shake {
+    animation: playerStunShake 0.6s ease-in-out;
+}
+@keyframes playerStunShake {
+    0%, 100% { transform: translateX(0); filter: hue-rotate(90deg); }
+    20%, 60% { transform: translateX(-8px) translateY(-4px); }
+    40%, 80% { transform: translateX(8px) translateY(4px); }
+}
+
+/* 🛡️ 3階：スケルトンナイト 【白の骨壁シールド】
+   敵ドット絵の目の前に、半透明の白い格子状の防壁を浮き上がらせます */
+#e-sprite-container.anim-skelton-shield {
+    animation: skeltonShield 1.0s ease-in-out forwards;
+}
+@keyframes skeltonShield {
+    0% { filter: brightness(1); box-shadow: none; }
+    20%, 80% { filter: brightness(1.5); background: linear-gradient(45deg, rgba(255,255,255,0.4) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.4) 25%, transparent 25%); background-size: 20px 20px; border: 4px dashed #ffffff; border-radius: 10px; }
+    100% { filter: brightness(1); background: none; border: none; }
+}
+
+/* 🌪️ 4階：ハーピィ 【暴風ストームウイング】
+   超高速の往復移動と、残像のような白いブレで凄まじい風圧を表現します */
+#e-sprite-container.anim-harpy-storm {
+    animation: harpyStorm 0.6s cubic-bezier(.36,.07,.19,.97) forwards;
+}
+@keyframes harpyStorm {
+    0% { transform: translateX(0); filter: blur(0); }
+    25% { transform: translateX(-60px) scaleY(0.8); filter: blur(4px) brightness(2); }
+    50% { transform: translateX(40px) scaleY(1.2); filter: blur(2px); }
+    100% { transform: translateX(0); filter: blur(0); }
+}
+
+/* 🧱 5階：ロックゴーレム 【天地崩壊ヘヴィシェイク】
+   超重量級の質量による、上下のみの強烈な地響き演出です */
+#e-sprite-container.anim-golem-earthquake {
+    animation: golemEarthquake 0.8s ease-in-out forwards;
+}
+@keyframes golemEarthquake {
+    0% { transform: translateY(0); }
+    10%, 30%, 50%, 70% { transform: translateY(-25px) scaleY(0.9); filter: contrast(1.5); }
+    20%, 40%, 60%, 80% { transform: translateY(25px) scaleY(1.1); }
+    100% { transform: translateY(0); }
+}
+
+/* ⚡ 6階：ガーゴイル 【闇のズーム＆魔力集約オーラ】
+   敵ドット絵が邪悪な影（黒）に反転しながら、禍々しくチャージ発光します */
+#e-sprite-container.anim-gargoil-charge {
+    animation: gargoilCharge 1.0s ease-in-out forwards;
+}
+@keyframes gargoilCharge {
+    0% { transform: scale(1); filter: brightness(1); }
+    40% { transform: scale(1.3); filter: brightness(0) drop-shadow(0 0 30px #3b82f6); }
+    80% { transform: scale(1.2); filter: brightness(0) drop-shadow(0 0 40px #ef4444); }
+    100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* 🍄 7階：マイコニド 【黄色い汚染胞子拡散】
+   敵が膨張し、胞子の毒霧がじわっと広がって視界を奪う不気味な演出です */
+#e-sprite-container.anim-myconid-spore {
+    animation: myconidSpore 0.9s ease-out forwards;
+}
+@keyframes myconidSpore {
+    0% { transform: scale(1); background: none; }
+    30% { transform: scale(1.15); background: radial-gradient(circle, rgba(eab308,0.7) 20%, rgba(234,179,8,0.3) 50%, transparent 70%); filter: sepia(0.8) saturate(3); }
+    100% { transform: scale(1); background: none; filter: none; }
+}
+
+/* 👻 8階：ファントム 【呪いの視線・セピアゆらぎ】
+   プレイヤーコンテナに直接作用。視線が突き刺さり、呪いで歪む恐怖の演出です */
+#p-sprite-container.anim-phantom-curse {
+    animation: phantomCurse 1.0s ease-in-out forwards;
+}
+@keyframes phantomCurse {
+    0% { filter: sepia(0) contrast(1); }
+    30%, 70% { filter: sepia(1) contrast(2) hue-rotate(-50deg) blur(2px); transform: skewX(15deg) scale(0.9); }
+    50% { transform: skewX(-15deg) scale(1.1); }
+    100% { filter: sepia(0) contrast(1) blur(0); transform: skewX(0) scale(1); }
+}
+
+/* 👁️ 9階：エビルアイ 【魔力封印・中央収束邪眼】
+   プレイヤー側を強制ロック。四隅から光が引き算され、魔力が暗転します */
+#p-sprite-container.anim-evileye-mute {
+    animation: evileyeMute 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+@keyframes evileyeMute {
+    0% { filter: brightness(1) grayscale(0); }
+    40%, 80% { filter: brightness(0.2) grayscale(1) invert(1); transform: scale(0.85); box-shadow: inset 0 0 50px #000; }
+    100% { filter: brightness(1) grayscale(0); transform: scale(1); }
+}
+
+/* 🐉 10階：カリスドラゴン 【カタストロフィ・ブレス・白黒反転】
+   大ボスの威厳。画面の色彩を1.2秒間「完全白黒反転」させ、世界の崩壊を表現します */
+#e-sprite-container.anim-dragon-breath {
+    animation: dragonBreath 1.2s ease-in-out forwards;
+}
+@keyframes dragonBreath {
+    0% { transform: scale(1); filter: invert(0); }
+    15% { transform: scale(0.9) translateX(30px); }
+    40%, 80% { transform: scale(1.3) translateX(-60px); filter: invert(1) contrast(3) drop-shadow(0 0 50px #ef4444); box-shadow: 0 0 100px rgba(239,68,68,0.5); }
+    100% { transform: scale(1) translateX(0); filter: invert(0); box-shadow: none; }
+}
