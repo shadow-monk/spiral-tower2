@@ -40,8 +40,8 @@ function startCustomAnimation(type) {
         
         currentFrameIdx = (currentFrameIdx + 1) % dynamicArr.length;
         
-        // 🛠️ キャッシュ対策：画像URLの末尾に常にバージョンスタンプを付与し、ブラウザの読み込みサボりを強制打破
-        graphicEl.src = `${dynamicArr[currentFrameIdx]}?v=6.55`;
+        // 修正後（これだけで通信がゼロになり、ローカルメモリ処理に変わるため爆速になります）
+graphicEl.src = dynamicArr[currentFrameIdx];
         
         // モンスターの重量感・世界観に合わせた最適なスピード（FPS）設定
         let fps = (cType === 'slime') ? 130 : (cType === 'phantom' ? 160 : (cType === 'dragon' ? 120 : 140));
