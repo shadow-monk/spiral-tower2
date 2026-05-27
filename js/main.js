@@ -57,16 +57,15 @@ function checkDevPassword() {
 }
 
 // ==========================================
-// 📦 2. 起動時一括通信ラグ撲滅システム（プリロード）
+// 📦 2. 起動時一括通信ラグ撲滅システム（GitHub Pages対応版プリロード）
 // ==========================================
 (function() {
     /**
      * ゲーム起動時に、裏メモリ上でプレイヤーと全魔物画像を強制先行ロードさせる関数
      */
     function preloadAllEnemyAssets() {
-        console.log("main.js: 裏画面での全アセット一括ロード（プリロード）を開始します...");
+        console.log("main.js: GitHub Pages上でのアセット一括プリロードを開始します...");
         
-        // enemies.jsのマスターマップが存在するかチェック
         if (typeof MASTER_ANIM_MAP === 'undefined') {
             console.warn("main.js: MASTER_ANIM_MAP がまだ読み込まれていないため、0.1秒後に再試行します。");
             setTimeout(preloadAllEnemyAssets, 100);
@@ -76,15 +75,22 @@ function checkDevPassword() {
         let loadedCount = 0;
         let totalCount = 0;
         
-        // 🧙‍♂️ 【プレイヤー画像】を最優先ダウンロードリストに登録
-        const playerUrl = 'assets/enemies/player/player_wizard.png';
+        // 🧙‍♂️ GitHub Pagesのルート問題を突破する絶対的相対パス
+        const playerUrl = 'spiral-tower2/assets/enemies/player/player_wizard.png';
         const urlsToLoad = [playerUrl];
 
         // 魔物たちの全URL（105枚）をリストにすべて合流させる
         for (let key in MASTER_ANIM_MAP) {
             if (Array.isArray(MASTER_ANIM_MAP[key])) {
                 MASTER_ANIM_MAP[key].forEach(url => {
-                    urlsToLoad.push(url);
+                    // もしURLにリポジトリ名が含まれていない裸の状態なら、先頭に付与して補正
+                    let correctedUrl = url;
+                    if (!url.startsWith('spiral-tower2/') && !url.startsWith('http')) {
+                        // 先頭の ./ や / を綺麗に掃除してリポジトリ名を結合
+                        let cleanUrl = url.replace(/^\.\//, '').replace(/^\//, '');
+                        correctedUrl = 'spiral-tower2/' + cleanUrl;
+                    }
+                    urlsToLoad.push(correctedUrl);
                 });
             }
         }
@@ -98,7 +104,7 @@ function checkDevPassword() {
             img.onload = () => {
                 loadedCount++;
                 if (loadedCount === totalCount) {
-                    console.log(`%cmain.js: 成功！プレイヤーおよび魔物画像（計 ${totalCount} 枚）がローカルメモリに完全ホールドされました。全画面の通信遅延はゼロです。`, "color: #10b981; font-weight: bold;");
+                    console.log(`%cmain.js: 成功！GitHub Pages上の全 ${totalCount} 枚（プレイヤー＆魔物）が完全ホールドされました！`, "color: #10b981; font-weight: bold;");
                 }
             };
             
@@ -106,16 +112,11 @@ function checkDevPassword() {
                 console.error(`main.js: 画像の仕入れに失敗しました: ${url}`);
             };
 
-            // パス解決用の防衛網（getAssetPath）を噛ませてロード
-            if (typeof window.getAssetPath === 'function') {
-                img.src = window.getAssetPath(url);
-            } else {
-                img.src = url;
-            }
+            // ドメイン直下にすっ飛ぶのを防ぐため、GitHub Pages専用の絶対相対パスで確定ロード
+            img.src = window.location.origin + '/' + url;
         });
     }
 
-    // ページ（HTML）の読み込みが完了した瞬間に自動で裏ロードを走らせる
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', preloadAllEnemyAssets);
     } else {
