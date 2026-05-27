@@ -136,8 +136,6 @@ window.startBattle = function() {
     }
 
     const battleLog = document.getElementById('battle-log');
-
-    const battleLog = document.getElementById('battle-log');
     if (battleLog) {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
