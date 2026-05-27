@@ -123,24 +123,36 @@ window.startBattle = function() {
     
     updateHpUI();
 
-　　if (typeof checkDevPassword === 'function') {
+    if (typeof checkDevPassword === 'function') {
         checkDevPassword();
     }
 
-    // 🎨【Glow新演出の復旧・統合】
-    // 内側の曇り（inset）を排除し、外側の枠線だけがシュッと綺麗にネオン発光する仕様へスマート化
-    if (effScr && data.glow) {
-        effScr.style.backgroundColor = '#0f172a'; // 背景の真っ黒を維持してクッキリさせる
-        effScr.style.boxShadow = `0 0 12px ${data.glow}`; // 枠線の外側だけを上品に発光
-        effScr.style.borderColor = data.floor === 10 ? '#be123c' : data.glow; // 枠線そのものの色も敵のオーラ色に同期！
+    // 🎨【Glow演出：理想のキャラクター背面オーラ仕様】
+    // 画面全体を曇らせる原因だった枠へのエフェクト（insetなど）を完全に引き算。
+    // 代わりに、敵キャラクターを包むコンテナ（eContainer）の「背後」だけに、
+    // data.glow から抽出した属性カラーの美しい後光オーラを極薄でまとわせる新回路。
+    if (effScr) {
+        effScr.style.backgroundColor = '#0f172a'; // 画面全体はクリアでクッキリした漆黒
+        effScr.style.boxShadow = 'none';           // 画面全体の曇りを100%永久シャットアウト
+        effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155'; // 10階ボスのみ赤、他は通常枠線
     }
 
+    const eContainer = document.getElementById('e-sprite-container');
+    if (eContainer && data.glow) {
+        // 敵のコンテナの背景に円形（radial-gradient）の極薄発光オーラを流し込み、
+        // 画像のように敵キャラクターの後ろ側だけがぼうっと美しく浮き上がる効果を完全再現！
+        eContainer.style.background = `radial-gradient(circle, ${data.glow} 0%, rgba(15,23,42,0) 70%)`;
+        eContainer.style.borderRadius = "50%"; // オーラを綺麗な真ん丸に成形
+    }
+
+    // ログエリアの正常点灯（二重宣言を完全に防いだ安全回路）
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
 
     startBGM("battle");
+    
     
 };
 
