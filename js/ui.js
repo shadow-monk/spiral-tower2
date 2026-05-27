@@ -1,10 +1,10 @@
 // ==========================================
 // 📺 1. 画面表示切り替え・UI制御ロジック
 // ==========================================
-console.log("%c🎨 [UI SYSTEMS] Ver 7.50: カバンの画面覆いを引き算し、メイン下のインラインスロットトグル化に完全成功しました。", "color: #00ffff; font-weight: bold;");
+console.log("%c🎨 [UI SYSTEMS] Ver 7.55: 最新インデックスとID・トグル変形配線が100%完全同調した確定版全コードです。", "color: #00ffff; font-weight: bold;");
 
 /**
- * 各画面（div）を表示制御する関数
+ * スタート・導入・バトル・リザルトの各画面（div）を表示制御する関数
  */
 function showScreen(screenId) {
     ['scr-start', 'scr-intro', 'scr-battle', 'scr-result'].forEach(id => {
