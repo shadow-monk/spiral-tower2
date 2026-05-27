@@ -61,10 +61,10 @@ function checkDevPassword() {
 // ==========================================
 (function() {
     /**
-     * ゲーム起動時に、裏メモリ上ですべての魔物画像を強制先行ロードさせる関数
+     * ゲーム起動時に、裏メモリ上でプレイヤーと全魔物画像を強制先行ロードさせる関数
      */
     function preloadAllEnemyAssets() {
-        console.log("main.js: 裏画面での全エネミー画像の一括ロード（プリロード）を開始します...");
+        console.log("main.js: 裏画面での全アセット一括ロード（プリロード）を開始します...");
         
         // enemies.jsのマスターマップが存在するかチェック
         if (typeof MASTER_ANIM_MAP === 'undefined') {
@@ -75,36 +75,44 @@ function checkDevPassword() {
 
         let loadedCount = 0;
         let totalCount = 0;
+        
+        // 🧙‍♂️ 【プレイヤー画像】を最優先ダウンロードリストに登録
+        const playerUrl = 'assets/enemies/player/player_wizard.png';
+        const urlsToLoad = [playerUrl];
 
-        // 全ての配列を走査して総枚数を割り出す
+        // 魔物たちの全URL（105枚）をリストにすべて合流させる
         for (let key in MASTER_ANIM_MAP) {
             if (Array.isArray(MASTER_ANIM_MAP[key])) {
                 MASTER_ANIM_MAP[key].forEach(url => {
-                    totalCount++;
-                    
-                    // 画面には絶対に出さない、ブラウザの裏メモリ専用のダミー画像を生成
-                    const img = new Image();
-                    
-                    img.onload = () => {
-                        loadedCount++;
-                        if (loadedCount === totalCount) {
-                            console.log(`%cmain.js: 成功！全 ${totalCount} 枚の魔物画像がローカルメモリに完全ホールドされました。通信遅延はゼロです。`, "color: #10b981; font-weight: bold;");
-                        }
-                    };
-                    
-                    img.onerror = () => {
-                        console.error(`main.js: 画像の仕入れに失敗しました: ${url}`);
-                    };
-
-                    // パスに getAssetPath の防衛網があるか判定し、安全にURLを流し込む
-                    if (typeof window.getAssetPath === 'function') {
-                        img.src = window.getAssetPath(url);
-                    } else {
-                        img.src = url;
-                    }
+                    urlsToLoad.push(url);
                 });
             }
         }
+
+        totalCount = urlsToLoad.length;
+
+        // 集約した全106枚のリストを一気に裏メモリに流し込む
+        urlsToLoad.forEach(url => {
+            const img = new Image();
+            
+            img.onload = () => {
+                loadedCount++;
+                if (loadedCount === totalCount) {
+                    console.log(`%cmain.js: 成功！プレイヤーおよび魔物画像（計 ${totalCount} 枚）がローカルメモリに完全ホールドされました。全画面の通信遅延はゼロです。`, "color: #10b981; font-weight: bold;");
+                }
+            };
+            
+            img.onerror = () => {
+                console.error(`main.js: 画像の仕入れに失敗しました: ${url}`);
+            };
+
+            // パス解決用の防衛網（getAssetPath）を噛ませてロード
+            if (typeof window.getAssetPath === 'function') {
+                img.src = window.getAssetPath(url);
+            } else {
+                img.src = url;
+            }
+        });
     }
 
     // ページ（HTML）の読み込みが完了した瞬間に自動で裏ロードを走らせる
