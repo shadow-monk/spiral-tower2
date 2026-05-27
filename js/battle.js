@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.08: 最新INDEX構造適合・外枠演出スクリーン(eff-scr)合図一本化版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.09: 10大魔物・最新技名テキスト ＆ 蜘蛛の巣演出適合修正版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -137,11 +137,7 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-    // ✨ インラインスタイルの不純物をリセットし、クラス名も真っさらに
     if (effScr) {
-        effScr.style.backgroundColor = '';
-        effScr.style.boxShadow = '';
-        effScr.style.borderColor = '';
         effScr.className = ""; 
     }
 
@@ -326,7 +322,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         dmg = Math.floor(dmg * 0.5);
     }
 
-    // 状態異常フラグは敵が行動を起こした瞬間にクリーンにリセット
+    // 状態異常フラグは敵が行動を起こした瞬間に自動的に自然解除
     window.isPlayerMuted = false;
     window.isItemBlocked = false;
     window.isPlayerCorroded = false;
@@ -337,7 +333,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         const effScr = document.getElementById('eff-scr');
 
         // ==========================================
-        // 🔮 【1〜10階層】 外枠大スクリーン(eff-scr) 合図送信大要塞
+        // 🔮 【1〜10階層】 最新テキスト ＆ 演出合図ドッキング大要塞
         // ==========================================
 
         // 1階：ヘドロスライム
@@ -355,7 +351,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         }
         
         // 3階：スケルトンナイト
-        else if (data.type === 'skelton') {
+        else if (data.type === 'skelton' || data.type === 'skeleton') {
             window.isEnemyShieldActive = true;
             if (battleLog) battleLog.innerText = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
             if (effScr) { effScr.className = "anim-skelton-shield"; setTimeout(() => { effScr.className = ""; }, 1000); }
@@ -366,7 +362,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         // 4階：ハーピィ
         else if (data.type === 'harpy') {
             window.isHarpySpeedActive = true;
-            if (battleLog) battleLog.innerText = `🚨 ${data.name}のストームウイング！【${dmg}】ダメージ！(敵次ターン爆速化)`;
+            if (battleLog) battleLog.innerText = `🚨 ${data.name}の超音波を放った！【${dmg}】ダメージ！(敵次ターン爆速化)`;
             if (effScr) { effScr.className = "anim-harpy-storm"; setTimeout(() => { effScr.className = ""; }, 600); }
         }
         
@@ -380,22 +376,22 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         }
         
         // 6階：ガーゴイル
-        else if (data.type === 'gargoil') {
+        else if (data.type === 'gargoil' || data.type === 'gargoyle') {
             window.enemyMana = 2.0;
-            if (battleLog) battleLog.innerText = `⚡ ${data.name}は魔力を集約！次回の攻撃力2倍！`;
+            if (battleLog) battleLog.innerText = `⚡ ${data.name}は魔力シールドを展開！次回の攻撃力2倍！`;
             if (effScr) { effScr.className = "anim-gargoil-charge"; setTimeout(() => { effScr.className = ""; }, 1000); }
             window.postEnemyTurnCleanup();
             return;
         }
         
-        // 7階：マイコニド
-        else if (data.type === 'myconid') {
+        // 7階：マイコニド (※あらゆる登録スペルに対応する防衛網を敷設)
+        else if (data.type === 'myconid' || data.type === 'fungus' || data.type === 'mushroom') {
             window.mana = 0.5; 
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の胞子拡散！【${dmg}】ダメージ！(次回魔法威力半減)`;
             if (effScr) { effScr.className = "anim-myconid-spore"; setTimeout(() => { effScr.className = ""; }, 900); }
         }
         
-        // 8階：ファントム
+        // 8階：ファントム (※ghost/phantomの両面を完全キャッチ)
         else if (data.type === 'ghost' || data.type === 'phantom') {
             window.isItemBlocked = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の呪いの視線！【${dmg}】ダメージ！(次回アイテム使用不可)`;
@@ -403,7 +399,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         }
         
         // 9階：エビルアイ
-        else if (data.type === 'eyes') {
+        else if (data.type === 'eyes' || data.type === 'evileye') {
             window.isPlayerMuted = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の魔力封印の邪眼！【${dmg}】ダメージ！(次回魔法不可)`;
             if (effScr) { effScr.className = "anim-evileye-mute"; setTimeout(() => { effScr.className = ""; }, 800); }
@@ -425,7 +421,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         createDmgPop(dmg, true);
         window.postEnemyTurnCleanup();
     } else {
-        // 通常突進
+        // 通常突進攻撃
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -562,5 +558,5 @@ window.resetGame = function() {
     if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
 };
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 7.08]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 7.09]
 // ==========================================
