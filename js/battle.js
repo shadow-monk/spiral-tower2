@@ -101,7 +101,7 @@ window.startBattle = function() {
     // 🛡️ 【パスローカル化】外部GitHubへの通信依存を排除し、安全なローカル相対パスへ変更
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pGraphic) {
-        let pLocalPath = 'assets/enemies/player/player_wizard.png';
+        let pLocalPath = './assets/enemies/player/player_wizard.png';
         if (typeof window.getAssetPath === 'function') {
             pGraphic.src = window.getAssetPath(pLocalPath);
         } else {
