@@ -1,16 +1,18 @@
+@charset "UTF-8";
+
 /* ==========================================================================
-   👹 10大魔物・画像不要 【クリックバリア完全破砕版】演出大要塞 (Ver 1.25)
+   👹 1. 10大魔物・画像不要 【クリックバリア完全破砕版】演出大要塞 (Ver 1.30修正版)
    ========================================================================== */
 
 /* ─── 🛡️ 全体共通：戦闘画面（eff-scr）の背景白化＆クリックガード破壊 ─── */
 #eff-scr {
     background-color: #0f172a !important; 
     position: relative;
-    pointer-events: none; /* 基本は下のコマンドボタンへ100%クリックを貫通させる */
+    pointer-events: none; /* 下のコマンドボタンへ100%クリックを貫通させる */
 }
 
-/* 🟡 1階：ヘドロスライム 常時マスタードイエロー固定化 */
-#eff-scr.anim-slime-yellow #e-sprite-container {
+/* 🟡 1階：ヘドロスライム 常時マスタードイエロー固定化（配線完全正常化！） */
+.anim-slime-yellow #e-sprite-container {
     filter: hue-rotate(65deg) saturate(2.5) brightness(1.2) !important;
 }
 #eff-scr.anim-slime-yellow.shoot-acid::after {
@@ -122,7 +124,7 @@
     100% { opacity: 0; transform: scale(1) rotate(0deg); }
 }
 
-/* 👻 8階：ファントム 【エナジードレイン・血の逆五芒星の刻印】 */
+/* 👻 8階：ファントム 【エナジードレイン】 */
 #eff-scr.anim-phantom-curse::after {
     content: "⛧\A⸸\A☠"; white-space: pre; line-height: 0.9; font-size: 32px; color: #f43f5e !important; 
     text-align: center; position: absolute; top: 32%; left: 16%; width: 100px; height: 100px;
@@ -168,21 +170,14 @@
 }
 
 /* ==========================================================================
-   🧙‍♂️ 主人公（ウィザード）選定5大魔法・超絶CSS演出大要塞 (Ver 1.00)
+   🧙‍♂️ 2. 主人公（ウィザード）選定魔法・超絶CSS演出大要塞
    ========================================================================== */
 
-/* 🔥 ファイア（案A）：放物線火炎弾バースト
-   魔法使い（左）から敵（右）へ、激しく燃える火炎球が美しい放物線を描いて着弾爆発！ */
+/* 🔥 ファイア：放物線火炎弾バースト */
 #eff-scr.anim-player-fire::after {
-    content: "";
-    position: absolute;
-    width: 35px;
-    height: 35px;
+    content: ""; position: absolute; width: 35px; height: 35px;
     background: radial-gradient(circle, #f97316 20%, #ef4444 60%, transparent 80%);
-    border-radius: 50%;
-    filter: drop-shadow(0 0 15px #f97316);
-    z-index: 60;
-    pointer-events: none;
+    border-radius: 50%; filter: drop-shadow(0 0 15px #f97316); z-index: 60; pointer-events: none;
     animation: launchFireBall 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 @keyframes launchFireBall {
@@ -191,26 +186,16 @@
     75% { top: 45%; left: 75%; transform: scale(1); opacity: 1; filter: blur(0); }
     100% { top: 48%; left: 80%; transform: scale(3.5); opacity: 0; filter: blur(12px); background: radial-gradient(circle, #facc15 10%, transparent 60%); }
 }
-/* 着火フラッシュ（敵が一瞬真っ赤に染まる） */
-#eff-scr.anim-player-fire #e-sprite-container {
-    animation: enemyBurnFlash 0.6s ease-in-out;
-}
+#eff-scr.anim-player-fire #e-sprite-container { animation: enemyBurnFlash 0.6s ease-in-out; }
 @keyframes enemyBurnFlash {
     0%, 60% { filter: brightness(1) sepia(0); }
     75% { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: scale(1.1); }
     100% { filter: brightness(1) sepia(0); }
 }
 
-/* ❄️ アイス（案A）：頭上からの氷結結晶落とし
-   敵の脳天上に、シアンブルーの巨大な幾何学氷結結晶が出現し、垂直落下して砕け凍らせる！ */
+/* ❄️ アイス：頭上からの氷結結晶落とし */
 #eff-scr.anim-player-ice::after {
-    content: "❄️";
-    font-size: 55px;
-    position: absolute;
-    z-index: 60;
-    pointer-events: none;
-    opacity: 0;
-    filter: drop-shadow(0 0 15px #38bdf8);
+    content: "❄️"; font-size: 55px; position: absolute; z-index: 60; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 15px #38bdf8);
     animation: dropIceCrystal 0.6s ease-in forwards;
 }
 @keyframes dropIceCrystal {
@@ -219,33 +204,18 @@
     70% { top: 40%; left: 74%; transform: scale(1) rotate(360deg); opacity: 1; filter: blur(0); }
     100% { top: 45%; left: 74%; transform: scale(2.5); opacity: 0; filter: blur(10px); }
 }
-/* 敵の氷結静止（激突した瞬間に真っ白にフリーズ） */
-#eff-scr.anim-player-ice #e-sprite-container {
-    animation: enemyFreezeFreeze 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+#eff-scr.anim-player-ice #e-sprite-container { animation: enemyFreezeFreeze 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 @keyframes enemyFreezeFreeze {
     0%, 50% { filter: brightness(1) saturate(1); }
     65% { filter: brightness(2.5) saturate(0) hue-rotate(180deg); transform: scale(0.95); }
     100% { filter: brightness(1) saturate(1); }
 }
 
-/* ✨ ホーリー（案C）：多重聖結晶ビット
-   敵を包囲するように4つの黄金の聖結晶（ひし形ビット）が湧き、猛烈に超高速圧縮大爆発！ */
+/* ✨ ホーリー：多重聖結晶ビット */
 #eff-scr.anim-player-holy::after {
-    content: "❖ \A ❖       ❖ \A ❖";
-    white-space: pre;
-    line-height: 1.1;
-    font-size: 32px;
-    color: #facc15 !important;
-    text-align: center;
-    position: absolute;
-    top: 33%; left: 66%;
-    width: 130px; height: 130px;
-    z-index: 60;
-    pointer-events: none;
-    opacity: 0;
-    text-shadow: 0 0 15px #eab308, 0 0 30px #ffffff;
-    animation: holyBitsCompress 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+    content: "❖ \A ❖       ❖ \A ❖"; white-space: pre; line-height: 1.1; font-size: 32px; color: #facc15 !important;
+    text-align: center; position: absolute; top: 33%; left: 66%; width: 130px; height: 130px; z-index: 60; pointer-events: none; opacity: 0;
+    text-shadow: 0 0 15px #eab308, 0 0 30px #ffffff; animation: holyBitsCompress 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
 }
 @keyframes holyBitsCompress {
     0% { transform: scale(2.2) rotate(0deg); opacity: 0; }
@@ -254,21 +224,12 @@
     100% { transform: scale(4); opacity: 0; filter: blur(15px); background: #ffffff; }
 }
 
-/* 🛡️ シールド（案A）：ハニカム構造エネルギー壁
-   魔法使い（左）の目前に、美しいSF調の薄緑色ハニカム格子シールドが力強く明滅展開！ */
+/* 🛡️ シールド：ハニカム構造エネルギー壁 */
 #eff-scr.anim-player-def::after {
-    content: "";
-    position: absolute;
-    top: 25%; left: 24%;
-    width: 60px; height: 150px;
+    content: ""; position: absolute; top: 25%; left: 24%; width: 60px; height: 150px;
     background: linear-gradient(45deg, rgba(52,211,153,0.2) 25%, transparent 25%), linear-gradient(-45deg, rgba(52,211,153,0.2) 25%, transparent 25%);
-    background-size: 10px 10px;
-    border: 3px double #10b981;
-    border-radius: 6px;
-    box-shadow: 0 0 20px #34d399, inset 0 0 15px #10b981;
-    z-index: 59;
-    pointer-events: none;
-    animation: spawnHoneycomb 1.1s ease-in-out forwards;
+    background-size: 10px 10px; border: 3px double #10b981; border-radius: 6px; box-shadow: 0 0 20px #34d399, inset 0 0 15px #10b981;
+    z-index: 59; pointer-events: none; animation: spawnHoneycomb 1.1s ease-in-out forwards;
 }
 @keyframes spawnHoneycomb {
     0% { transform: scaleY(0); opacity: 0; }
@@ -277,19 +238,11 @@
     100% { transform: scaleY(0); opacity: 0; }
 }
 
-/* ⚡ チャージ（案A）：足元からのオーラ湧き上がり
-   チャージボタンを押した瞬間、ウィザードの足元から天へ向かって、激しい魔力の光柱オーラが爆発！ */
+/* ⚡ チャージ：足元からのオーラ湧き上がり */
 #eff-scr.anim-player-chg::after {
-    content: "";
-    position: absolute;
-    bottom: 5%; left: 5%;
-    width: 140px;
-    height: 250px;
+    content: ""; position: absolute; bottom: 5%; left: 5%; width: 140px; height: 250px;
     background: linear-gradient(0deg, rgba(168,85,247,0.4) 0%, rgba(59,130,246,0.2) 70%, transparent 100%);
-    border-left: 2px dashed rgba(168,85,247,0.5);
-    border-right: 2px dashed rgba(59,130,246,0.5);
-    z-index: 58;
-    pointer-events: none;
+    border-left: 2px dashed rgba(168,85,247,0.5); border-right: 2px dashed rgba(59,130,246,0.5); z-index: 58; pointer-events: none;
     animation: auraEruption 1.1s ease-out forwards;
 }
 @keyframes auraEruption {
@@ -298,145 +251,80 @@
     50% { transform: scaleX(0.9) skewX(5deg); }
     100% { transform: scaleX(1.8) translateY(-30px); opacity: 0; filter: blur(10px); }
 }
+
 /* ==========================================================================
-   🎬 🔄 【V8.00適合】クリティカル・カットイン ＆ 画面全体ストロボ激震大結界
+   🎬 3. 【V8.00適合】クリティカル・カットイン ＆ 画面全体ストロボ激震大結界
    ========================================================================== */
 
-/* ⚡ 弱点直撃！格闘ゲーム風スライド・カットインバー 
-   初期状態は目隠し(display: none)され、弱点を突いた瞬間にJSから点灯。斜め20度傾いて高速スライド！ */
+/* ⚡ 新・クリティカルヒット！！特攻スライドバー（🛡️キャラを隠さない上部安全圏へ退避！） */
 #cutin-bar {
     position: absolute;
     width: 100%;
-    height: 65px;
-    background: linear-gradient(90deg, transparent, #eab308 15%, #ef4444 50%, #eab308 85%, transparent);
-    top: 125px;
+    height: 52px;
+    background: linear-gradient(90deg, transparent, #b45309 15%, #ef4444 50%, #b45309 85%, transparent);
+    top: 15px; /* 👈 ド真ん中の125pxを引き算し、HPバーすぐ下の15pxへ最速移動！ */
     left: 0;
-    z-index: 90;
-    display: none; /* JS連動用初期化 */
+    z-index: 999;
+    display: none; /* JSからの点灯合図待機 */
     align-items: center;
     justify-content: center;
-    border-top: 3px solid #ffffff;
-    border-bottom: 3px solid #ffffff;
+    border-top: 2px solid #ffffff;
+    border-bottom: 2px solid #ffffff;
     box-shadow: 0 0 25px #facc15;
-    animation: cutinSlideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+    animation: cutinSlideIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
 }
 
 @keyframes cutinSlideIn {
-    0% { transform: scaleY(0) skewX(-20deg); opacity: 0; }
-    100% { transform: scaleY(1) skewX(-20deg); opacity: 1; }
+    0% { transform: scaleY(0) skewX(-15deg); opacity: 0; }
+    100% { transform: scaleY(1) skewX(-15deg); opacity: 1; }
 }
 
-/* カットイン内の特攻ネオンテキスト（不気味に脈動鼓動する） */
+/* カットインテキスト脈動 */
 .cutin-text {
     color: #ffffff;
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 900;
     font-style: italic;
     letter-spacing: 3px;
     text-shadow: 3px 3px 0 #000, -1px -1px 0 #000;
     animation: cutinPulse 0.15s infinite alternate ease-in-out;
 }
-
 @keyframes cutinPulse {
-    0% { transform: scale(0.95); filter: brightness(1); }
-    100% { transform: scale(1.05); filter: brightness(1.6) drop-shadow(0 0 8px #facc15); }
+    0% { transform: scale(0.96); filter: brightness(1); }
+    100% { transform: scale(1.04); filter: brightness(1.5) drop-shadow(0 0 8px #facc15); }
 }
 
-/* 💥 クリティカル発生時、外枠ゲームコンテナ全体を一瞬真っ白にさせながらガガガッと震わせる超激震フラッシュ */
+/* 💥 特大白コンテナ激震フラッシュ */
 .screen-shake-flash {
     animation: shakeFlashAnim 0.45s cubic-bezier(.36, .07, .19, .97) both;
-    background-color: #ffffff !important; /* 一瞬のホワイトアウト */
 }
-
 @keyframes shakeFlashAnim {
-    10%, 90% { transform: translate3d(-5px, 0, 0); filter: brightness(2); }
-    20%, 80% { transform: translate3d(6px, 3px, 0); }
-    30%, 50%, 70% { transform: translate3d(-8px, -3px, 0); filter: brightness(1.5); }
-    40%, 60% { transform: translate3d(8px, 0, 0); }
+    0%, 100% { transform: translate3d(0, 0, 0); background-color: #ffffff; }
+    10%, 90% { transform: translate3d(-6px, -4px, 0); background-color: #fef08a; }
+    20%, 80% { transform: translate3d(8px, 6px, 0); }
+    30%, 50%, 70% { transform: translate3d(-8px, -6px, 0); background-color: #ffffff; }
+    40%, 60% { transform: translate3d(6px, 4px, 0); }
 }
 
-/* 🔮 新設：呪文＆アイテムの「トリプル・インベントリ」画面オーバーレイ要塞 
-   下部パネルを3つに削った跡地。中央に映画のUIのように半透明に浮かび上がらせる。 */
-.bag-overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(2, 6, 23, 0.88); /* 深海の漆黒半透明 */
-    z-index: 500;
-    display: none; /* UI.js からの flex 命令を待機 */
-    justify-content: center;
-    align-items: center;
-    backdrop-filter: blur(4px); /* 背景をボカして没入感を足し算 */
+/* ==========================================================================
+   📺 4. スクロールバー・美レトロカスタマイズ
+   ========================================================================== */
+div::-webkit-scrollbar {
+    width: 8px;
+}
+div::-webkit-scrollbar-track {
+    background: #0f172a;
+    border-radius: 99px;
+}
+div::-webkit-scrollbar-thumb {
+    background: #4f46e5;
+    border-radius: 99px;
+    border: 2px solid #0f172a;
+}
+div::-webkit-scrollbar-thumb:hover {
+    background: #6366f1;
 }
 
-/* カバンの中身（魔導書）の共通コンテナ */
-.bag-content {
-    width: 85%;
-    background: #1e293b;
-    border: 4px double #475569;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-}
-
-.bag-title {
-    margin-top: 0;
-    margin-bottom: 18px;
-    font-size: 1.1rem;
-    color: #facc15;
-    font-weight: bold;
-    text-shadow: 1px 1px 0 #000;
-}
-
-/* 2列に美しく整列させるグリッドシステム */
-.bag-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 20px;
-}
-
-/* カバン内の各呪文ボタンの基本顔料（押し心地をレトロゲーム風に統一） */
-.btn-bag-action {
-    height: 48px;
-    border-radius: 6px;
-    font-weight: 900;
-    border: 2px solid #475569;
-    background: #334155;
-    color: #ffffff;
-    cursor: pointer;
-    font-size: 0.95rem;
-    text-shadow: 1px 1px 0 #000;
-    box-shadow: 0 3px 0 #1e293b;
-}
-
-.btn-bag-action:active {
-    transform: translateY(2px);
-    box-shadow: none;
-}
-
-/* 🔮 各属性魔法のインベントリ専用カラーコーディネート */
-.btn-fire { border-color: #f87171; background: linear-gradient(180deg, #b91c1c, #991b1b); }
-.btn-ice { border-color: #7dd3fc; background: linear-gradient(180deg, #0369a1, #075985); }
-.btn-holy { border-color: #fef08a; background: linear-gradient(180deg, #a16207, #854d0e); }
-.btn-def { border-color: #6ee7b7; background: linear-gradient(180deg, #047857, #065f46); }
-
-/* カバンを閉じる「戻る」ボタン */
-.btn-bag-close {
-    width: 100%;
-    height: 42px;
-    background: #475569;
-    border: none;
-    color: #ffffff;
-    border-radius: 6px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 3px 0 #1e293b;
-}
-.btn-bag-close:active { transform: translateY(2px); box-shadow: none; }
-
-/* 🎮 下部コマンドの大型3枚看板専用デザイン */
-.btn-magic-main { background: linear-gradient(180deg, #6366f1, #4f46e5); border-color: #818cf8; box-shadow: 0 4px 0 #3730a3; }
-.btn-charge-main { background: linear-gradient(180deg, #a855f7, #7e22ce); border-color: #c084fc; box-shadow: 0 4px 0 #581c87; }
-.btn-item-main { background: linear-gradient(180deg, #f59e0b, #d97706); border-color: #fbbf24; box-shadow: 0 4px 0 #92400e; }
+/* キャラクター基本浮遊 */
+@keyframes floatP { 0% { transform: translateY(0); } 100% { transform: translateY(-6px); } }
+@keyframes floatE { 0% { transform: translateY(0); } 100% { transform: translateY(-9px); } }
