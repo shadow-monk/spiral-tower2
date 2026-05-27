@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.55: 不要な敵特殊演出分岐を完全クレンジング。コードの純化が完了しました。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.65: 背面オーラ仕様の完全統合・二重宣言エラー根絶版開通。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -94,6 +94,16 @@ window.startBattle = function() {
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
+        
+        // 🎨【1か所目の変更：背面オーラ同期】敵が現れる瞬間に、
+        // データベースから取得した属性カラー（data.glow）で敵の真後ろだけを美しい後光で染める
+        if (data.glow) {
+            eContainer.style.background = `radial-gradient(circle, ${data.glow} 0%, rgba(15,23,42,0) 70%)`;
+            eContainer.style.borderRadius = "50%"; // オーラを綺麗な真ん丸に成形
+        } else {
+            eContainer.style.background = "none";
+            eContainer.style.borderRadius = "0";
+        }
     }
 
     const pGraphic = document.getElementById('p-sprite-graphic');
@@ -127,33 +137,20 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-    // 🎨【Glow演出：理想のキャラクター背面オーラ仕様】
-    // 画面全体を曇らせる原因だった枠へのエフェクト（insetなど）を完全に引き算。
-    // 代わりに、敵キャラクターを包むコンテナ（eContainer）の「背後」だけに、
-    // data.glow から抽出した属性カラーの美しい後光オーラを極薄でまとわせる新回路。
+    // 🎨【Glow演出：理想のキャラクター背面オーラ仕様の土台】
     if (effScr) {
-        effScr.style.backgroundColor = '#0f172a'; // 画面全体はクリアでクッキリした漆黒
-        effScr.style.boxShadow = 'none';           // 画面全体の曇りを100%永久シャットアウト
+        effScr.style.backgroundColor = '#0f172a'; // 画面全体はクリアでクッキリした漆黒を100%維持
+        effScr.style.boxShadow = 'none';           // 画面全体の曇りを完全にシャットアウト
         effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155'; // 10階ボスのみ赤、他は通常枠線
     }
 
-    const eContainer = document.getElementById('e-sprite-container');
-    if (eContainer && data.glow) {
-        // 敵のコンテナの背景に円形（radial-gradient）の極薄発光オーラを流し込み、
-        // 画像のように敵キャラクターの後ろ側だけがぼうっと美しく浮き上がる効果を完全再現！
-        eContainer.style.background = `radial-gradient(circle, ${data.glow} 0%, rgba(15,23,42,0) 70%)`;
-        eContainer.style.borderRadius = "50%"; // オーラを綺麗な真ん丸に成形
-    }
-
-    // ログエリアの正常点灯（二重宣言を完全に防いだ安全回路）
+    // ログエリアの正常点灯
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
 
     startBGM("battle");
-    
-    
 };
 
 // ==========================================
@@ -447,6 +444,14 @@ window.resetGame = function() {
     window.itemInventory = { potion: 1, amulet: 1 };
     window.isAmuletActive = 0;
 
+    // 🎨【2か所目の変更：オーラ完全消灯消去】タイトルへ戻る際、
+    // 敵キャラクターコンテナの背面グラデーションオーラと真ん丸の角設定を物理的に完全リセット
+    const cleanContainer = document.getElementById('e-sprite-container');
+    if (cleanContainer) {
+        cleanContainer.style.background = "none";
+        cleanContainer.style.borderRadius = "0";
+    }
+
     const battleLog = document.getElementById('battle-log');
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
 
@@ -455,5 +460,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.55]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.65]
 // ==========================================
