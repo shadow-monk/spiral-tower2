@@ -200,9 +200,13 @@ window.turn = function(playerMove) {
         window.eHp = 0;
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
-        if (battleLog) battleLog.innerText = "☠ デスコード起動。";
-        window.checkBattleEnd(); 
-        return;
+if (battleLog) battleLog.innerText = "☠ デスコード起動。";
+    // 🛡️ 1200ms（1.2秒）のディレイを挟み、ログを読ませてから次画面へ進める
+    setTimeout(() => {
+        window.checkBattleEnd();
+    }, 1200);
+    return;
+ 
     }
 
     const data = STAGES[window.curIdx];
@@ -250,7 +254,7 @@ window.turn = function(playerMove) {
         spellLabel = "ホーリー";
     }
 
-    window._activeMagicTimeout = setTimeout(() => {
+window._activeMagicTimeout = setTimeout(() => {
         playSE(currentSE);
         
         window.eHp = Math.max(0, window.eHp - dmg);
@@ -267,8 +271,10 @@ window.turn = function(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "none";
 
         window._activeMagicTimeout = null;
-        setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 800);
-    }, 400);
+        // 🛡️ 800ms から 1400ms（1.4秒）に延長：プレイヤーがダメージログを読む時間を確保
+        setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 1400);
+    }, 600); // 🛡️ 400ms から 600ms（0.6秒）に延長：魔法発動までのタメ（余韻）を少し追加
+    
 };
 
 // ==========================================
@@ -375,19 +381,18 @@ window.postEnemyTurnCleanup = function() {
 // 💥 6. 勝敗・終了判定およびリザルト遷移
 // ==========================================
 window.checkBattleEnd = function() {
-    if (window.pHp <= 0 || window.eHp <= 0) {
-        stopBGM();
-        stopSlimeAnimation();
-
-        if (window.eHp <= 0) {
+if (window.eHp <= 0) {
             playSE(SOUND_FREEZE_DEAD);
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) {
                 eContainer.style.opacity = "0";
                 eContainer.style.transform = "scale(0.5)";
             }
-            setTimeout(() => { window.transitionToResult(); }, 400); 
+            // 🛡️ 400msから1400ms（1.4秒）へ引き延ばし、撃破の余韻を確保
+            setTimeout(() => { window.transitionToResult(); }, 1400);
         } else {
+
+    
             window.transitionToResult();
         }
         return true;
