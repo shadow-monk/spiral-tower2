@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.09: 10大魔物・最新技名テキスト ＆ 蜘蛛の巣演出適合修正版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.15: 演出読解ウェイト(2.5秒)延長 ＆ ゴーレム・スライム色変え適合版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -23,13 +23,13 @@ window.itemInventory = { potion: 1, amulet: 1 };
 window.isAmuletActive = 0;
 
 // 状態異常・特殊効果用追加フラグの一括管理
-window.isPlayerStunned = false;       // 2階: ブラッドスパイダー（麻痺状態）
-window.isPlayerCorroded = false;     // 1階: ヘドロスライム（酸による防御不可状態）
-window.isHarpySpeedActive = false;   // 4階: ハーピィ（敵の次のターン待機時間が半分）
-window.isPlayerMuted = false;        // 9階: エビルアイ（魔法コマンド封印状態）
-window.isItemBlocked = false;        // 8階: ファントム（アイテム使用封印状態）
+window.isPlayerStunned = false;       // 2階: ブラッドスパイダー
+window.isPlayerCorroded = false;     // 1階: ヘドロスライム
+window.isHarpySpeedActive = false;   // 4階: ハーピィ
+window.isPlayerMuted = false;        // 9階: イビルアイ
+window.isItemBlocked = false;        // 8階: ファントム
 
-// ⚡ 【多重衝突バグ根絶】魔法タイマーの予約チケット管理番号を保持する安全弁
+// ⚡ 魔法タイマーの安全弁
 window._activeMagicTimeout = null;
 
 // ==========================================
@@ -77,7 +77,6 @@ window.nextStage = function() {
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
     
-    // 全状態異常フラグを試合開始時に初期化
     window.isBusy = false; 
     window.isPlayerStunned = false;
     window.isPlayerCorroded = false;
@@ -133,10 +132,6 @@ window.startBattle = function() {
         updateHpUI();
     }
 
-    if (typeof checkDevPassword === 'function') {
-        checkDevPassword();
-    }
-
     if (effScr) {
         effScr.className = ""; 
     }
@@ -150,7 +145,7 @@ window.startBattle = function() {
 };
 
 // ==========================================
-// 🎒 3. 消耗品アイテム使用連携回路
+// 🎒 3. アイテム使用
 // ==========================================
 window.useItem = function(itemType) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || window.itemInventory[itemType] <= 0) return;
@@ -216,22 +211,17 @@ window.turn = function(playerMove) {
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "☠ デスコード起動。";
-        
-        setTimeout(() => {
-            window.checkBattleEnd();
-        }, 1200);
+        setTimeout(() => { window.checkBattleEnd(); }, 1200);
         return;
     }
 
     const data = STAGES[window.curIdx];
     let isCritical = (playerMove === data.weak);
-
     let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
 
     if (window.isEnemyShieldActive) {
         dmg = Math.floor(dmg * 0.25);
     }
-
     window.isEnemyShieldActive = false;
 
     if (playerMove === 'def') {
@@ -257,17 +247,11 @@ window.turn = function(playerMove) {
     let currentSE = SOUND_FIRE;
     let spellLabel = "ファイア";
 
-    if (playerMove === 'ice') {
-        currentSE = SOUND_ICE;
-        spellLabel = "アイス";
-    } else if (playerMove === 'holy') {
-        currentSE = SOUND_HOLY;
-        spellLabel = "ホーリー";
-    }
+    if (playerMove === 'ice') { currentSE = SOUND_ICE; spellLabel = "アイス"; }
+    else if (playerMove === 'holy') { currentSE = SOUND_HOLY; spellLabel = "ホーリー"; }
 
     window._activeMagicTimeout = setTimeout(() => {
         playSE(currentSE);
-        
         window.eHp = Math.max(0, window.eHp - dmg);
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, false);
@@ -290,18 +274,6 @@ window.turn = function(playerMove) {
 // 👹 5. エネミーターン行動AI＆カウンター処理
 // ==========================================
 window.enemyTurnAction = function(isPlayerDefending = false) {
-    if (isPlayerDefending === 'die') {
-        window.eHp = 0;
-        window.isBusy = false;
-        if (typeof updateHpUI === 'function') updateHpUI();
-        const battleLog = document.getElementById('battle-log');
-        if (battleLog) battleLog.innerText = "☠ デスコード起動。";
-        setTimeout(() => {
-            window.checkBattleEnd();
-        }, 1200);
-        return;
-    }
-
     if (window.eHp <= 0 || window.pHp <= 0) {
         window.isBusy = false;
         return;
@@ -314,7 +286,6 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     }
 
     let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
-
     dmg = Math.floor(dmg * window.enemyMana);
     window.enemyMana = 1.0;
 
@@ -322,108 +293,109 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         dmg = Math.floor(dmg * 0.5);
     }
 
-    // 状態異常フラグは敵が行動を起こした瞬間に自動的に自然解除
     window.isPlayerMuted = false;
     window.isItemBlocked = false;
     window.isPlayerCorroded = false;
+
+    // 🕒 タイムアウト時間を一括制御する安全弁変数（通常攻撃は800ms、読めない特殊技は2500ms）
+    let specialTurnDelay = 800;
 
     if (isSpecial) {
         playSE(SOUND_HOLY);
         const battleLog = document.getElementById('battle-log');
         const effScr = document.getElementById('eff-scr');
+        
+        // ⏱️ ① 文字を読ませるためにウェイトの砂時計を2500ms（2.5秒）に拡張！
+        specialTurnDelay = 2500;
 
-        // ==========================================
-        // 🔮 【1〜10階層】 最新テキスト ＆ 演出合図ドッキング大要塞
-        // ==========================================
-
-        // 1階：ヘドロスライム
+        // ─── 1階：ヘドロスライム ───
         if (data.type === 'slime') {
             window.isPlayerCorroded = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の溶解液を吐きかけた！【${dmg}】ダメージ！(次回防御不可)`;
-            if (effScr) { effScr.className = "anim-slime-acid"; setTimeout(() => { effScr.className = ""; }, 800); }
+            
+            // 🎨 確率で赤・青・緑へランダム3色変身合図クラスを付与！
+            let slimeColors = ["anim-slime-acid", "anim-slime-red", "anim-slime-blue"];
+            let chosenColor = slimeColors[Math.floor(Math.random() * slimeColors.length)];
+            
+            if (effScr) { effScr.className = chosenColor; setTimeout(() => { effScr.className = ""; }, 2400); }
         }
         
-        // 2階：ブラッドスパイダー
+        // ─── 2階：ブラッドスパイダー ───
         else if (data.type === 'spider') {
             window.isPlayerStunned = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の麻痺毒糸を吐いた！【${dmg}】ダメージ！(次回スタン)`;
-            if (effScr) { effScr.className = "anim-spider-poison"; setTimeout(() => { effScr.className = ""; }, 800); }
+            if (effScr) { effScr.className = "anim-spider-poison"; setTimeout(() => { effScr.className = ""; }, 2400); }
         }
         
-        // 3階：スケルトンナイト
+        // ─── 3階：スケルトンナイト ───
         else if (data.type === 'skelton' || data.type === 'skeleton') {
             window.isEnemyShieldActive = true;
             if (battleLog) battleLog.innerText = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
-            if (effScr) { effScr.className = "anim-skelton-shield"; setTimeout(() => { effScr.className = ""; }, 1000); }
-            window.postEnemyTurnCleanup();
+            if (effScr) { effScr.className = "anim-skelton-shield"; setTimeout(() => { effScr.className = ""; }, 2400); }
+            window.postEnemyTurnCleanup(specialTurnDelay);
             return;
         }
         
-        // 4階：ハーピィ
+        // ─── 4階：ハーピィ ───
         else if (data.type === 'harpy') {
             window.isHarpySpeedActive = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の超音波を放った！【${dmg}】ダメージ！(敵次ターン爆速化)`;
-            if (effScr) { effScr.className = "anim-harpy-storm"; setTimeout(() => { effScr.className = ""; }, 600); }
+            if (effScr) { effScr.className = "anim-harpy-storm"; setTimeout(() => { effScr.className = ""; }, 2400); }
         }
         
-        // 5階：ロックゴーレム
+        // ─── 5階：ゴーレム (👑 ② 技名を「岩石大投擲」へ完全修正！！) ───
         else if (data.type === 'golem') {
             window.mana = 1.0; 
             const chargeBadge = document.getElementById('charge-badge');
             if (chargeBadge) chargeBadge.style.display = "none";
-            if (battleLog) battleLog.innerText = `🚨 ${data.name}の大地鳴動！【${dmg}】ダメージ！(チャージ強制解除)`;
-            if (effScr) { effScr.className = "anim-golem-earthquake"; setTimeout(() => { effScr.className = ""; }, 800); }
+            if (battleLog) battleLog.innerText = `🚨 ${data.name}の岩石大投擲！【${dmg}】ダメージ！(チャージ強制解除)`;
+            if (effScr) { effScr.className = "anim-golem-earthquake"; setTimeout(() => { effScr.className = ""; }, 2400); }
         }
         
-        // 6階：ガーゴイル
+        // ─── 6階：ガーゴイル ───
         else if (data.type === 'gargoil' || data.type === 'gargoyle') {
             window.enemyMana = 2.0;
             if (battleLog) battleLog.innerText = `⚡ ${data.name}は魔力シールドを展開！次回の攻撃力2倍！`;
-            if (effScr) { effScr.className = "anim-gargoil-charge"; setTimeout(() => { effScr.className = ""; }, 1000); }
-            window.postEnemyTurnCleanup();
+            if (effScr) { effScr.className = "anim-gargoil-charge"; setTimeout(() => { effScr.className = ""; }, 2400); }
+            window.postEnemyTurnCleanup(specialTurnDelay);
             return;
         }
         
-        // 7階：マイコニド (※あらゆる登録スペルに対応する防衛網を敷設)
-        else if (data.type === 'myconid' || data.type === 'mush') {
+        // ─── 7階：マイコニド ───
+        else if (data.type === 'mush' || data.type === 'myconid') {
             window.mana = 0.5; 
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の胞子拡散！【${dmg}】ダメージ！(次回魔法威力半減)`;
-            if (effScr) { effScr.className = "anim-myconid-spore"; setTimeout(() => { effScr.className = ""; }, 900); }
+            if (effScr) { effScr.className = "anim-myconid-spore"; setTimeout(() => { effScr.className = ""; }, 2400); }
         }
         
-        // 8階：ファントム (※ghost/phantomの両面を完全キャッチ)
-        else if (data.type === 'ghost' || data.type === 'phantom') {
+        // ─── 8階：ファントム ───
+        else if (data.type === 'phantom' || data.type === 'ghost') {
             window.isItemBlocked = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の呪いの視線！【${dmg}】ダメージ！(次回アイテム使用不可)`;
-            if (effScr) { effScr.className = "anim-phantom-curse"; setTimeout(() => { effScr.className = ""; }, 1000); }
+            if (effScr) { effScr.className = "anim-phantom-curse"; setTimeout(() => { effScr.className = ""; }, 2400); }
         }
         
-        // 9階：エビルアイ
+        // ─── 9階：イビルアイ ───
         else if (data.type === 'eyes' || data.type === 'evileye') {
             window.isPlayerMuted = true;
             if (battleLog) battleLog.innerText = `🚨 ${data.name}の魔力封印の邪眼！【${dmg}】ダメージ！(次回魔法不可)`;
             if (effScr) { effScr.className = "anim-evileye-mute"; setTimeout(() => { effScr.className = ""; }, 800); }
         }
         
-        // 10階：カリスドラゴン
+        // ─── 10階：カリスドラゴン ───
         else if (data.type === 'dragon') {
             window.eHp = Math.min(window.eMaxHp, window.eHp + 30); 
             if (battleLog) battleLog.innerText = `🚨 ${data.name}のカタストロフィ・ブレス！【${dmg}】ダメージ！(敵のHPが30回復)`;
             if (effScr) { effScr.className = "anim-dragon-breath"; setTimeout(() => { effScr.className = ""; }, 1200); }
         }
         
-        else {
-            if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
-        }
-        
         window.pHp = Math.max(0, window.pHp - dmg);
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
-        window.postEnemyTurnCleanup();
+        window.postEnemyTurnCleanup(specialTurnDelay);
     } else {
         // 通常突進攻撃
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
-
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
             eContainer.style.setProperty('--assaultX', '-140px');
@@ -439,12 +411,11 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         window.pHp = Math.max(0, window.pHp - dmg);
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
-        
-        window.postEnemyTurnCleanup();
+        window.postEnemyTurnCleanup(specialTurnDelay);
     }
 };
 
-window.postEnemyTurnCleanup = function() {
+window.postEnemyTurnCleanup = function(forcedDelay = 800) {
     if (window.isAmuletActive > 0) {
         window.isAmuletActive--;
         if (window.isAmuletActive <= 0) {
@@ -453,7 +424,7 @@ window.postEnemyTurnCleanup = function() {
         }
     }
     
-    let nextTurnDelay = window.isHarpySpeedActive ? 400 : 800;
+    let nextTurnDelay = window.isHarpySpeedActive ? 400 : forcedDelay;
     window.isHarpySpeedActive = false; 
 
     setTimeout(() => {
@@ -491,13 +462,11 @@ window.transitionToResult = function() {
     const rTitle = document.getElementById('res-title');
     const rText = document.getElementById('res-text');
     const rBtn = document.getElementById('res-btn');
-
     const pAuraLayer = document.getElementById('p-aura-layer');
     if (pAuraLayer) pAuraLayer.style.display = "none";
 
     const battleLog = document.getElementById('battle-log');
     const chargeBadge = document.getElementById('charge-badge');
-
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
     if (chargeBadge) chargeBadge.style.display = "none";
 
@@ -528,13 +497,10 @@ window.transitionToResult = function() {
 
 window.resetGame = function() {
     window.isBusy = false; 
-    
     if (!window.isDebugUnlocked) {
-        window.pMaxHp = 100;
-        window.pHp = 100;
+        window.pMaxHp = 100; window.pHp = 100;
     } else {
-        window.pMaxHp = 8000;
-        window.pHp = 8000;
+        window.pMaxHp = 8000; window.pHp = 8000;
     }
     window.mana = 1.0;
     window.curIdx = -1;
@@ -542,14 +508,10 @@ window.resetGame = function() {
     window.isAmuletActive = 0;
 
     const cleanContainer = document.getElementById('e-sprite-container');
-    if (cleanContainer) {
-        cleanContainer.style.background = "none";
-    }
+    if (cleanContainer) cleanContainer.style.background = "none";
 
     const effScr = document.getElementById('eff-scr');
-    if (effScr) {
-        effScr.className = "";
-    }
+    if (effScr) effScr.className = "";
 
     const battleLog = document.getElementById('battle-log');
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
@@ -557,6 +519,3 @@ window.resetGame = function() {
     stopBGM();
     if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
 };
-// ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 7.09]
-// ==========================================
