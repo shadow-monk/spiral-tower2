@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.40: アニメ演出完全オミット・SE鳴り分け特化型・フリーズバグ完全消滅版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.45: 【デバッグ版】プレイヤー全SE消去・敵体当たり音のみ残し・検証用ビルド。", "color: #f59e0b; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -24,7 +24,7 @@ window.isAmuletActive = 0;
 window.isPlayerStunned = false;
 
 // ==========================================
-// 🚀 2. ステージ・戦闘遷移（開通・showScreen完全同期回路）
+// 🚀 2. ステージ・戦闘遷移
 // ==========================================
 
 /**
@@ -139,9 +139,7 @@ window.useItem = function(itemType) {
     window.itemInventory[itemType]--;
     closeItemBag();
 
-    const spellEffectLayer = document.getElementById('spell-effect-layer');
     const battleLog = document.getElementById('battle-log');
-    if (spellEffectLayer) spellEffectLayer.innerHTML = "";
 
     if (itemType === 'potion') {
         window.pHp = Math.min(window.pMaxHp, window.pHp + 50);
@@ -158,7 +156,7 @@ window.useItem = function(itemType) {
 };
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー魔導アクション戦闘ループ（SE鳴り分け・超シンプル安全化）
+// 🧙‍♂️ 4. プレイヤー魔導アクション（★検証用：全呪文無音化）
 // ==========================================
 window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
@@ -193,9 +191,6 @@ window.turn = function(playerMove) {
         dmg = Math.floor(dmg * 0.25);
     }
 
-    // 画面に残る古い残像を完全虚無クレンジング
-    const effLayer = document.getElementById('spell-effect-layer');
-    if (effLayer) effLayer.innerHTML = "";
     window.isEnemyShieldActive = false;
 
     // 🛡️ シールドコマンド時の即時分岐
@@ -220,23 +215,14 @@ window.turn = function(playerMove) {
         return;
     }
 
-    // 💡【核心の引き算設計】フリーズの原因だった無限ループ画像タイマーを完全オミット！
-    // どの呪文が押されても、裏での変数汚染を一切起こさない安全な分岐構造へリフォーム
-    let targetSE = SOUND_FIRE;
+    // 呪文ラベルの定義
     let spellLabel = "ファイア";
-    
-    if (playerMove === 'ice') {
-        targetSE = SOUND_ICE;
-        spellLabel = "アイス";
-    } else if (playerMove === 'holy') {
-        targetSE = SOUND_HOLY;
-        spellLabel = "ホーリー";
-    }
+    if (playerMove === 'ice') spellLabel = "アイス";
+    if (playerMove === 'holy') spellLabel = "ホーリー";
 
-    // コマンドを押してから400ms後に、SE再生・ダメージ計算をジャスト同期で実行
+    // 💡【検証用の引き算】playSEを完全に排除！無音で純粋にダメージとターン移行のみを行う
     setTimeout(() => {
-        // 音響とポップアップの完全有線キック
-        playSE(targetSE);
+        // ※ ここにあった playSE(targetSE) は完全に消去されました。
         
         window.eHp = Math.max(0, window.eHp - dmg);
         updateHpUI();
@@ -251,7 +237,7 @@ window.turn = function(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
 
-        // 800ms後に敵の行動へ安全バトンタッチ
+        // 敵の行動へバトンタッチ
         setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 800);
     }, 400);
 };
@@ -276,11 +262,8 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         dmg = Math.floor(dmg * 0.5);
     }
 
-    const effLayer = document.getElementById('spell-effect-layer');
-    if (effLayer) effLayer.innerHTML = "";
-
     if (isSpecial) {
-        playSE(SOUND_HOLY);
+        // 💡 敵の特殊攻撃時の音（SOUND_HOLYの風切り音）も混線防止のため一旦排除！
         const battleLog = document.getElementById('battle-log');
 
         if (data.type === 'skelton') {
@@ -296,17 +279,11 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
             return;
         }
 
-        if (['slime', 'spider', 'harpy', 'dragon', 'golem'].includes(data.type)) {
-            if (effLayer) effLayer.innerHTML = ENEMY_MISSILE_EFFECTS[data.type] || "";
-        } else {
-            if (effLayer) effLayer.innerHTML = `<div style="position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(168,85,247,0.5); left:100px; top:120px; animation:stalkPulse 0.5s forwards; filter:blur(10px); mix-blend-mode:screen !important;"></div>`;
-        }
-
         if (data.type === 'spider') window.isPlayerStunned = true;
 
         if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        // 体当たり通常攻撃時：SOUND_KICKをジャストタイミングでキック
+        // 🌟【唯一残すSE】敵の体当たり通常攻撃音だけは、予定通りしっかり鳴らします！
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -319,7 +296,6 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         }, 460);
 
         const battleLog = document.getElementById('battle-log');
-        // 💡【体当たり表記への完全復帰】ディレクターの狙い通りのテキスト表現に直撃リフォーム！
         if (battleLog) battleLog.innerText = `${data.name}の突進体当たり攻撃！【${dmg}】ダメージ！`;
     }
 
@@ -330,7 +306,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
 };
 
 /**
- * 敵行動後のバフ減算および操作ロック強制解放セーフティ
+ * 敵行動後のバフ減算および操作ロック解放処理
  */
 window.postEnemyTurnCleanup = function() {
     if (window.isAmuletActive > 0) {
@@ -342,7 +318,6 @@ window.postEnemyTurnCleanup = function() {
     }
     setTimeout(() => {
         if (!window.checkBattleEnd()) {
-            // 🔒【フリーズ永久死滅回路】ここで確実にBusyロックの鍵を開け、次のターンへ移行させる
             window.isBusy = false;
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerText = "コマンドを選択せよ。";
@@ -359,7 +334,7 @@ window.checkBattleEnd = function() {
         stopSlimeAnimation();
 
         if (window.eHp <= 0) {
-            playSE(SOUND_FREEZE_DEAD);
+            // 💡 撃破時の無音化検証のため、一旦ここもSEをオミット
             const eContainer = document.getElementById('e-sprite-container');
             if (eContainer) {
                 eContainer.style.opacity = "0";
@@ -442,5 +417,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.40]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.45]
 // ==========================================
