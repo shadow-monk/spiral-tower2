@@ -1,8 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
-// 📦 VERSION: 6.31 (js/battle.js GitHub特殊空白・全角スペース完全デトックス版)
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.31: GitHub自動チェック用クレンジング完了。全文字コードの健全性を証明しました。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.32: 効果音鳴り分け＆体当たり専用SE完全適合版クレンジング完了。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -15,7 +14,7 @@ window.eMaxHp = 100;
 window.mana = 1.0;
 window.isBusy = false;
 
-// ⑩の設計図に準拠した追加のステータスフラグ管理
+// 追加のステータスフラグ管理
 window.enemyMana = 1.0;
 window.isEnemyShieldActive = false;
 
@@ -35,7 +34,7 @@ window.nextStage = function() {
     closeItemBag();
     window.curIdx++;
 
-    // 全10階層（⑤のSTAGES）を走破した際のエンディング判定
+    // 全10階層のエンディング判定
     if (window.curIdx >= STAGES.length) {
         window.resetGame();
         showScreen('scr-start');
@@ -47,13 +46,11 @@ window.nextStage = function() {
 
     const data = STAGES[window.curIdx];
 
-    // ⑦メインJSのデバッグロック（UNLOCKED）がかかっていない通常時のみ、HPを100にリセット
     if (!window.isDebugUnlocked) {
         window.pMaxHp = 100;
         window.pHp = 100;
     }
 
-    // ⑥UI JSの最新の画面切り替え（showScreen）へ完全有線直結
     const floorIndicator = document.getElementById('floor-indicator');
     if (floorIndicator) {
         floorIndicator.style.visibility = 'visible';
@@ -73,17 +70,12 @@ window.nextStage = function() {
 };
 
 /**
- * 3階層ボタン（onclick="startBattle()"）から叩かれる、グローバル開通版startBattle
- */
-
-/**
  * 導入画面から戦闘画面へ移行し、各種ステータスを初期化のうえ、
  * ウィザード画像を通信ラグのないローカルキャッシュパスで安全に起動する関数
  */
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
     
-    // 戦闘開始ステータスの完全初期回路
     window.eHp = window.eMaxHp = data.hp;
     window.isBusy = false;
     window.isPlayerStunned = false;
@@ -91,17 +83,15 @@ window.startBattle = function() {
     window.enemyMana = 1.0;
     window.isEnemyShieldActive = false;
 
-    // 敵グラフィックのコンテナを可視化
     const eContainer = document.getElementById('e-sprite-container');
     if (eContainer) {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
     }
 
- // 🧙‍♂️ 【画像パス確定版修正】主人公の画像を正しいGitHubアセットURLへ直結
-const pGraphic = document.getElementById('p-sprite-graphic');
-if (pGraphic) {
-    pGraphic.src = 'https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/enemies/player/player_wizard.png';
+    const pGraphic = document.getElementById('p-sprite-graphic');
+    if (pGraphic) {
+        pGraphic.src = 'https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/enemies/player/player_wizard.png';
     }
 
     const itemBadge = document.getElementById('item-badge');
@@ -114,21 +104,18 @@ if (pGraphic) {
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
 
-    // ➔ ラグ潰しの真髄：画面が表示されるその瞬間に、ローカルの1コマ目を直撃流し込み
     if (eSpriteGraphic && MASTER_ANIM_MAP[data.type]) {
         eSpriteGraphic.src = MASTER_ANIM_MAP[data.type][0];
     }
 
     showScreen('scr-battle');
 
-    // 👾 敵のアニメーション制御マシンを安全に起動（enemies.js側を100%信用）
     if (typeof startCustomAnimation === 'function') {
         startCustomAnimation(data.type);
     }
     
     updateHpUI();
     
-    // パスワード1192のデバッグロック解放状態をチェック
     if (typeof checkDevPassword === 'function') {
         checkDevPassword();
     }
@@ -142,7 +129,6 @@ if (pGraphic) {
         battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
     }
 
-    // BGMの再生キック
     startBGM("battle");
 };
 
@@ -170,12 +156,11 @@ window.useItem = function(itemType) {
     }
 
     updateHpUI();
-    // ⑩の設計図通り、1000ms後に敵の判定を非同期キック
     setTimeout(window.enemyTurnAction, 1000);
 };
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー魔導アクション戦闘ループ（⑩設計図の数式・進行を完全死守）
+// 🧙‍♂️ 4. プレイヤー魔導アクション戦闘ループ
 // ==========================================
 
 /**
@@ -185,7 +170,6 @@ window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
     window.isBusy = true;
 
-    // ⑩設計図通りの「麻痺行動不能」インターセプト処理
     if (window.isPlayerStunned) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
@@ -197,7 +181,6 @@ window.turn = function(playerMove) {
     const data = STAGES[window.curIdx];
     let isCritical = (playerMove === data.weak);
 
-    // ☠️ デスコード（1192ロック解除時のワンパン機能）
     if (playerMove === 'debug_death') {
         window.eHp = 0;
         updateHpUI();
@@ -207,22 +190,21 @@ window.turn = function(playerMove) {
         return;
     }
 
-    // ➔ ⑩の設計図に完全適合した、最新の威力計算式
     let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
 
-    // 敵の盾（スケルトンの特殊行動）が有効な場合、ダメージを大幅カット（0.25倍）
     if (window.isEnemyShieldActive) {
         dmg = Math.floor(dmg * 0.25);
     }
 
     const effLayer = document.getElementById('spell-effect-layer');
     if (effLayer) effLayer.innerHTML = "";
-    window.isEnemyShieldActive = false; // 盾の判定は攻撃ヒットにより即時消費
+    window.isEnemyShieldActive = false;
 
     // 各属性魔法に応じたオリジナルアセットの飛行およびタイマーフレーム演出の再生
     try {
         if (playerMove === 'fire') {
             if (effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire;
+            // 💡【バグ修正】単なる文字の 'fire' ではなく、audio.jsのURL定数である「SOUND_FIRE」を安全キック
             setTimeout(() => { playSE(SOUND_FIRE); }, 400);
         }
         else if (playerMove === 'ice') {
@@ -239,13 +221,14 @@ window.turn = function(playerMove) {
                 }
                 playIceFrame();
             }
+            // 💡【バグ修正】単なる文字の 'ice' ではなく、URL定数である「SOUND_ICE」を安全キック
             setTimeout(() => { playSE(SOUND_ICE); }, 400);
         }
         else if (playerMove === 'holy') {
             if (effLayer) effLayer.innerHTML = MISSILE_EFFECTS.holy;
+            // 💡【バグ修正】単なる文字の 'holy' ではなく、URL定数である「SOUND_HOLYを表示」を安全キック
             setTimeout(() => { playSE(SOUND_HOLY); }, 400);
         }
-        // シールドコマンド選択時
         else if (playerMove === 'def') {
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerText = "🛡 シールドを展開！防御姿勢をとった。";
@@ -255,7 +238,6 @@ window.turn = function(playerMove) {
             setTimeout(() => { window.enemyTurnAction(true); }, 800);
             return;
         }
-        // チャージコマンド選択時
         else if (playerMove === 'chg') {
             window.mana = 2.5;
             const chargeBadge = document.getElementById('charge-badge');
@@ -269,7 +251,6 @@ window.turn = function(playerMove) {
         console.error("Effect Playback Error Safety Catch:", e);
     }
 
-    // 魔法着弾（400ms後）、ダメージポップおよび敵HPの減算を実行
     setTimeout(() => {
         window.eHp = Math.max(0, window.eHp - dmg);
         updateHpUI();
@@ -284,13 +265,12 @@ window.turn = function(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
 
-        // 勝敗が決していなければ、800msの間を置いて敵のAI行動をキック
         setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 800);
     }, 400);
 };
 
 // ==========================================
-// 👹 5. エネミーターン行動AI＆カウンター処理（⑩設計図の挙動を完全死守）
+// 👹 5. エネミーターン行動AI＆カウンター処理
 // ==========================================
 window.enemyTurnAction = function(isPlayerDefending = false) {
     if (window.eHp <= 0 || window.pHp <= 0) {
@@ -298,16 +278,13 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         return;
     }
     const data = STAGES[window.curIdx];
-    let isSpecial = (Math.random() < 0.4); // ⑩の設計図通り40%の確率で特殊行動を発火
+    let isSpecial = (Math.random() < 0.4); 
 
-    // シールド時は攻撃力を15%に遮断、通常時は等倍被弾
     let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
 
-    // ガーゴイルの魔力集約（2倍）バフの適用
     dmg = Math.floor(dmg * window.enemyMana);
     window.enemyMana = 1.0;
 
-    // お守り（結界）有効時の全被ダメージ半減補正
     if (window.isAmuletActive > 0 && !isPlayerDefending) {
         dmg = Math.floor(dmg * 0.5);
     }
@@ -319,14 +296,12 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         playSE(SOUND_HOLY);
         const battleLog = document.getElementById('battle-log');
 
-        // 3階：スケルトンナイト専用の【骨盾】
         if (data.type === 'skelton') {
             window.isEnemyShieldActive = true;
             if (battleLog) battleLog.innerText = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
             window.postEnemyTurnCleanup();
             return;
         }
-        // 6階：ガーゴイル専用の【魔力集約】
         if (data.type === 'gargoil') {
             window.enemyMana = 2.0;
             if (battleLog) battleLog.innerText = `⚡ ${data.name}は魔力を集約！次回の攻撃力2倍！`;
@@ -334,19 +309,19 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
             return;
         }
 
-        // その他アセット持ちのモンスターによる、特殊飛び道具レイヤーの展開
         if (['slime', 'spider', 'harpy', 'dragon', 'golem'].includes(data.type)) {
             if (effLayer) effLayer.innerHTML = ENEMY_MISSILE_EFFECTS[data.type] || "";
         } else {
             if (effLayer) effLayer.innerHTML = `<div style="position:absolute; width:120px; height:120px; border-radius:50%; background:rgba(168,85,247,0.5); left:100px; top:120px; animation:stalkPulse 0.5s forwards; filter:blur(10px); mix-blend-mode:screen !important;"></div>`;
         }
 
-        // 2階・8階：スパイダー系統被弾時の次ターン「麻痺」フラグの埋め込み
         if (data.type === 'spider') window.isPlayerStunned = true;
 
         if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        setTimeout(() => { playSE(SOUND_FIRE); }, 200);
+        // 💡【核心のバグ修正】敵の通常突進時に、間違えて直書きされていた「SOUND_FIRE」を引き抜き、
+        //    ディレクターが指定した体当たり専用アセット「SOUND_KICK」に完全差し替え！
+        setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
@@ -368,7 +343,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
 };
 
 /**
- * 敵の行動処理が終わったあとの、各種お守りバフカウント減算および戦闘終了へのクリーンアップ
+ * 敵の行動処理が終わったあとのクリーンアップ
  */
 window.postEnemyTurnCleanup = function() {
     if (window.isAmuletActive > 0) {
@@ -412,7 +387,7 @@ window.checkBattleEnd = function() {
 };
 
 /**
- * 戦闘結果（勝利・完全制覇・敗北）をリザルト表示領域へ綺麗に流し込む関数
+ * 戦闘結果をリザルト表示領域へ綺麗に流し込む関数
  */
 window.transitionToResult = function() {
     showScreen('scr-result');
@@ -434,7 +409,6 @@ window.transitionToResult = function() {
         const resIcon = document.getElementById('res-icon');
         if (resIcon) resIcon.innerText = "🏆";
 
-        // 10階層の最終竜カリスドラゴンを粉砕した場合のグランドフィナーレ判定
         if (window.curIdx === STAGES.length - 1) {
             if (rTitle) rTitle.innerText = "GRAND END";
             if (rText) rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！";
@@ -480,5 +454,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.31]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.32]
 // ==========================================
