@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.02: 外部連携維持 ＆ 内部フラグ・プレイヤーパス完全防衛版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.03: GitHub Pagesリポジトリルート完全適合版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -12,7 +12,7 @@ window.pHp = 100;
 window.eHp = 100;
 window.eMaxHp = 100;
 window.mana = 1.0;
-window.isBusy = false; // 🔒 操作ロックフラグ
+window.isBusy = false;
 
 // ステータスフラグ管理
 window.enemyMana = 1.0;
@@ -77,7 +77,6 @@ window.nextStage = function() {
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
     
-    // 🛡️ 【防衛網】試合開始の瞬間に、前回の戦闘の全ロック・タイマーを強制的に引き算・初期化
     window.isBusy = false; 
     window.isPlayerStunned = false;
     window.isAmuletActive = 0;
@@ -85,7 +84,6 @@ window.startBattle = function() {
     window.isEnemyShieldActive = false;
     window.eHp = window.eMaxHp = data.hp;
 
-    // 前の試合の魔法タイマーの残像を完全抹殺
     if (window._activeMagicTimeout) {
         clearTimeout(window._activeMagicTimeout);
         window._activeMagicTimeout = null;
@@ -98,15 +96,10 @@ window.startBattle = function() {
         eContainer.style.background = "none";
     }
 
-    // 🛡️ 【パスローカル化】外部GitHubへの通信依存を排除し、安全なローカル相対パスへ変更
+    // 🧙‍♂️ 【GitHub Pages完全適合】リポジトリ名を噛ませた絶対相対パスを強制生成
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pGraphic) {
-        let pLocalPath = './assets/enemies/player/player_wizard.png';
-        if (typeof window.getAssetPath === 'function') {
-            pGraphic.src = window.getAssetPath(pLocalPath);
-        } else {
-            pGraphic.src = pLocalPath;
-        }
+        pGraphic.src = window.location.origin + '/spiral-tower2/assets/enemies/player/player_wizard.png';
     }
 
     const itemBadge = document.getElementById('item-badge');
@@ -119,13 +112,21 @@ window.startBattle = function() {
     if (chargeBadge) chargeBadge.style.display = "none";
     if (eName) eName.innerText = data.name;
 
+    // 魔物の画像切り替え時もリポジトリルートを確実に経由させる
     if (eSpriteGraphic && MASTER_ANIM_MAP[data.type]) {
-        eSpriteGraphic.src = MASTER_ANIM_MAP[data.type][0];
+        let rawUrl = MASTER_ANIM_MAP[data.type][0];
+        if (!rawUrl.startsWith('http') && !rawUrl.startsWith('spiral-tower2/')) {
+            let cleanUrl = rawUrl.replace(/^\.\//, '').replace(/^\//, '');
+            eSpriteGraphic.src = window.location.origin + '/spiral-tower2/' + cleanUrl;
+        } else if (rawUrl.startsWith('spiral-tower2/')) {
+            eSpriteGraphic.src = window.location.origin + '/' + rawUrl;
+        } else {
+            eSpriteGraphic.src = rawUrl;
+        }
     }
 
     showScreen('scr-battle');
 
-    // 🟢 外部ファイル（enemies.js）との連結窓口は100%完全維持
     if (typeof startCustomAnimation === 'function') {
         startCustomAnimation(data.type);
     }
@@ -194,13 +195,12 @@ window.turn = function(playerMove) {
         if (battleLog) battleLog.innerText = "🚨 麻痺して動けない！";
         
         setTimeout(() => {
-            window.isBusy = false; // 麻痺時も確実にロック解除
+            window.isBusy = false;
             window.enemyTurnAction();
         }, 1000);
         return;
     }
 
-    // ☠️【デスコード予備用窓口】
     if (playerMove === 'debug_death') {
         window.eHp = 0;
         if (typeof updateHpUI === 'function') updateHpUI();
@@ -209,7 +209,7 @@ window.turn = function(playerMove) {
         
         setTimeout(() => {
             window.checkBattleEnd();
-        }, 1200); // 1.2秒の余韻
+        }, 1200);
         return;
     }
 
@@ -272,8 +272,8 @@ window.turn = function(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "none";
 
         window._activeMagicTimeout = null;
-        setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 1400); // 1.4秒の余韻
-    }, 600); // 0.6秒のタメ
+        setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 1400);
+    }, 600);
 };
 
 // ==========================================
@@ -356,9 +356,6 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     }
 };
 
-/**
- * 敵行動後のバフ減算および操作ロック解放処理
- */
 window.postEnemyTurnCleanup = function() {
     if (window.isAmuletActive > 0) {
         window.isAmuletActive--;
@@ -368,112 +365,4 @@ window.postEnemyTurnCleanup = function() {
         }
     }
     setTimeout(() => {
-        if (!window.checkBattleEnd()) {
-            window.isBusy = false; // ここで通常操作ロックを解放
-            const battleLog = document.getElementById('battle-log');
-            if (battleLog) battleLog.innerText = "コマンドを選択せよ。";
-        }
-    }, 800);
-};
-
-// ==========================================
-// 💥 6. 勝敗・終了判定およびリザルト遷移
-// ==========================================
-window.checkBattleEnd = function() {
-    if (window.pHp <= 0 || window.eHp <= 0) {
-        stopBGM();
-        if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
-
-        if (window.eHp <= 0) {
-            playSE(SOUND_FREEZE_DEAD);
-            const eContainer = document.getElementById('e-sprite-container');
-            if (eContainer) {
-                eContainer.style.opacity = "0";
-                eContainer.style.transform = "scale(0.5)";
-            }
-            setTimeout(() => { window.transitionToResult(); }, 1400); // 1.4秒の余韻
-        } else {
-            window.transitionToResult(); // 敗北時は即時
-        }
-        return true;
-    }
-    return false;
-};
-
-/**
- * 戦闘結果リザルト表示への流し込み
- */
-window.transitionToResult = function() {
-    showScreen('scr-result');
-    const rTitle = document.getElementById('res-title');
-    const rText = document.getElementById('res-text');
-    const rBtn = document.getElementById('res-btn');
-
-    const pAuraLayer = document.getElementById('p-aura-layer');
-    if (pAuraLayer) pAuraLayer.style.display = "none";
-
-    const battleLog = document.getElementById('battle-log');
-    const chargeBadge = document.getElementById('charge-badge');
-
-    if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
-    if (chargeBadge) chargeBadge.style.display = "none";
-
-    if (window.eHp <= 0) {
-        if (rTitle) { rTitle.innerText = "VICTORY"; rTitle.style.color = '#10b981'; }
-        const resIcon = document.getElementById('res-icon');
-        if (resIcon) resIcon.innerText = "🏆";
-
-        if (window.curIdx === STAGES.length - 1) {
-            if (rTitle) rTitle.innerText = "GRAND END";
-            if (rText) rText.innerText = "最上階の暗黒竜を討伐し、螺旋の塔に永遠の平穏が訪れた！1周目完全クリアおめでとうございます！";
-            if (rBtn) rBtn.innerText = "タイトルへ戻る";
-            startBGM("grand_end");
-        } else {
-            if (rText) rText.innerText = `${STAGES[window.curIdx].name}を撃破した！次の階層への扉が開く。`;
-            if (rBtn) rBtn.innerText = "次へ進む";
-        }
-    } else {
-        if (rTitle) { rTitle.innerText = "DEFEATED"; rTitle.style.color = '#f43f5e'; }
-        const resIcon = document.getElementById('res-icon');
-        if (resIcon) resIcon.innerText = "💀";
-        if (rText) rText.innerText = "目の前が真っ暗になった...";
-        if (rBtn) rBtn.innerText = "タイトルへ戻る";
-        window.curIdx = -1;
-    }
-    window.isBusy = false; // 🛡️ 【防衛網】次の周回やタイトルでの操作ロックを完全解除
-};
-
-/**
- * タイトル画面へ戻る際のリセット処理
- */
-window.resetGame = function() {
-    // 🛡️ 【防衛網】ゲームリセット時にも強制的に操作ロックを完全剥離
-    window.isBusy = false; 
-    
-    if (!window.isDebugUnlocked) {
-        window.pMaxHp = 100;
-        window.pHp = 100;
-    } else {
-        window.pMaxHp = 8000;
-        window.pHp = 8000;
-    }
-    window.mana = 1.0;
-    window.curIdx = -1;
-    window.itemInventory = { potion: 1, amulet: 1 };
-    window.isAmuletActive = 0;
-
-    const cleanContainer = document.getElementById('e-sprite-container');
-    if (cleanContainer) {
-        cleanContainer.style.background = "none";
-    }
-
-    const battleLog = document.getElementById('battle-log');
-    if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
-
-    stopBGM();
-    if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
-};
-
-// ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 7.02]
-// ==========================================
+        if (!window.checkBattle
