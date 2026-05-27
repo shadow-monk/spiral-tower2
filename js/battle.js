@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.50: 呪文SE完全復活・多重タイマー競合プロテクトガード開通完了。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.55: 不要な敵特殊演出分岐を完全クレンジング。コードの純化が完了しました。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -138,6 +138,7 @@ window.startBattle = function() {
 
     startBGM("battle");
 };
+
 // ==========================================
 // 🎒 3. 消耗品アイテム使用連携回路
 // ==========================================
@@ -228,7 +229,7 @@ window.turn = function(playerMove) {
         return;
     }
 
-    // 🎯【ディレクター指名】定数とラベルを完全にカプセル化（ローカル化）し、enemies.jsへの混線を永久切断
+    // 定数とラベルをローカルカプセル化
     let currentSE = SOUND_FIRE;
     let spellLabel = "ファイア";
 
@@ -242,7 +243,6 @@ window.turn = function(playerMove) {
 
     // 400ms後に音を鳴らし、ダメージを安全に同期発火させる予約
     window._activeMagicTimeout = setTimeout(() => {
-        // ラジカセ（audio.js）へ100%安全にURLカプセルを直撃流し込み！音が絶対に化けない
         playSE(currentSE);
         
         window.eHp = Math.max(0, window.eHp - dmg);
@@ -258,7 +258,6 @@ window.turn = function(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
 
-        // 800ms後、エネミーターンが始まる前に自身のタイマー登録を綺麗に消去してバトンタッチ
         window._activeMagicTimeout = null;
         setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 800);
     }, 400);
@@ -285,7 +284,6 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
     }
 
     if (isSpecial) {
-        // 敵の特殊行動音（混線を完全に防いだクリアな状態で発火）
         playSE(SOUND_HOLY);
         const battleLog = document.getElementById('battle-log');
 
@@ -341,7 +339,6 @@ window.postEnemyTurnCleanup = function() {
     }
     setTimeout(() => {
         if (!window.checkBattleEnd()) {
-            // 🔒【フリーズ絶対拒絶】ここで確実にBusyの鍵を開けて次の入力を受け付ける
             window.isBusy = false;
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerText = "コマンドを選択せよ。";
@@ -441,5 +438,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.50]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.55]
 // ==========================================
