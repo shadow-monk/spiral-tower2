@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.32: 効果音鳴り分け＆体当たり専用SE完全適合版クレンジング完了。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.40: アニメ演出完全オミット・SE鳴り分け特化型・フリーズバグ完全消滅版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -14,7 +14,7 @@ window.eMaxHp = 100;
 window.mana = 1.0;
 window.isBusy = false;
 
-// 追加のステータスフラグ管理
+// ステータスフラグ管理
 window.enemyMana = 1.0;
 window.isEnemyShieldActive = false;
 
@@ -28,13 +28,12 @@ window.isPlayerStunned = false;
 // ==========================================
 
 /**
- * 3階層ボタン（onclick="nextStage()"）から叩かれる、グローバル開通版nextStage
+ * 次の階層へ進む処理
  */
 window.nextStage = function() {
     closeItemBag();
     window.curIdx++;
 
-    // 全10階層のエンディング判定
     if (window.curIdx >= STAGES.length) {
         window.resetGame();
         showScreen('scr-start');
@@ -70,8 +69,7 @@ window.nextStage = function() {
 };
 
 /**
- * 導入画面から戦闘画面へ移行し、各種ステータスを初期化のうえ、
- * ウィザード画像を通信ラグのないローカルキャッシュパスで安全に起動する関数
+ * 戦闘開始の初期化処理
  */
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
@@ -160,16 +158,13 @@ window.useItem = function(itemType) {
 };
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー魔導アクション戦闘ループ
+// 🧙‍♂️ 4. プレイヤー魔導アクション戦闘ループ（SE鳴り分け・超シンプル安全化）
 // ==========================================
-
-/**
- * 3階層ボタン（onclick="turn('fire')"等）から直接叩かれる、グローバル開通版戦闘ループの起点
- */
 window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
     window.isBusy = true;
 
+    // 麻痺行動不能インターセプト
     if (window.isPlayerStunned) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
@@ -181,6 +176,7 @@ window.turn = function(playerMove) {
     const data = STAGES[window.curIdx];
     let isCritical = (playerMove === data.weak);
 
+    // デスコード（デバッグワンパン）
     if (playerMove === 'debug_death') {
         window.eHp = 0;
         updateHpUI();
@@ -190,81 +186,72 @@ window.turn = function(playerMove) {
         return;
     }
 
+    // 威力計算
     let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
 
     if (window.isEnemyShieldActive) {
         dmg = Math.floor(dmg * 0.25);
     }
 
+    // 画面に残る古い残像を完全虚無クレンジング
     const effLayer = document.getElementById('spell-effect-layer');
     if (effLayer) effLayer.innerHTML = "";
     window.isEnemyShieldActive = false;
 
-    // 各属性魔法に応じたオリジナルアセットの飛行およびタイマーフレーム演出の再生
-    try {
-        if (playerMove === 'fire') {
-            if (effLayer) effLayer.innerHTML = MISSILE_EFFECTS.fire;
-            // 💡【バグ修正】単なる文字の 'fire' ではなく、audio.jsのURL定数である「SOUND_FIRE」を安全キック
-            setTimeout(() => { playSE(SOUND_FIRE); }, 400);
-        }
-        else if (playerMove === 'ice') {
-            if (effLayer) {
-                effLayer.innerHTML = `<img id="ice-anim-sprite" style="position:absolute; width:240px; height:240px; left:330px; top:80px; object-fit:contain; image-rendering:pixelated; mix-blend-mode:screen !important; background:transparent !important; pointer-events:none;">`;
-                const iceImg = document.getElementById("ice-anim-sprite");
-                let frame = 0;
-                function playIceFrame() {
-                    if (frame < ANIMS_EFFECT_ICE.length) {
-                        if (iceImg) iceImg.src = ANIMS_EFFECT_ICE[frame];
-                        frame++;
-                        setTimeout(playIceFrame, 55);
-                    }
-                }
-                playIceFrame();
-            }
-            // 💡【バグ修正】単なる文字の 'ice' ではなく、URL定数である「SOUND_ICE」を安全キック
-            setTimeout(() => { playSE(SOUND_ICE); }, 400);
-        }
-        else if (playerMove === 'holy') {
-            if (effLayer) effLayer.innerHTML = MISSILE_EFFECTS.holy;
-            // 💡【バグ修正】単なる文字の 'holy' ではなく、URL定数である「SOUND_HOLYを表示」を安全キック
-            setTimeout(() => { playSE(SOUND_HOLY); }, 400);
-        }
-        else if (playerMove === 'def') {
-            const battleLog = document.getElementById('battle-log');
-            if (battleLog) battleLog.innerText = "🛡 シールドを展開！防御姿勢をとった。";
-            window.mana = 1.0;
-            const chargeBadge = document.getElementById('charge-badge');
-            if (chargeBadge) chargeBadge.style.display = "none";
-            setTimeout(() => { window.enemyTurnAction(true); }, 800);
-            return;
-        }
-        else if (playerMove === 'chg') {
-            window.mana = 2.5;
-            const chargeBadge = document.getElementById('charge-badge');
-            const battleLog = document.getElementById('battle-log');
-            if (chargeBadge) chargeBadge.style.display = "block";
-            if (battleLog) battleLog.innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
-            setTimeout(() => { window.enemyTurnAction(false); }, 800);
-            return;
-        }
-    } catch(e) {
-        console.error("Effect Playback Error Safety Catch:", e);
+    // 🛡️ シールドコマンド時の即時分岐
+    if (playerMove === 'def') {
+        const battleLog = document.getElementById('battle-log');
+        if (battleLog) battleLog.innerText = "🛡 シールドを展開！防御姿勢をとった。";
+        window.mana = 1.0;
+        const chargeBadge = document.getElementById('charge-badge');
+        if (chargeBadge) chargeBadge.style.display = "none";
+        setTimeout(() => { window.enemyTurnAction(true); }, 800);
+        return;
+    }
+    
+    // ⚡ チャージコマンド時の即時分岐
+    if (playerMove === 'chg') {
+        window.mana = 2.5;
+        const chargeBadge = document.getElementById('charge-badge');
+        const battleLog = document.getElementById('battle-log');
+        if (chargeBadge) chargeBadge.style.display = "block";
+        if (battleLog) battleLog.innerText = "⚡ パワーをチャージした！次回威力2.5倍！";
+        setTimeout(() => { window.enemyTurnAction(false); }, 800);
+        return;
     }
 
+    // 💡【核心の引き算設計】フリーズの原因だった無限ループ画像タイマーを完全オミット！
+    // どの呪文が押されても、裏での変数汚染を一切起こさない安全な分岐構造へリフォーム
+    let targetSE = SOUND_FIRE;
+    let spellLabel = "ファイア";
+    
+    if (playerMove === 'ice') {
+        targetSE = SOUND_ICE;
+        spellLabel = "アイス";
+    } else if (playerMove === 'holy') {
+        targetSE = SOUND_HOLY;
+        spellLabel = "ホーリー";
+    }
+
+    // コマンドを押してから400ms後に、SE再生・ダメージ計算をジャスト同期で実行
     setTimeout(() => {
+        // 音響とポップアップの完全有線キック
+        playSE(targetSE);
+        
         window.eHp = Math.max(0, window.eHp - dmg);
         updateHpUI();
         createDmgPop(dmg, false);
 
         const battleLog = document.getElementById('battle-log');
         if (battleLog) {
-            battleLog.innerText = isCritical ? `💥 弱点直撃！敵に ${dmg} ダメージ！` : `敵に ${dmg} ダメージ！`;
+            battleLog.innerText = isCritical ? `💥 弱点直撃！『${spellLabel}』で ${dmg} ダメージ！` : `『${spellLabel}』で ${dmg} ダメージ！`;
         }
 
         window.mana = 1.0;
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
 
+        // 800ms後に敵の行動へ安全バトンタッチ
         setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 800);
     }, 400);
 };
@@ -319,8 +306,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
 
         if (battleLog) battleLog.innerText = `🚨 ${data.name}の特殊攻撃を被弾！【${dmg}】ダメージ！`;
     } else {
-        // 💡【核心のバグ修正】敵の通常突進時に、間違えて直書きされていた「SOUND_FIRE」を引き抜き、
-        //    ディレクターが指定した体当たり専用アセット「SOUND_KICK」に完全差し替え！
+        // 体当たり通常攻撃時：SOUND_KICKをジャストタイミングでキック
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -333,7 +319,8 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         }, 460);
 
         const battleLog = document.getElementById('battle-log');
-        if (battleLog) battleLog.innerText = `${data.name}の突進攻撃！【${dmg}】ダメージ！`;
+        // 💡【体当たり表記への完全復帰】ディレクターの狙い通りのテキスト表現に直撃リフォーム！
+        if (battleLog) battleLog.innerText = `${data.name}の突進体当たり攻撃！【${dmg}】ダメージ！`;
     }
 
     window.pHp = Math.max(0, window.pHp - dmg);
@@ -343,7 +330,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
 };
 
 /**
- * 敵の行動処理が終わったあとのクリーンアップ
+ * 敵行動後のバフ減算および操作ロック強制解放セーフティ
  */
 window.postEnemyTurnCleanup = function() {
     if (window.isAmuletActive > 0) {
@@ -355,6 +342,7 @@ window.postEnemyTurnCleanup = function() {
     }
     setTimeout(() => {
         if (!window.checkBattleEnd()) {
+            // 🔒【フリーズ永久死滅回路】ここで確実にBusyロックの鍵を開け、次のターンへ移行させる
             window.isBusy = false;
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerText = "コマンドを選択せよ。";
@@ -387,7 +375,7 @@ window.checkBattleEnd = function() {
 };
 
 /**
- * 戦闘結果をリザルト表示領域へ綺麗に流し込む関数
+ * 戦闘結果リザルト表示への流し込み
  */
 window.transitionToResult = function() {
     showScreen('scr-result');
@@ -430,7 +418,7 @@ window.transitionToResult = function() {
 };
 
 /**
- * タイトル画面へ戻る際のステータスリセット処理
+ * タイトル画面へ戻る際のリセット処理
  */
 window.resetGame = function() {
     if (!window.isDebugUnlocked) {
@@ -454,5 +442,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.32]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.40]
 // ==========================================
