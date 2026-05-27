@@ -1,5 +1,5 @@
 // ==========================================
-// 📺 1. 画面表示切り替え・UI制御ロジック（バグ完全修正版）
+// 📺 1. 画面表示切り替え・UI制御ロジック（シンプル超軽量版）
 // ==========================================
 
 /**
@@ -34,64 +34,56 @@ function updateHpUI() {
 }
 
 /**
- * 💡【バグ完全根絶システム】
- * createElementを一切使わず、かつ敵味方の「上書き衝突」と「位置あべこべ」を
- * 2台の独立した看板（レイヤー）に分けることで100%完治させる超軽量演出関数
+ * 🎯【超シンプル・ダメージポップアップ有線回路】
+ * 外部DOMをいじらず、受けたキャラクターの画像枠（コンテナ）の真上に
+ * 専用の使い回し看板をピンポイント配置し、点灯・消灯させるバグゼロ設計
  */
 function createDmgPop(dmg, isPlayer) {
-    // 1. 本来のHTMLにある「敵の目の前(dmg-layer)」を敵用、
-    //    もし無い時のための安全弁や味方用としてプレイヤーコンテナ内に即席の軽量看板を共有します
-    const enemyLayer = document.getElementById("dmg-layer");
-    const playerContainer = document.getElementById("p-sprite-container");
+    // 1. 各キャラクターを包むHTML側の「本物のコンテナ箱」を直撃取得
+    const pContainer = document.getElementById("p-sprite-container");
+    const eContainer = document.getElementById("e-sprite-container");
     
-    // 味方用の軽量テキスト看板がなければ、p-sprite-containerの内部に1つだけ固定で用意（使い回し型）
-    if (!window._playerDmgLayer && playerContainer) {
-        window._playerDmgLayer = document.createElement("div");
-        window._playerDmgLayer.style.position = "absolute";
-        window._playerDmgLayer.style.left = "40px";
-        window._playerDmgLayer.style.top = "-40px"; // キャラクターの頭上に配置
-        window._playerDmgLayer.style.pointerEvents = "none";
-        playerContainer.appendChild(window._playerDmgLayer);
+    // 2. 主人公被弾か敵被弾かによって、処理する親コンテナを完全に分離
+    // ※battle.jsの定義：isPlayer=true(主人公被弾) / isPlayer=false(敵被弾)
+    const targetContainer = isPlayer ? pContainer : eContainer;
+    const timeoutKey = isPlayer ? "_pPopTimeout" : "_ePopTimeout";
+    const layerKey = isPlayer ? "_pDmgLabel" : "_eDmgLabel";
+
+    if (!targetContainer) return;
+
+    // 3. そのキャラクター専用の文字入れ看板がコンテナ内に無ければ、初回のみ1個だけ固定設置（使い回し型）
+    if (!window[layerKey]) {
+        window[layerKey] = document.createElement("div");
+        window[layerKey].style.position = "absolute";
+        window[layerKey].style.fontWeight = "900";
+        window[layerKey].style.textShadow = "3px 3px 0 #000";
+        window[layerKey].style.zIndex = "999";
+        window[layerKey].style.pointerEvents = "none";
+        
+        // 複雑なトランスフォーム移動を廃止し、キャラクターの頭上中央にシンプル配置
+        window[layerKey].style.width = "100%";
+        window[layerKey].style.textAlign = "center";
+        window[layerKey].style.top = isPlayer ? "-30px" : "-10px"; // 主人公と敵のサイズ感に合わせた高さ調整
+        
+        targetContainer.appendChild(window[layerKey]);
     }
 
-    // 2. battle.jsからの「isPlayer」の定義に基づき、動かす看板(ターゲット)を完全に分離
-    // ※battle.jsの仕様上、isPlayer=trueは「敵のターン(プレイヤー被弾)」、isPlayer=falseは「プレイヤーのターン(敵被弾)」
-    const currentLayer = isPlayer ? window._playerDmgLayer : enemyLayer;
-    const currentTimeoutKey = isPlayer ? "_pDmgTimeout" : "_eDmgTimeout";
+    const currentLayer = window[layerKey];
 
-    if (!currentLayer) return;
+    // 4. 連打やカウンター時のタイマー衝突を防ぐため、そのキャラクターの古い消去タイマーを即座にリセット
+    if (window[timeoutKey]) clearTimeout(window[timeoutKey]);
 
-    // 既存のそのキャラクター用のタイマーがあれば即座にクリア（連打時の上書き不発を防止）
-    if (window[currentTimeoutKey]) clearTimeout(window[currentTimeoutKey]);
-
-    // 3. 看板のデザイン・文字を瞬時に書き換え
-    currentLayer.innerText = dmg;
-    currentLayer.style.fontSize = "3.2rem";
-    currentLayer.style.fontWeight = "900";
-    currentLayer.style.textShadow = "3px 3px 0 #000";
-    currentLayer.style.color = isPlayer ? "#ef4444" : "#ffffff"; // プレイヤー被弾は赤、敵被弾は白
-    currentLayer.style.zIndex = "99";
+    // 5. 看板に数字と色を流し込み、一瞬で最優先点灯
+    currentLayer.innerText = isPlayer ? `-${dmg}` : dmg; // 主人公は引き算表記、敵はそのまま表記
+    currentLayer.style.fontSize = isPlayer ? "3.2rem" : "3.6rem"; // 敵側をやや大きくして視認性アップ
+    currentLayer.style.color = isPlayer ? "#ef4444" : "#ffffff"; // 主人公は赤、敵は白
     currentLayer.style.opacity = "1";
-    currentLayer.style.transition = "none";
-    currentLayer.style.transform = "scale(0.5) translateY(20px)";
+    currentLayer.style.display = "block";
 
-    // HTML側のdmg-layerが持つ可能性のある強制座標を、バグが起きないよう上書きリセット
-    if (!isPlayer) {
-        currentLayer.style.position = "absolute";
-        currentLayer.style.left = "340px"; // 敵の目の前の正しい位置に固定
-        currentLayer.style.top = "120px";
-    }
-
-    // 4. なめらかなバウンドアニメーションをキック
-    requestAnimationFrame(() => {
-        currentLayer.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease-in 0.4s";
-        currentLayer.style.transform = "scale(1.1) translateY(-10px)";
-    });
-
-    // 5. 完全に演出が終わるまでじっくり表示（800ms）したあと、すっと透明にする
-    window[currentTimeoutKey] = setTimeout(() => {
+    // 6. じっくり800ミリ秒（0.8秒）表示させたあと、パッと消灯するタイマーをセット
+    window[timeoutKey] = setTimeout(() => {
         currentLayer.style.opacity = "0";
-        currentLayer.style.transform = "scale(0.8) translateY(-30px)";
+        currentLayer.style.display = "none";
     }, 800);
 }
 
