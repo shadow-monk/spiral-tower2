@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.01: 構文エラー完全修復 ＆ 戦闘テンポ正常化統合版。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 7.02: 外部連携維持 ＆ 内部フラグ・プレイヤーパス完全防衛版。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -12,7 +12,7 @@ window.pHp = 100;
 window.eHp = 100;
 window.eMaxHp = 100;
 window.mana = 1.0;
-window.isBusy = false;
+window.isBusy = false; // 🔒 操作ロックフラグ
 
 // ステータスフラグ管理
 window.enemyMana = 1.0;
@@ -77,12 +77,13 @@ window.nextStage = function() {
 window.startBattle = function() {
     const data = STAGES[window.curIdx];
     
-    window.eHp = window.eMaxHp = data.hp;
-    window.isBusy = false;
+    // 🛡️ 【防衛網】試合開始の瞬間に、前回の戦闘の全ロック・タイマーを強制的に引き算・初期化
+    window.isBusy = false; 
     window.isPlayerStunned = false;
     window.isAmuletActive = 0;
     window.enemyMana = 1.0;
     window.isEnemyShieldActive = false;
+    window.eHp = window.eMaxHp = data.hp;
 
     // 前の試合の魔法タイマーの残像を完全抹殺
     if (window._activeMagicTimeout) {
@@ -97,9 +98,15 @@ window.startBattle = function() {
         eContainer.style.background = "none";
     }
 
+    // 🛡️ 【パスローカル化】外部GitHubへの通信依存を排除し、安全なローカル相対パスへ変更
     const pGraphic = document.getElementById('p-sprite-graphic');
     if (pGraphic) {
-        pGraphic.src = 'https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/enemies/player/player_wizard.png';
+        let pLocalPath = 'assets/enemies/player/player_wizard.png';
+        if (typeof window.getAssetPath === 'function') {
+            pGraphic.src = window.getAssetPath(pLocalPath);
+        } else {
+            pGraphic.src = pLocalPath;
+        }
     }
 
     const itemBadge = document.getElementById('item-badge');
@@ -118,6 +125,7 @@ window.startBattle = function() {
 
     showScreen('scr-battle');
 
+    // 🟢 外部ファイル（enemies.js）との連結窓口は100%完全維持
     if (typeof startCustomAnimation === 'function') {
         startCustomAnimation(data.type);
     }
@@ -186,23 +194,22 @@ window.turn = function(playerMove) {
         if (battleLog) battleLog.innerText = "🚨 麻痺して動けない！";
         
         setTimeout(() => {
-            window.isBusy = false;
+            window.isBusy = false; // 麻痺時も確実にロック解除
             window.enemyTurnAction();
         }, 1000);
         return;
     }
 
-    // ☠️【デスコード予備用窓口（修正完了）】
+    // ☠️【デスコード予備用窓口】
     if (playerMove === 'debug_death') {
         window.eHp = 0;
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "☠ デスコード起動。";
         
-        // 1200msの猶予を確実に処理
         setTimeout(() => {
             window.checkBattleEnd();
-        }, 1200);
+        }, 1200); // 1.2秒の余韻
         return;
     }
 
@@ -265,8 +272,8 @@ window.turn = function(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "none";
 
         window._activeMagicTimeout = null;
-        setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 1400);
-    }, 600);
+        setTimeout(() => { if (!window.checkBattleEnd()) window.enemyTurnAction(); }, 1400); // 1.4秒の余韻
+    }, 600); // 0.6秒のタメ
 };
 
 // ==========================================
@@ -362,7 +369,7 @@ window.postEnemyTurnCleanup = function() {
     }
     setTimeout(() => {
         if (!window.checkBattleEnd()) {
-            window.isBusy = false;
+            window.isBusy = false; // ここで通常操作ロックを解放
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerText = "コマンドを選択せよ。";
         }
@@ -384,10 +391,9 @@ window.checkBattleEnd = function() {
                 eContainer.style.opacity = "0";
                 eContainer.style.transform = "scale(0.5)";
             }
-            setTimeout(() => { window.transitionToResult(); }, 1400);
+            setTimeout(() => { window.transitionToResult(); }, 1400); // 1.4秒の余韻
         } else {
-            // プレイヤー敗北時も確実に対応
-            window.transitionToResult();
+            window.transitionToResult(); // 敗北時は即時
         }
         return true;
     }
@@ -434,13 +440,16 @@ window.transitionToResult = function() {
         if (rBtn) rBtn.innerText = "タイトルへ戻る";
         window.curIdx = -1;
     }
-    window.isBusy = false;
+    window.isBusy = false; // 🛡️ 【防衛網】次の周回やタイトルでの操作ロックを完全解除
 };
 
 /**
  * タイトル画面へ戻る際のリセット処理
  */
 window.resetGame = function() {
+    // 🛡️ 【防衛網】ゲームリセット時にも強制的に操作ロックを完全剥離
+    window.isBusy = false; 
+    
     if (!window.isDebugUnlocked) {
         window.pMaxHp = 100;
         window.pHp = 100;
@@ -450,7 +459,6 @@ window.resetGame = function() {
     }
     window.mana = 1.0;
     window.curIdx = -1;
-    window.isBusy = false;
     window.itemInventory = { potion: 1, amulet: 1 };
     window.isAmuletActive = 0;
 
@@ -467,5 +475,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 7.01]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 7.02]
 // ==========================================
