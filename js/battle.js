@@ -127,13 +127,19 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-    // 🎨【Glow新演出の復旧・統合】
-    // stages.jsから読み込んだカラーデータを、戦闘画面の背景とネオンシャドウへ同期反映！
-    if (effScr && data.glow) {
-        effScr.style.backgroundColor = data.floor === 10 ? '#0f172a' : 'rgba(15, 23, 42, 0.85)';
-        effScr.style.boxShadow = `inset 0 0 40px ${data.glow}, 0 0 20px ${data.glow}`;
-        effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#4f46e5';
+if (typeof checkDevPassword === 'function') {
+        checkDevPassword();
     }
+
+    // 🎨【Glow新演出の復旧・統合】
+    // 内側の曇り（inset）を排除し、外側の枠線だけがシュッと綺麗にネオン発光する仕様へスマート化
+    if (effScr && data.glow) {
+        effScr.style.backgroundColor = '#0f172a'; // 背景の真っ黒を維持してクッキリさせる
+        effScr.style.boxShadow = `0 0 12px ${data.glow}`; // 枠線の外側だけを上品に発光
+        effScr.style.borderColor = data.floor === 10 ? '#be123c' : data.glow; // 枠線そのものの色も敵のオーラ色に同期！
+    }
+
+    const battleLog = document.getElementById('battle-log');
 
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
