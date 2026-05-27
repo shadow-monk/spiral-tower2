@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.70: デバッグ暴走正常化 ＆ コマンドフリーズ沼完全撲滅版がリリースされました。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 6.80: 操作ロックフリーズ・デバッグデス沈黙を100%完全撲滅しました。", "color: #00ff00; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -95,14 +95,12 @@ window.startBattle = function() {
         eContainer.style.opacity = "1";
         eContainer.style.transform = "scale(1)";
         
-        // 🎨【背面オーラ同期】敵が現れる瞬間に、
-        // データベースから取得した属性カラー（data.glow）で敵の真後ろだけを美しい後光で染める
+        // 🎨【超軽量背面オーラ】変形計算（borderRadius）を排除し、
+        // 四角いコンテナの背景に円形グラデーションだけを描画して高負荷を100%カット！
         if (data.glow) {
             eContainer.style.background = `radial-gradient(circle, ${data.glow} 0%, rgba(15,23,42,0) 70%)`;
-            eContainer.style.borderRadius = "50%"; // オーラを綺麗な真ん丸に成形
         } else {
             eContainer.style.background = "none";
-            eContainer.style.borderRadius = "0";
         }
     }
 
@@ -131,8 +129,6 @@ window.startBattle = function() {
         startCustomAnimation(data.type);
     }
     
-    // 🛡️【①デバッグ正常化ガード策】
-    // ui.jsが読み込まれる前に外部デバッグからここが叩かれてクラッシュ・混線するのを100%防ぐ防波堤
     if (typeof updateHpUI === 'function') {
         updateHpUI();
     }
@@ -141,9 +137,8 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-    // 🎨【Glow演出：理想のキャラクター背面オーラ仕様の土台】
     if (effScr) {
-        effScr.style.backgroundColor = '#0f172a'; // 画面全体はクリアでクッキリした漆黒を100%維持
+        effScr.style.backgroundColor = '#0f172a'; // 画面全体はクリアでクッキリした漆黒
         effScr.style.boxShadow = 'none';           // 画面全体の曇りを完全にシャットアウト
         effScr.style.borderColor = data.floor === 10 ? '#be123c' : '#334155'; // 10階ボスのみ赤、他は通常枠線
     }
@@ -189,37 +184,38 @@ window.turn = function(playerMove) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0) return;
     window.isBusy = true;
 
-    // 🔒【連打・混線ガード】もし前ターンの未爆発タイマーが残っていたら、その場で破棄して上書き汚染を完全遮断！
+    // 🔒【連打ガード】もし前ターンの未爆発タイマーが残っていたら、その場で破棄して上書き汚染を完全遮断！
     if (window._activeMagicTimeout) {
         clearTimeout(window._activeMagicTimeout);
     }
 
-    // 🛡️【②フリーズ対策：麻痺ルートのロック解除漏れ撲滅】
-    // 麻痺行動不能インターセプト時に、window.isBusy を解除しないまま敵に進んでいた致命的バグを完治
+    // 🛡️【フリーズ対策：麻痺ルートのロック解除漏れ撲滅】
     if (window.isPlayerStunned) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "🚨 麻痺して動けない！";
         
         setTimeout(() => {
-            window.isBusy = false; // 敵ターンへ渡る前に、プレイヤーの入力権フラグを一度正常に解放する
+            window.isBusy = false; // 敵にバトンを渡す前に、一度操作ロックを正常に解除する
             window.enemyTurnAction();
         }, 1000);
         return;
     }
 
-    const data = STAGES[window.curIdx];
-    let isCritical = (playerMove === data.weak);
-
-    // デスコード（デバッグワンパン窓口の保護強化）
+    // ☠️【デスコード完全正常化】
+    // デスを押した瞬間に、かかってしまっていた「window.isBusy = true」の呪いをその場で即時解除！
     if (playerMove === 'debug_death') {
         window.eHp = 0;
+        window.isBusy = false; // 👈 ロックをその場で強制解放！！これでリザルトへ100%遷移します！
         if (typeof updateHpUI === 'function') updateHpUI();
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerText = "☠ デスコード起動。";
         setTimeout(window.checkBattleEnd, 500);
         return;
     }
+
+    const data = STAGES[window.curIdx];
+    let isCritical = (playerMove === data.weak);
 
     // 威力計算
     let dmg = Math.floor((playerMove === 'holy' ? 35 : 15) * (isCritical ? 2.2 : 1) * window.mana);
@@ -332,7 +328,7 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         createDmgPop(dmg, true);
         window.postEnemyTurnCleanup();
     } else {
-        // 敵の体当たり通常攻撃音：SOUND_KICKがジャスト連動
+        // 敵の体当たり通常攻撃音
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
 
         const eContainer = document.getElementById('e-sprite-container');
@@ -351,8 +347,8 @@ window.enemyTurnAction = function(isPlayerDefending = false) {
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
         
-        // 🛡️【②フリーズ対策：通常攻撃ルートのロック解除漏れ撲滅】
-        // 通常攻撃（突進体当たり）を喰らった直後に postEnemyTurnCleanup が呼ばれず、isBusy が true で固まるバグを完全粉砕！
+        // 🛡️【フリーズ対策：通常攻撃ルートのロック解除漏れ撲滅】
+        // 通常体当たりを喰らった直後に、きっちり操作ロックを解放する防衛網を結合！
         window.postEnemyTurnCleanup();
     }
 };
@@ -461,11 +457,10 @@ window.resetGame = function() {
     window.itemInventory = { potion: 1, amulet: 1 };
     window.isAmuletActive = 0;
 
-    // 🎨【オーラ完全消灯】タイトルへ戻る際、敵キャラクターコンテナの背面を完全にリセット
+    // 🎨【オーラ消灯】タイトルへ戻る際、背面オーラをリセット
     const cleanContainer = document.getElementById('e-sprite-container');
     if (cleanContainer) {
         cleanContainer.style.background = "none";
-        cleanContainer.style.borderRadius = "0";
     }
 
     const battleLog = document.getElementById('battle-log');
@@ -476,5 +471,5 @@ window.resetGame = function() {
 };
 
 // ==========================================
-// 🕒 📦 END OF FILE - js/battle.js [Ver 6.70]
+// 🕒 📦 END OF FILE - js/battle.js [Ver 6.80]
 // ==========================================
