@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
 /* ==========================================================================
-   👹 1. 10大魔物・画像不要 【クリックバリア完全破砕版】演出大要塞 (Ver 1.35)
+   👹 1. 10大魔物・画像不要 【クリックバリア完全破砕版】演出大要塞 (Ver 1.45)
    ========================================================================== */
 
 /* ─── 🛡️ 全体共通：戦闘画面（eff-scr）の背景白化＆クリックガード破壊 ─── */
@@ -11,7 +11,7 @@
     pointer-events: none; /* 下のコマンドボタンへ100%クリックを貫通させる */
 }
 
-/* 🟡 1階：ヘドロスライム 常時マスタードイエロー固定化（JSのインライン付与と完全同期結合！） */
+/* 🟡 1階：ヘドロスライム 常時マスタードイエロー固定化 */
 .anim-slime-yellow #e-sprite-container,
 #e-sprite-container.anim-slime-yellow {
     filter: hue-rotate(65deg) saturate(2.5) brightness(1.2) !important;
@@ -20,7 +20,7 @@
     content: ""; position: absolute; width: 35px; height: 35px;
     background: radial-gradient(circle, #facc15 30%, #eab308 80%, transparent);
     border-radius: 50%; filter: drop-shadow(0 0 15px #facc15); z-index: 50;
-    pointer-events: none; /* クリック泥棒を永久に禁止 */
+    pointer-events: none;
     animation: flyYellowAcidBlob 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 @keyframes flyYellowAcidBlob {
@@ -254,18 +254,14 @@
 }
 
 /* ==========================================================================
-   🎬 3. クリティカル・カットイン ＆ 【白化侵食完全粉砕】下部統治大結界
+   📺 3. 【きつきつ完全解消】 下部コマンドエリア・スクロールグリッド構造
    ========================================================================== */
-
-/* 🎮 下部コマンドエリアの親玉（白の裏写り侵食を100%力技で上書き遮断！） */
 #cmd-panel {
-    background-color: #020617 !important; /* 親の白を永久に侵入禁止にする漆黒の魔導壁 */
-    background: #020617 !important;
+    background-color: #020617 !important;
     opacity: 1 !important;
     border-top: 4px solid #1e293b !important;
 }
 
-/* A面・B面のトグルコンテナも不透明度を100%に固定して白化を粉砕 */
 #panel-main-mode, 
 #panel-magic-mode, 
 #item-bag-panel {
@@ -273,40 +269,43 @@
     opacity: 1 !important;
 }
 
-/* 各コマンドボタン自体の視視性をパキッと限界まで引き上げる濃い顔料焼き付け */
 .btn-magic-main { background: linear-gradient(180deg, #4f46e5, #3730a3) !important; border-color: #818cf8 !important; opacity: 1 !important; color: #fff !important; }
 .btn-charge-main { background: linear-gradient(180deg, #7e22ce, #581c87) !important; border-color: #c084fc !important; opacity: 1 !important; color: #fff !important; }
 .btn-item-main { background: linear-gradient(180deg, #d97706, #92400e) !important; border-color: #fbbf24 !important; opacity: 1 !important; color: #fff !important; }
 
-/* 🔮 カバン（B面）の中身も白写りを完全排除してパキッと整列 */
-.bag-overlay {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: #020617 !important; /* 深海の漆黒不透明 */
-    z-index: 500;
-    display: none;
+/* 🔮 カバン（B面・C面共通）内のボタンをスマートに引き算し、パツパツ感を100%解消 */
+#panel-magic-mode button,
+#item-bag-panel button {
+    padding: 8px 2px !important; /* 👈 14pxから8pxへ大幅削減。ボタン高を圧縮 */
+    font-size: 0.9rem !important; /* 文字が綺麗に1行で収まるように微細調整 */
+    height: auto !important;
+    min-height: 38px !important;
 }
-.bag-content {
-    width: 90%;
-    background: #1e293b !important;
-    border: 3px double #475569 !important;
-    opacity: 1 !important;
-}
-.btn-bag-action { opacity: 1 !important; color: #ffffff !important; }
-.btn-fire { background: linear-gradient(180deg, #b91c1c, #7f1d1d) !important; border-color: #f87171 !important; }
-.btn-ice { background: linear-gradient(180deg, #0369a1, #0c4a6e) !important; border-color: #7dd3fc !important; }
-.btn-holy { background: linear-gradient(180deg, #a16207, #713f12) !important; border-color: #fef08a !important; }
-.btn-def { background: linear-gradient(180deg, #047857, #064e3b) !important; border-color: #6ee7b7 !important; }
-.btn-bag-close { background: #475569 !important; opacity: 1 !important; }
 
-/* ⚡ 新・クリティカルヒット！！特攻スライドバー（🛡️キャラを隠さない上部安全圏 top:15px へ完全退避！） */
+/* 色調調整 */
+#panel-magic-mode button[onclick*="fire"] { background: linear-gradient(180deg, #b91c1c, #7f1d1d) !important; border-color: #f87171 !important; }
+#panel-magic-mode button[onclick*="ice"] { background: linear-gradient(180deg, #0369a1, #0c4a6e) !important; border-color: #7dd3fc !important; }
+#panel-magic-mode button[onclick*="holy"] { background: linear-gradient(180deg, #a16207, #713f12) !important; border-color: #fef08a !important; }
+#panel-magic-mode button[onclick*="def"] { background: linear-gradient(180deg, #047857, #064e3b) !important; border-color: #6ee7b7 !important; }
+
+/* 行動選択に戻るボタン */
+#panel-magic-mode button[onclick*="closeMagicBag"],
+#item-bag-panel button[onclick*="closeItemBag"] {
+    width: 100% !important;
+    height: 36px !important;
+    padding: 4px 0 !important;
+    background: #475569 !important;
+    color: white !important;
+    font-size: 0.95rem !important;
+}
+
+/* ⚡ 新・クリティカルヒット！！特攻スライドバー（🛡️前ターンFIXの top:15px を完全厳守！） */
 #cutin-bar {
     position: absolute;
     width: 100%;
     height: 48px;
     background: linear-gradient(90deg, transparent, #b45309 15%, #ef4444 50%, #b45309 85%, transparent) !important;
-    top: 15px !important; /* 👈 ド真ん中からHPバーすぐ下の15pxへ緊急退避！ */
+    top: 15px !important; /* 👈 すでにFIXしている上部安全配置を100%維持 */
     left: 0;
     z-index: 999 !important;
     display: none; 
@@ -323,7 +322,6 @@
     100% { transform: scaleY(1) skewX(-15deg); opacity: 1; }
 }
 
-/* カットインテキスト脈動 */
 .cutin-text {
     color: #ffffff !important;
     font-size: 1.3rem !important;
