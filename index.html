@@ -26,7 +26,7 @@
                         ある地域の周辺の街から民が掻き消え、不穏な静寂が訪れた。しばらくして、霧の中から姿を現した──禍々しき螺旋の古塔。凶悪な魔物どもが巣くう、その終わらぬスパイラルタワーへと潜入し、最上階の闇を討て。
                     </p>
                 </div>
-                <button onclick="nextStage();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3); box-shadow:box-sizing:border-box;">塔へ侵入する</button>
+                <button onclick="nextStage();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3); box-sizing:border-box;">塔へ侵入する</button>
             </div>
 
             <div id="scr-intro" style="display:none; padding:20px 10px; width:100%; box-sizing:border-box;">
@@ -58,8 +58,22 @@
                 </div>
 
                 <div id="eff-scr" style="background-color:#0f172a; border:4px solid #334155; border-radius:24px 24px 0 0; height:350px; width:100%; position:relative; overflow:hidden; box-sizing:border-box !important;">
-                    <div id="cutin-bar" style="position:absolute; width:100%; height:80px; background:linear-gradient(90deg, #4f46e5, #f43f5e); top:130px; left:0; z-index:40; display:none; align-items:center; justify-content:center; box-shadow:0 0 20px #facc15;">
-                         <div style="color:white; font-size:1.8rem; font-weight:900; text-shadow:2px 2px 0 #000;">🧙‍♂️ 一撃必殺！クリティカルアタック！！</div>
+                    
+                    <div id="cutin-bar">
+                         <div class="cutin-text">🧙‍♂️ WEAKNESS CRITICAL!!</div>
+                    </div>
+
+                    <div id="magic-bag-panel" class="bag-overlay">
+                        <div class="bag-content">
+                            <h3 class="bag-title">🔮 詠唱する魔導呪文を選択</h3>
+                            <div class="bag-grid">
+                                <button class="btn-bag-action btn-fire" onclick="turn('fire')">🔥 ファイア</button>
+                                <button class="btn-bag-action btn-ice" onclick="turn('ice')">❄️ アイス</button>
+                                <button class="btn-bag-action btn-holy" onclick="turn('holy')">✨ ホーリー</button>
+                                <button class="btn-bag-action btn-def" onclick="turn('def')">🛡️ シールド</button>
+                            </div>
+                            <button class="btn-bag-close" onclick="closeMagicBag()">✕ 行動選択に戻る</button>
+                        </div>
                     </div>
                     
                     <div id="icon-stage" style="display:flex; justify-content:space-around; align-items:center; width:100%; height:100%; box-sizing:border-box !important; padding:0 15px;">
@@ -79,15 +93,12 @@
                 <div id="battle-log" style="background:rgba(15,23,42,0.98); color:#ffffff; font-size:1.2rem; font-weight:800; padding:15px; border-radius:0 0 24px 24px; border:4px solid #4f46e5; border-top:none; min-height:90px; box-sizing:border-box; text-align:left; width:100%;">コマンドを選択せよ。</div>
 
                 <div id="cmd-panel" style="margin-top:15px; width:100%; box-sizing:border-box;">
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px; width:100%;">
-                        <button onclick="turn('fire')" style="background:linear-gradient(135deg,#e11d48,#f43f5e); color:white; border:none; border-radius:12px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🔥 ファイア</button>
-                        <button onclick="turn('ice')" style="background:linear-gradient(135deg,#0284c7,#38bdf8); color:white; border:none; border-radius:12px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">❄️ アイス</button>
-                        <button onclick="turn('holy')" style="background:linear-gradient(135deg,#ca8a04,#facc15); color:white; border:none; border-radius:12px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">✨ ホーリー</button>
+                    <div style="display:grid; grid-template-columns: 1fr; gap: 10px; width:100%; margin-bottom: 8px;">
+                        <button onclick="openMagicBag()" class="btn-main btn-magic-main" style="width:100%; height:64px; color:white; border:none; border-radius:14px; font-size:1.3rem; font-weight:900; cursor:pointer;">🔮 呪文を詠唱する</button>
                     </div>
-                    <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width:100%;">
-                        <button onclick="turn('def')" style="background:linear-gradient(135deg,#059669,#10b981); color:white; border:none; border-radius:12px; padding:12px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🛡️ シールド</button>
-                        <button onclick="turn('chg')" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:12px; padding:12px 2px; font-size:1rem; font-weight:900; cursor:pointer;">⚡ チャージ</button>
-                        <button onclick="openItemBag()" style="background:linear-gradient(135deg,#d97706,#f59e0b); color:white; border:none; border-radius:12px; padding:12px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🎒 アイテム</button>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px; width:100%;">
+                        <button onclick="turn('chg')" class="btn-main btn-charge-main" style="height:58px; color:white; border:none; border-radius:12px; font-size:1.1rem; font-weight:900; cursor:pointer;">⚡ 魔力集中（チャージ）</button>
+                        <button onclick="openItemBag()" class="btn-main btn-item-main" style="height:58px; color:white; border:none; border-radius:12px; font-size:1.1rem; font-weight:900; cursor:pointer;">🎒 アイテム</button>
                     </div>
                     
                     <div id="item-bag-panel" style="display:none; background:#1e293b; border:3px solid #d97706; border-radius:12px; margin-top:8px; padding:10px; justify-content:space-around; gap:5px; width:100%; box-sizing:border-box;">
@@ -109,16 +120,17 @@
         </div>
     </div>
 
-  <div id="dev-console-window" style="margin-top:25px; width:100%; background:#0b0f19; border:2px solid #334155; border-radius:16px; padding:15px; text-align:left; box-sizing:border-box;">
+    <div id="dev-console-window" style="margin-top:25px; width:100%; background:#0b0f19; border:2px solid #334155; border-radius:16px; padding:15px; text-align:left; box-sizing:border-box;">
         <div style="font-size:0.9rem; font-weight:800; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between;">
             <span>🔧 開発者コンソール (PW「1192」)</span>
             <span id="dev-status-badge" style="color:#ef4444; font-weight:900;">LOCKED</span>
         </div>
         <input type="password" id="dev-password-input" oninput="checkDevPassword()" placeholder="PASSWORDを入力..." style="width:100%; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; outline:none;">
     </div>  
+    
     <div style="width:100%; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold; padding:0 5px;">
-        <span>改訂 V6.50（0553）</span>
-        <span>Update: 2026.05.27 18:15:00</span>
+        <span>改訂 V8.00（0605）</span>
+        <span>Update: 2026.05.28 06:05:00</span>
     </div>
 
 <script src="js/stages.js?v=05271817"></script>
