@@ -127,10 +127,6 @@ window.startBattle = function() {
         checkDevPassword();
     }
 
-if (typeof checkDevPassword === 'function') {
-        checkDevPassword();
-    }
-
     // 🎨【Glow新演出の復旧・統合】
     // 内側の曇り（inset）を排除し、外側の枠線だけがシュッと綺麗にネオン発光する仕様へスマート化
     if (effScr && data.glow) {
