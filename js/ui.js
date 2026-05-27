@@ -34,27 +34,43 @@ function updateHpUI() {
 }
 
 /**
- * 戦闘画面内にダメージの数字（ポップアップ）を動的生成・アニメーションする関数
+ * 戦闘画面内にダメージの数字（ポップアップ）をDOMを作成せず、
+ * 既存のレイヤーの文字入れ替えとCSSアニメーションだけで超軽量に表現する関数
  */
 function createDmgPop(dmg, isPlayer) {
-    const pop = document.createElement("div"); 
-    pop.style.position = "absolute"; 
-    pop.style.fontSize = "2.5rem"; 
-    pop.style.fontWeight = "900"; 
-    pop.style.textShadow = "2px 2px #000";
-    
-    // 画面が横長に引き伸ばされないよう、絶対座標の最大値をスクエア枠内に制限（360px）
-    pop.style.left = isPlayer ? "100px" : "360px"; 
-    pop.style.top = "150px"; 
-    pop.style.color = isPlayer ? "#ef4444" : "#fff"; 
-    pop.innerText = dmg;
-    
     const dmgLayer = document.getElementById("dmg-layer");
-    if (dmgLayer) {
-        dmgLayer.appendChild(pop); 
-        setTimeout(() => pop.remove(), 800);
-    }
+    if (!dmgLayer) return;
+
+    // 既存の古いタイマー（残像消去用ウェイト）があれば即座にクリアして競合を完全防止
+    if (window._dmgPopTimeout) clearTimeout(window._dmgPopTimeout);
+
+    // 💡【軽量化の核心】HTMLを新しく製造(createElement)せず、既存の看板の文字だけを置換
+    dmgLayer.innerText = dmg;
+    dmgLayer.style.position = "absolute";
+    dmgLayer.style.fontSize = "3.2rem";
+    dmgLayer.style.fontWeight = "900";
+    dmgLayer.style.textShadow = "3px 3px 0 #000";
+    dmgLayer.style.left = isPlayer ? "80px" : "340px";
+    dmgLayer.style.top = "120px";
+    dmgLayer.style.color = isPlayer ? "#ef4444" : "#ffffff";
+    dmgLayer.style.zIndex = "99";
+    dmgLayer.style.opacity = "1";
+    dmgLayer.style.transition = "none";
+    dmgLayer.style.transform = "scale(0.5) translateY(20px)";
+
+    // ブラウザに一瞬だけ描画のリフレッシュをかけ、バウンドアニメーションをなめらかに起動
+    requestAnimationFrame(() => {
+        dmgLayer.style.transition = "transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.5s ease-in 0.3s";
+        dmgLayer.style.transform = "scale(1.1) translateY(-10px)";
+    });
+
+    // 400ms後に文字を非表示（透明化）にするタイマーをセット
+    window._dmgPopTimeout = setTimeout(() => {
+        dmgLayer.style.opacity = "0";
+        dmgLayer.style.transform = "scale(0.8) translateY(-30px)";
+    }, 400);
 }
+
 
 // ==========================================
 // 🎒 2. アイテムバッグUI制御ロジック
