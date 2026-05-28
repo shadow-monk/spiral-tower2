@@ -523,7 +523,7 @@ window.turn = function(playerMove) {
         const cutin = document.getElementById('cutin-bar');
         const cutinText = cutin ? cutin.querySelector('.cutin-text') : null;
         const board = document.getElementById('sq-board'); 
-        if (cutinText) cutinText.innerText = "🧙‍♂️ 会心の一撃！！";
+        if (cutinText) cutinText.innerText = "💥クリティカルヒット！！💥";
         if (cutin) { cutin.style.display = "flex"; setTimeout(() => { cutin.style.display = "none"; }, 1000); }
         if (board) { board.classList.add("screen-shake-flash"); setTimeout(() => { board.classList.remove("screen-shake-flash"); }, 450); }
     }
