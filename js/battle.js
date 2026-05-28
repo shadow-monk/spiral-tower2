@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 8.50: ユーザー手動クリック進行（ボタン送り）＆全23呪文演出・全20アイテムテキスト完全点火。", "color: #00ff00; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 8.80: どこでもクリック進行 ＆ 頭上ステータスラベル ＆ アイス氷結時空停止アニメロック大溶接回路。", "color: #00ffff; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -37,42 +37,96 @@ window.isHarpySpeedActive = false;
 window.isPlayerMuted = false;        
 window.isItemBlocked = false;        
 
-// ⚡ ボタン送り（手動進行）用の戦術ステートチケット管理
-// 'NONE': 通常受付中、'PLAYER_DONE': プレイヤー行動後待機、'ENEMY_DONE': 敵行動後待機
+// ⚡ ボタン送り用の戦術ステートチケット管理
 window.battleStepState = 'NONE';
-window.nextTurnIsEnemySpecial = false; // 敵の次の行動が特殊技かどうかの記録
+window.nextTurnIsEnemySpecial = false; 
 
 // ⚡ タイマーID管理
 window._activeMagicTimeout = null;
 window._logResetTimeout = null;       
+window._freezeAnimationTimeout = null; // ❄️アイス時空停止用
 
 // ==========================================
-// 🕹️ 【心臓部】バトルログ枠手動クリック進行回路（仕掛けの溶接）
+// 🕹️ 【快適性爆上げ】画面全体どこでもクリック進行回路（仕掛けの有線溶接）
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-    const logBox = document.getElementById('battle-log');
-    if (logBox) {
-        logBox.style.cursor = 'pointer'; // マウスを乗せたら指マークにして直感誘導！
-        logBox.setAttribute("onclick", "window.advanceBattleStep()");
+    // ログ枠だけでなく、ゲームの外枠コンテナ全体に巨大なクリック因果の網を張り巡らせる！
+    const mainBoard = document.getElementById('sq-board') || document.body;
+    if (mainBoard) {
+        mainBoard.style.cursor = 'pointer';
+        mainBoard.addEventListener("click", (e) => {
+            // 下部のコマンド入力ボタン自体をクリックした時は邪魔をしないようにガード
+            if (e.target.closest('button')) return;
+            
+            // 待機中（PLAYER_DONE または ENEMY_DONE）なら、画面のどこを叩いても100%サクサク進行！
+            if (window.battleStepState !== 'NONE') {
+                window.advanceBattleStep();
+            }
+        });
     }
+    
+    // 📊 頭上に状態異常ラベルを表示するためのDOMコンテナを、HTMLを汚さずJS側から動的に安全増築！
+    window.injectStatusLabels();
 });
 
+/**
+ * 📊 【新設】お互いの頭上にリアルタイム状態異常バッジを焼き付ける表示制御回路
+ */
+window.injectStatusLabels = function() {
+    const pName = document.getElementById('p-name') || document.querySelector('.player-zone');
+    const eName = document.getElementById('e-name') || document.querySelector('.enemy-zone');
+    
+    if (pName && !document.getElementById('p-status-badge')) {
+        const pBadge = document.createElement('span');
+        pBadge.id = 'p-status-badge';
+        pBadge.style.cssText = "margin-left:8px; font-size:0.85rem; font-weight:900; color:#ef4444; text-shadow:1px 1px 0 #000; animation:pulse 0.5s infinite alternate;";
+        pName.appendChild(pBadge);
+    }
+    if (eName && !document.getElementById('e-status-badge')) {
+        const eBadge = document.createElement('span');
+        eBadge.id = 'e-status-badge';
+        eBadge.style.cssText = "margin-left:8px; font-size:0.85rem; font-weight:900; color:#38bdf8; text-shadow:1px 1px 0 #000; animation:pulse 0.5s infinite alternate;";
+        eName.appendChild(eBadge);
+    }
+};
+
+window.updateStatusBadgesUI = function() {
+    const pBadge = document.getElementById('p-status-badge');
+    const eBadge = document.getElementById('e-status-badge');
+    
+    if (pBadge) {
+        let pTxt = "";
+        if (window.isPlayerStunned) pTxt += " [☠️ 麻痺] ";
+        if (window.isPlayerMuted) pTxt += " [🚨 封印] ";
+        if (window.isPlayerCorroded) pTxt += " [🧪 溶解] ";
+        pBadge.innerText = pTxt;
+    }
+    
+    if (eBadge) {
+        let eTxt = "";
+        if (window.enemyBurnTurns > 0) eTxt += ` [🔥 火傷:${window.enemyBurnTurns}T]`;
+        if (window.enemyFreezeTurns > 0) eTxt += ` [❄️ 凍結:${window.enemyFreezeTurns}T]`;
+        if (window.enemyBlindTurns > 0) eTxt += ` [✨ 暗闇:${window.enemyBlindTurns}T]`;
+        if (window.isEnemyShieldActive) eTxt += " [🛡️ 骨盾]";
+        eBadge.innerText = eTxt;
+    }
+};
+
 window.advanceBattleStep = function() {
-    // ログがクリックされたときに、現在の進行状況に応じて未来へ電気信号を送る
     if (window.battleStepState === 'PLAYER_DONE') {
         window.battleStepState = 'NONE';
         if (!window.checkBattleEnd()) {
-            window.enemyTurnAction(); // ユーザーのクリックで初めて敵の行動が開始！
+            window.enemyTurnAction(); 
         }
     } else if (window.battleStepState === 'ENEMY_DONE') {
         window.battleStepState = 'NONE';
         if (!window.checkBattleEnd()) {
-            // 敵のターンが終わり、完全に安全な状態で下部コマンドを再点灯！
             window.isBusy = false;
             const battleLog = document.getElementById('battle-log');
             if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
             const effScr = document.getElementById('eff-scr');
             if (effScr) effScr.style.pointerEvents = "none";
+            window.updateStatusBadgesUI();
         }
     }
 };
@@ -141,7 +195,9 @@ window.startBattle = function() {
 
     if (window._activeMagicTimeout) { clearTimeout(window._activeMagicTimeout); window._activeMagicTimeout = null; }
     if (window._logResetTimeout) { clearTimeout(window._logResetTimeout); window._logResetTimeout = null; }
+    if (window._freezeAnimationTimeout) { clearTimeout(window._freezeAnimationTimeout); window._freezeAnimationTimeout = null; }
 
+    // 2周目の痙攣待機モーションやフリーズスタイルを完全にクリーンリセット！
     const eContainer = document.getElementById('e-sprite-container');
     const eSpriteGraphic = document.getElementById('e-sprite-graphic');
     
@@ -151,9 +207,23 @@ window.startBattle = function() {
         eContainer.style.background = "none";
         eContainer.style.removeProperty("filter"); 
         eContainer.style.transition = "none"; 
+        eContainer.style.removeProperty("animation-play-state"); // 氷結ロック解除
+        
+        // 2周目の色替えハッキングパレット（11階＝2周目の1階以降ならAIまかせで独自の不気味な常時待機歩法へ！）
+        if (window.curIdx >= 10) {
+            eContainer.style.animation = "floatE 0.15s infinite alternate ease-in-out, playerStunShake 0.3s infinite alternate"; // 2周目特有の痙攣・残像歩法
+        } else {
+            eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; // 1周目の通常浮遊
+        }
         
         if (data.type === 'slime') {
             eContainer.style.setProperty("filter", "hue-rotate(65deg) saturate(2.5) brightness(1.2)", "important");
+        }
+        
+        // 2周目（11階〜20階）のカラーパレットスワップ自動適用
+        if (window.curIdx >= 10) {
+            let hueRotateDeg = (window.curIdx * 35) % 360;
+            eContainer.style.setProperty("filter", `hue-rotate(${hueRotateDeg}deg) saturate(2) brightness(1.1)`, "important");
         }
     }
     if (eSpriteGraphic) {
@@ -183,6 +253,8 @@ window.startBattle = function() {
     }
 
     showScreen('scr-battle');
+    window.injectStatusLabels();
+    window.updateStatusBadgesUI();
 
     if (typeof startCustomAnimation === 'function') {
         startCustomAnimation(data.type);
@@ -199,14 +271,15 @@ window.startBattle = function() {
 
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
-        battleLog.innerHTML = `${data.name}が現れた！弱点: ${data.weak.toUpperCase()}`;
+        let suffix = (window.curIdx >= 10) ? " (【裏タワー】弱点: ??? 2個能力持ち変則AI)" : ` 弱点: ${data.weak.toUpperCase()}`;
+        battleLog.innerHTML = `${data.name}が現れた！${suffix}`;
     }
 
     startBGM("battle");
 };
 
 // ==========================================
-// 🎒 3. 大容量アイテム使用（全20種類ストーリー実況＋お遊び骨枠）
+// 🎒 3. 大容量アイテム使用・20大テキスト全開通
 // ==========================================
 window.useItem = function(itemType) {
     if (window.isBusy || window.pHp <= 0 || window.eHp <= 0 || window.itemInventory[itemType] <= 0) return;
@@ -224,7 +297,7 @@ window.useItem = function(itemType) {
     const battleLog = document.getElementById('battle-log');
     const data = STAGES[window.curIdx];
 
-    // ─── 📜 ディレクター承認・全20アイテム個別実況テキスト大要塞 ───
+    // ─── 📜 ディレクター全面監修・20アイテム個別ストーリーテリング実況 ───
     if (itemType === 'potion') {
         window.pHp = Math.min(window.pMaxHp, window.pHp + 50);
         battleLog.innerHTML = "🧪 回復薬を取り出して一気に飲み干した！傷口が塞がり、HPが50回復する！ <span>▶</span>";
@@ -259,21 +332,18 @@ window.useItem = function(itemType) {
     } else if (itemType === 'smok') {
         battleLog.innerHTML = "🌀 足元へ煙幕弾を叩きつけた！凄まじい黒煙が敵の視界を遮り、次の敵の攻撃を100%不発（MISS）にする！ <span>▶</span>";
     } 
-    // 魔物ドロップ素材（ディレクター修正案を完全溶接）
     else if (itemType === 'wing') {
         window.eHp = Math.max(0, window.eHp - 20);
         const effScr = document.getElementById('eff-scr');
-        if (effScr) { effScr.className = (data.type === 'slime' ? "anim-slime-yellow " : "") + "anim-player-aero"; setTimeout(() => { effScr.className = (data.type === 'slime' ? "anim-slime-yellow" : ""); }, 600); }
+        if (effScr) { effScr.className = "anim-player-aero"; setTimeout(() => { effScr.className = ""; }, 600); }
         battleLog.innerHTML = "🪶 ハーピーの羽根を投げた。風を切り裂き、相手に突き刺さる！ <span>▶</span>";
     } else if (itemType === 'bone') {
-        // 【お遊び死にアイテム枠】
-        const effScr = document.getElementById('eff-scr');
-        if (effScr) { effScr.className = (data.type === 'slime' ? "anim-slime-yellow " : "") + "anim-player-def"; setTimeout(() => { effScr.className = (data.type === 'slime' ? "anim-slime-yellow" : ""); }, 600); }
+        // 🦴 お遊び死にアイテム枠（ディレクター修正案100%完全溶接）
         battleLog.innerHTML = "🦴 骸骨の骨を地面に放り投げた。……特に何も起きない。（動物や犬系なら気を取られたかもしれない） <span>▶</span>";
     } else if (itemType === 'web') {
         window.enemyFreezeTurns = 1;
         const effScr = document.getElementById('eff-scr');
-        if (effScr) { effScr.className = (data.type === 'slime' ? "anim-slime-yellow " : "") + "anim-player-slow"; setTimeout(() => { effScr.className = (data.type === 'slime' ? "anim-slime-yellow" : ""); }, 600); }
+        if (effScr) { effScr.className = "anim-player-slow"; setTimeout(() => { effScr.className = ""; }, 600); }
         battleLog.innerHTML = "🕸️ ブラッドスパイダーの糸を投げつけた！敵の足元をガチガチに絡め取る！ <span>▶</span>";
     } else if (itemType === 'ston') {
         window.isEnemyShieldActive = false; window.eHp = Math.max(0, window.eHp - 25);
@@ -296,14 +366,12 @@ window.useItem = function(itemType) {
     }
 
     if (typeof updateHpUI === 'function') updateHpUI();
-    createDmgPop(0, false); // 表示更新用
-
-    // ★時間を完全停止させてクリック待ちへステレート移行！
+    window.updateStatusBadgesUI();
     window.battleStepState = 'PLAYER_DONE';
 };
 
 // ==========================================
-// 🧙‍♂️ 4. プレイヤー魔導アクション・全23呪文個別演出溶接
+// 🧙‍♂️ 4. プレイヤー魔導アクション・全23呪文演出＆アイス時空停止溶接
 // ==========================================
 window.turn = function(playerMove) {
     if (playerMove === 'debug_death') {
@@ -334,13 +402,12 @@ window.turn = function(playerMove) {
         window.isPlayerStunned = false;
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerHTML = "🚨 麻痺して動けない！ <span>▶</span>";
-        window.battleStepState = 'PLAYER_DONE'; // 動けなくてもターン消費してクリック待ち
+        window.battleStepState = 'PLAYER_DONE';
         return;
     }
 
     const data = STAGES[window.curIdx];
     
-    // ─── 📊 23呪文すべての個別割り当てDNA ───
     let basePower = 15;
     let spellLabel = "魔導魔法";
     let magicClass = "anim-player-fire";
@@ -372,7 +439,6 @@ window.turn = function(playerMove) {
         ulti: { pow: 50, label: "アルテマ", se: SOUND_HOLY, cls: "anim-player-ulti" }
     };
 
-    // 🛡️ シールド防御姿勢
     if (playerMove === 'def') {
         const battleLog = document.getElementById('battle-log');
         if (battleLog) battleLog.innerHTML = "🛡 シールドを展開！防御姿勢をとった。 <span>▶</span>";
@@ -380,15 +446,12 @@ window.turn = function(playerMove) {
         const chargeBadge = document.getElementById('charge-badge');
         if (chargeBadge) chargeBadge.style.display = "none";
         const effScr = document.getElementById('eff-scr');
-        let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
-        if (effScr) { effScr.className = baseClass + "anim-player-def"; setTimeout(() => { effScr.className = (data.type === 'slime') ? "anim-slime-yellow" : ""; }, 1100); }
-        
-        window.nextTurnIsEnemySpecial = true; // 次は被ダメ軽減状態で受動
+        if (effScr) { effScr.className = "anim-player-def"; setTimeout(() => { effScr.className = ""; }, 1100); }
+        window.nextTurnIsEnemySpecial = true; 
         window.battleStepState = 'PLAYER_DONE';
         return;
     }
     
-    // ⚡ チャージ姿勢
     if (playerMove === 'chg') {
         window.mana = 2.5;
         const chargeBadge = document.getElementById('charge-badge');
@@ -396,9 +459,7 @@ window.turn = function(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "block";
         if (battleLog) battleLog.innerHTML = "⚡ パワーをチャージした！次回威力2.5倍！ <span>▶</span>";
         const effScr = document.getElementById('eff-scr');
-        let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
-        if (effScr) { effScr.className = baseClass + "anim-player-chg"; setTimeout(() => { effScr.className = (data.type === 'slime') ? "anim-slime-yellow" : ""; }, 1100); }
-        
+        if (effScr) { effScr.className = "anim-player-chg"; setTimeout(() => { effScr.className = ""; }, 1100); }
         window.nextTurnIsEnemySpecial = false;
         window.battleStepState = 'PLAYER_DONE';
         return;
@@ -417,13 +478,11 @@ window.turn = function(playerMove) {
     if (window.isEnemyShieldActive && playerMove !== 'mmis' && playerMove !== 'aero') { baseDmg = Math.floor(baseDmg * 0.25); }
     window.isEnemyShieldActive = false;
 
-    // 🎯 クリティカル判定（25%暴発 or 弱点トドメ殺し）
     let isLuckRoll = (Math.random() < 0.25);                  
     let isOverkillRoll = (isWeak && baseDmg >= window.eHp);   
     let isCriticalHit = (isLuckRoll || isOverkillRoll);       
     let finalDmg = isCriticalHit ? Math.floor(baseDmg * 1.6) : baseDmg; 
 
-    // 🎬 クリティカルヒット上部カットイン発火
     if (isCriticalHit) {
         const cutin = document.getElementById('cutin-bar');
         const cutinText = cutin ? cutin.querySelector('.cutin-text') : null;
@@ -433,10 +492,8 @@ window.turn = function(playerMove) {
         if (board) { board.classList.add("screen-shake-flash"); setTimeout(() => { board.classList.remove("screen-shake-flash"); }, 450); }
     }
 
-    // 導火線点火：戦闘大箱に個別CSSクラスを一斉付与！
     const effScr = document.getElementById('eff-scr');
-    let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
-    if (effScr) effScr.className = baseClass + magicClass;
+    if (effScr) effScr.className = magicClass;
 
     window._activeMagicTimeout = setTimeout(() => {
         playSE(currentSE);
@@ -447,7 +504,32 @@ window.turn = function(playerMove) {
         // 🧪 状態異常追加カウンター
         let statusLog = "";
         if (playerMove === 'fire') { window.enemyBurnTurns = 3; statusLog = " (🔥敵を大火傷にさせた！)"; }
-        else if (playerMove === 'ice') { window.enemyFreezeTurns = 1; statusLog = " (❄️敵を完全氷結させた！)"; }
+        else if (playerMove === 'ice') { 
+            window.enemyFreezeTurns = 1; 
+            statusLog = " (❄️敵を完全氷結させた！)"; 
+            
+            // ❄️ 【新・アイス演出：周囲の氷結晶収縮 ✕ 2秒間青白化＆常時待機モーション完全一時停止ロック】
+            const eContainer = document.getElementById('e-sprite-container');
+            if (eContainer) {
+                // 1. 周囲を包み込むような青白い強烈な氷結オーバーレイ＆コントラスト焼き付け
+                eContainer.style.setProperty("filter", "hue-rotate(190deg) saturate(3) brightness(1.5) drop-shadow(0 0 25px #0ea5e9)", "important");
+                // 2. 2周目の痙攣待機だろうが、1周目のふわふわだろうが、常時待機モーションを「完全に一時停止（paused）」させて時間凍結！
+                eContainer.style.animationPlayState = "paused";
+                
+                // ディレクター指定通り、まさに【2秒間（2000ms）】、完全に氷漬けでピキピキとアニメ停止させます！
+                if (window._freezeAnimationTimeout) clearTimeout(window._freezeAnimationTimeout);
+                window._freezeAnimationTimeout = setTimeout(() => {
+                    eContainer.style.removeProperty("animation-play-state"); // 2秒後に氷解し、呼吸再開
+                    if (window.curIdx < 10) {
+                        eContainer.style.setProperty("filter", "none");
+                    } else {
+                        // 2周目の裏パレット色へ復元
+                        let hueRotateDeg = (window.curIdx * 35) % 360;
+                        eContainer.style.setProperty("filter", `hue-rotate(${hueRotateDeg}deg) saturate(2) brightness(1.1)`, "important");
+                    }
+                }, 2000);
+            }
+        }
         else if (playerMove === 'holy') { window.enemyBlindTurns = 2; statusLog = " (✨敵の目を潰し暗闇にした！)"; }
         else if (playerMove === 'wasp') { if (Math.random() < 0.3) { window.enemyFreezeTurns = 1; statusLog = " (🐝麻痺毒が回り身動きを止めた！)"; } }
         else if (playerMove === 'drai') { window.pHp = Math.min(window.pMaxHp, window.pHp + 20); statusLog = " (🩸味方のHPが20ドレイン回復！)"; }
@@ -459,7 +541,7 @@ window.turn = function(playerMove) {
             if (playerMove === 'anal') {
                 coreTxt = `🔮 【アナライズ】成功！敵のHP: ${window.eHp}/${window.eMaxHp} | 弱点属性は [ ${data.weak.toUpperCase()} ] だ！`;
             }
-            battleLog.innerHTML = `${coreTxt} <span>▶</span>`; // 矢印を付与して一時停止
+            battleLog.innerHTML = `${coreTxt} <span>▶</span>`; 
         }
 
         window.mana = 1.0;
@@ -467,10 +549,10 @@ window.turn = function(playerMove) {
         if (chargeBadge) chargeBadge.style.display = "none";
 
         window._activeMagicTimeout = null;
+        window.updateStatusBadgesUI();
         
         setTimeout(() => { 
-            if (effScr) effScr.className = (data.type === 'slime') ? "anim-slime-yellow" : "";
-            // ★タイマー進行を完全消滅させ、クリック待ちのステートへ！
+            if (effScr) effScr.className = "";
             window.battleStepState = 'PLAYER_DONE';
         }, 600);
 
@@ -478,7 +560,7 @@ window.turn = function(playerMove) {
 };
 
 // ==========================================
-// 👹 5. エネミーターン行動AI＆カウンター処理
+// 👹 5. エネミーターン行動AI（2周目：特殊2個ドッキング・変則連撃AI受動）
 // ==========================================
 window.enemyTurnAction = function() {
     let isPlayerDefending = window.nextTurnIsEnemySpecial;
@@ -488,21 +570,22 @@ window.enemyTurnAction = function() {
     const data = STAGES[window.curIdx];
     const battleLog = document.getElementById('battle-log');
 
-    // 1. 🔥 スリップダメージ処理
+    // 1. 🔥 スリップダメージ
     if (window.enemyBurnTurns > 0) {
         window.eHp = Math.max(0, window.eHp - 15);
         window.enemyBurnTurns--;
         createDmgPop(15, false);
         if (typeof updateHpUI === 'function') updateHpUI();
-        if (battleLog) battleLog.innerHTML = `🔥 スリップが蝕む！追加効果により${data.name}に【15】ダメージ！ <span>▶</span>`;
+        if (battleLog) battleLog.innerHTML = `🔥 追加効果のスリップダメージが蚀む！${data.name}に【15】ダメージ！ <span>▶</span>`;
         if (window.eHp <= 0) { window.battleStepState = 'PLAYER_DONE'; return; }
     }
 
-    // 2. ❄️ 凍結スキップ処理
+    // 2. ❄️ 凍結スキップ
     if (window.enemyFreezeTurns > 0) {
         window.enemyFreezeTurns--;
-        if (battleLog) battleLog.innerHTML = `❄️ ${data.name}はガチガチに身動きがとれない！ターンがスキップされます。 <span>▶</span>`;
+        if (battleLog) battleLog.innerHTML = `❄️ ${data.name}は氷結に縛られピクリとも動けない！ターンがスキップされた！ <span>▶</span>`;
         window.battleStepState = 'ENEMY_DONE';
+        window.updateStatusBadgesUI();
         return;
     }
 
@@ -515,11 +598,11 @@ window.enemyTurnAction = function() {
 
     if (window.isAmuletActive > 0 && !isPlayerDefending) { dmg = Math.floor(dmg * 0.5); }
 
-    // 3. ✨ 暗闇のミス判定
+    // 3. ✨ 暗闇通常攻撃ミス判定
     if (window.enemyBlindTurns > 0 && !isSpecial) {
         window.enemyBlindTurns--;
         if (Math.random() < 0.5) {
-            if (battleLog) battleLog.innerHTML = `✨ 暗闇の目潰し！ ${data.name}の突進攻撃は空を切った（MISS）！ <span>▶</span>`;
+            if (battleLog) battleLog.innerHTML = `✨ 視界が真っ暗だ！ ${data.name}の突進攻撃は虚しく空を切った（MISS）！ <span>▶</span>`;
             window.battleStepState = 'ENEMY_DONE';
             return;
         }
@@ -528,91 +611,115 @@ window.enemyTurnAction = function() {
     }
 
     window.isPlayerMuted = false; window.isItemBlocked = false; window.isPlayerCorroded = false;
-    let baseClass = (data.type === 'slime') ? "anim-slime-yellow " : "";
+
+    // 👑 【2周目裏ボス限定：特殊能力2個マルチドッキング発動判定】
+    // 11階層以降は、特殊AIフラグがONなら2本の技回路に一斉に高圧電流を流します！
+    let isDoubleAbilityActive = (window.curIdx >= 10 && isSpecial);
 
     if (isSpecial) {
         playSE(SOUND_HOLY);
         const effScr = document.getElementById('eff-scr');
         if (effScr) effScr.style.pointerEvents = "auto";
 
-        if (data.type === 'slime') {
+        // 行動パターンのログ連結文字列
+        let logTxt = "";
+
+        // 能力1本目トリガー
+        if (data.type === 'slime' || isDoubleAbilityActive) {
             window.isPlayerCorroded = true;
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}の溶解液を吐きかけた！【${dmg}】ダメージ！(次回防御不可) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-slime-yellow shoot-acid"; setTimeout(() => { effScr.className = "anim-slime-yellow"; }, 1100); }
+            logTxt += `🚨 ${data.name}の強酸溶解液！【${dmg}】ダメ！(次回防御不可)`;
+            if (effScr) effScr.className = "shoot-acid";
         }
-        else if (data.type === 'spider') {
+        if (data.type === 'spider' || (isDoubleAbilityActive && data.type !== 'slime')) {
             window.isPlayerStunned = true;
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}の麻痺毒糸を吐いた！【${dmg}】ダメージ！(次回スタン) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-spider-poison"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}の粘着麻痺毒糸！【${dmg}】ダメ！(次回スタン)`;
+            if (effScr) effScr.className = "anim-spider-poison";
         }
-        else if (data.type === 'skelton' || data.type === 'skeleton') {
+        if (data.type === 'skelton' || data.type === 'skeleton') {
             window.isEnemyShieldActive = true;
-            if (battleLog) battleLog.innerHTML = `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！ <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-skelton-shield"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
-            window.battleStepState = 'ENEMY_DONE';
-            return;
+            logTxt += `🛡️ ${data.name}は骨盾を構えた！次の被ダメを大幅カット！`;
+            if (effScr) effScr.className = "anim-skelton-shield";
         }
-        else if (data.type === 'harpy') {
+        if (data.type === 'harpy') {
             window.isHarpySpeedActive = true;
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}の超音波を放った！【${dmg}】ダメージ！(敵次ターン爆速化) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-harpy-storm"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}の超音波！【${dmg}】ダメ！(敵次ターン爆速変則化)`;
+            if (effScr) effScr.className = "anim-harpy-storm";
         }
-        else if (data.type === 'golem') {
+        if (data.type === 'golem') {
             window.mana = 1.0; 
             const chargeBadge = document.getElementById('charge-badge');
             if (chargeBadge) chargeBadge.style.display = "none";
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}の岩石大投擲！【${dmg}】ダメージ！(チャージ強制解除) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-golem-earthquake"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}の岩石大投擲！【${dmg}】ダメ！(チャージ強制破壊)`;
+            if (effScr) effScr.className = "anim-golem-earthquake";
         }
-        else if (data.type === 'gargoil' || data.type === 'gargoyle') {
+        if (data.type === 'gargoil' || data.type === 'gargoyle') {
             window.enemyMana = 2.0;
-            if (battleLog) battleLog.innerHTML = `⚡ ${data.name}は魔力シールドを展開！次回の攻撃力2倍！ <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-gargoil-charge"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
-            window.battleStepState = 'ENEMY_DONE';
-            return;
+            logTxt += `⚡ ${data.name}は魔力シールドを展開！次回の攻撃力2倍！`;
+            if (effScr) effScr.className = "anim-gargoil-charge";
         }
-        else if (data.type === 'mush' || data.type === 'myconid') {
+        if (data.type === 'mush' || data.type === 'myconid') {
             window.mana = 0.5; 
-            if (battleLog) battleLog.innerText = `🚨 ${data.name}の胞子拡散！【${dmg}】ダメージ！(次回魔法威力半減) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-myconid-spore"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}の胞子拡散！【${dmg}】ダメ！(次回魔法威力半減)`;
+            if (effScr) effScr.className = "anim-myconid-spore";
         }
-        else if (data.type === 'phantom' || data.type === 'ghost') {
+        if (data.type === 'phantom' || data.type === 'ghost') {
             window.isItemBlocked = true;
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}のエナジードレイン！【${dmg}】ダメージ！(次回アイテム使用不可) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-phantom-curse"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}のエナジードレイン！【${dmg}】ダメ！(次回バッグロック)`;
+            if (effScr) effScr.className = "anim-phantom-curse";
         }
-        else if (data.type === 'eyes' || data.type === 'evileye') {
+        if (data.type === 'eyes' || data.type === 'evileye') {
             window.isPlayerMuted = true;
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}の魔力封印の邪眼！【${dmg}】ダメージ！(次回魔法不可) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-evileye-mute"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}の魔力封印邪眼！【${dmg}】ダメ！(次回魔法不可)`;
+            if (effScr) effScr.className = "anim-evileye-mute";
         }
-        else if (data.type === 'dragon') {
+        if (data.type === 'dragon') {
             window.eHp = Math.min(window.eMaxHp, window.eHp + 30); 
-            if (battleLog) battleLog.innerHTML = `🚨 ${data.name}のカタストロフィ・ブレス！【${dmg}】ダメージ！(敵のHPが30回復) <span>▶</span>`;
-            if (effScr) { effScr.className = "anim-dragon-breath"; setTimeout(() => { effScr.className = baseClass; }, 1100); }
+            logTxt += `🚨 ${data.name}の破滅ダークブレス！【${dmg}】ダメ！(敵HP30回復)`;
+            if (effScr) effScr.className = "anim-dragon-breath";
+        }
+
+        // 2周目の色替え裏ボスの場合のテキスト豪華連結足し算
+        if (isDoubleAbilityActive) {
+            logTxt = `😈【裏モード解放】${data.name}の複合狂気スキルが連鎖発動！！ プレイヤーに【${dmg}】の多重状態異常ダメージ！！`;
         }
         
+        battleLog.innerHTML = `${logTxt} <span>▶</span>`;
         window.pHp = Math.max(0, window.pHp - dmg);
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
+        
+        setTimeout(() => { if (effScr) effScr.className = ""; }, 1100);
     } else {
-        // 通常突進攻撃
+        // 通常突進攻撃（2周目はアニメパターンのタイムライン数値自体を乱数でガタガタに変形上書き！）
         setTimeout(() => { playSE(SOUND_KICK); }, 200);
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
-            eContainer.style.setProperty('--assaultX', '-140px');
-            eContainer.style.animation = "enemyAssault 0.45s forwards";
+            if (window.curIdx >= 10) {
+                // 2周目は、AIまかせの超高速フェイントフェーズをインラインで強制上書き！
+                eContainer.style.setProperty('--assaultX', '-180px');
+                eContainer.style.animation = "enemyAssault 0.2s 2 ease-in-out alternate"; // 2連ダッシュ往復
+            } else {
+                eContainer.style.setProperty('--assaultX', '-140px');
+                eContainer.style.animation = "enemyAssault 0.45s forwards";
+            }
         }
-        setTimeout(() => { if (eContainer) eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; }, 460);
+        setTimeout(() => { 
+            if (eContainer) {
+                if (window.curIdx >= 10) {
+                    eContainer.style.animation = "floatE 0.15s infinite alternate ease-in-out, playerStunShake 0.3s infinite alternate"; 
+                } else {
+                    eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
+                }
+            }
+        }, 460);
 
-        if (battleLog) battleLog.innerHTML = `${data.name}の突進体当たり攻撃！【${dmg}】ダメージ！ <span>▶</span>`;
+        if (battleLog) battleLog.innerHTML = `${data.name}の変則フェイント体当たり強襲！【${dmg}】ダメージ！ <span>▶</span>`;
         
         window.pHp = Math.max(0, window.pHp - dmg);
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
     }
 
-    // 🛡️ お守り軽減カウント減衰
     if (window.isAmuletActive > 0) {
         window.isAmuletActive--;
         if (window.isAmuletActive <= 0) {
@@ -621,7 +728,7 @@ window.enemyTurnAction = function() {
         }
     }
 
-    // ★敵の処理が終わったら、次のクリック待ちステートをセットして完全静止！
+    window.updateStatusBadgesUI();
     window.battleStepState = 'ENEMY_DONE';
 };
 
@@ -630,6 +737,7 @@ window.checkBattleEnd = function() {
         stopBGM();
         if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
         if (window._logResetTimeout) { clearTimeout(window._logResetTimeout); window._logResetTimeout = null; }
+        if (window._freezeAnimationTimeout) { clearTimeout(window._freezeAnimationTimeout); window._freezeAnimationTimeout = null; }
 
         const effScr = document.getElementById('eff-scr');
         if (effScr) effScr.style.pointerEvents = "none";
@@ -637,7 +745,6 @@ window.checkBattleEnd = function() {
         if (window.eHp <= 0) {
             playSE(SOUND_FREEZE_DEAD);
             
-            // ☠️ 【2. 激震：断末魔ドット砕け消滅演出】
             const eContainer = document.getElementById('e-sprite-container');
             const board = document.getElementById('sq-board');
             
@@ -682,7 +789,8 @@ window.transitionToResult = function() {
             if (rBtn) rBtn.innerText = "タイトルへ戻る";
             startBGM("grand_end");
         } else {
-            if (rText) rText.innerText = `${STAGES[window.curIdx].name}を撃破した！次の階層への扉が開く。`;
+            let nextTxt = (window.curIdx === 9) ? "1周目クリア！扉の奥からさらなる凶悪な魔力を放つ【裏タワー（2周目）】が姿を現した……！" : `${STAGES[window.curIdx].name}を撃破した！次の階層への扉が開く。`;
+            if (rText) rText.innerText = nextTxt;
             if (rBtn) rBtn.innerText = "次へ進む";
         }
     } else {
@@ -695,6 +803,7 @@ window.transitionToResult = function() {
     }
     window.isBusy = false;
     window.battleStepState = 'NONE';
+    window.updateStatusBadgesUI();
 };
 
 window.resetGame = function() {
@@ -714,15 +823,19 @@ window.resetGame = function() {
         cleanContainer.style.removeProperty("filter");
         cleanContainer.style.opacity = "1";
         cleanContainer.style.transform = "scale(1)";
+        cleanContainer.style.removeProperty("animation-play-state");
+        cleanContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out";
     }
 
     const effScr = document.getElementById('eff-scr');
     if (effScr) { effScr.className = ""; effScr.style.pointerEvents = "none"; }
 
     if (window._logResetTimeout) { clearTimeout(window._logResetTimeout); window._logResetTimeout = null; }
+    if (window._freezeAnimationTimeout) { clearTimeout(window._freezeAnimationTimeout); window._freezeAnimationTimeout = null; }
     const battleLog = document.getElementById('battle-log');
     if (battleLog) battleLog.innerHTML = "コマンドを選択せよ。";
 
     stopBGM();
     if (typeof stopSlimeAnimation === 'function') stopSlimeAnimation();
+    window.updateStatusBadgesUI();
 };
