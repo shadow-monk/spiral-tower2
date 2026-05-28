@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 13.00: コマンド窓タップ開通 ＆ 4連蜂波状ワスプ演出 ＆ 敵死亡自動リザルト ＆ 物理テキスト同期 ＆ 敵アニメ完全化石化 ＆ 🧪猛毒ラベル完全独立 最終完成神コード。", "color: #00ffff; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 13.50: DOM干渉バグ完全粉砕 ＆ コマンド窓タップ開通 ＆ 4連蜂波状ワスプ演出 ＆ 敵死亡自動リザルト ＆ 物理テキスト同期 ＆ 敵アニメ完全化石化 ＆ 🧪猛毒ラベル完全独立 修正完了神コード。", "color: #00ffff; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -22,7 +22,7 @@ window.isEnemyShieldActive = false;
 window.enemyBurnTurns = 0;   // 🔥火傷カウンター
 window.enemyFreezeTurns = 0; // ❄️凍結カウンター
 window.enemyBlindTurns = 0;  // ✨暗闇カウンター
-window.enemyPoisonTurns = 0; // 🧪猛毒カウンター（Ver 13.00 完全独立設置）
+window.enemyPoisonTurns = 0; // 🧪猛毒カウンター
 
 // アイテムバッグ初期化
 window.itemInventory = { 
@@ -45,23 +45,21 @@ window.nextTurnIsEnemySpecial = false;
 // ⚡ タイマーID管理
 window._activeMagicTimeout = null;
 window._logResetTimeout = null;       
-window._freezeAnimationTimeout = null; // ❄️アイス・スリープ・麻痺時空停止用
+window._freezeAnimationTimeout = null; 
 
 // ==========================================
 // 🕹️ ①【コマンド窓空白タップ対応】どこでもクリック進行最適化
 // ==========================================
 document.addEventListener("DOMContentLoaded", () => {
-    // 下部コマンド窓（#cmd-panel）を含む全画面のどこを叩いてもサクサク進むように網を再定義
     const fullClickTargets = ['#sq-board', '#cmd-panel', '#battle-log', 'body'];
     
     fullClickTargets.forEach(selector => {
         const element = document.getElementById(selector.replace('#','')) || document.querySelector(selector);
         if (element) {
             element.addEventListener("click", (e) => {
-                // 🕹️ 【お掃除！】「次のターンに進むチケット」がある時（待機モード）なら、
-                // コマンド窓の空白部分だろうがボタンの跡地だろうが、100%サクサク進行させる！
+                // 🕹️ 送り待機チケット（NONE以外）が発行されている時だけ反応
                 if (window.battleStepState !== 'NONE') {
-                    // クリック対象が実在する有効な「button」そのものの時は誤発動防止のためガード
+                    // クリックした対象がボタン、またはボタンの内部要素なら進めずガード（誤動作防止）
                     if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
                     window.advanceBattleStep();
                 }
@@ -97,7 +95,7 @@ window.injectStatusHeaderContainers = function() {
 };
 
 /**
- * 🏆 【１】効果ラベル：全13種類のフラグを戦闘画面最上部に配置させるUI制御回路
+ * 🏆 効果ラベル：全13種類のフラグを戦闘画面最上部に配置させるUI制御回路
  */
 window.updateStatusBadgesUI = function() {
     window.injectStatusHeaderContainers(); 
@@ -117,7 +115,6 @@ window.updateStatusBadgesUI = function() {
     if (eRow) {
         eRow.innerHTML = "";
         if (window.enemyBurnTurns > 0)   eRow.innerHTML += `<span class="retro-status-tag" style="background:#f97316; color:#fff;">🔥 火傷:${window.enemyBurnTurns}T</span>`;
-        // 🧪 【お掃除！】「🧪猛毒」のステータスラベルを完全に独立分離して増設！
         if (window.enemyPoisonTurns > 0) eRow.innerHTML += `<span class="retro-status-tag" style="background:#22c55e; color:#fff; box-shadow:0 0 10px #22c55e;">🧪 猛毒:${window.enemyPoisonTurns}T</span>`;
         if (window.enemyFreezeTurns > 0) eRow.innerHTML += `<span class="retro-status-tag" style="background:#0ea5e9; color:#fff; box-shadow:0 0 10px #0ea5e9;">❄️ 凍結:${window.enemyFreezeTurns}T</span>`;
         if (window.enemyBlindTurns > 0)  eRow.innerHTML += `<span class="retro-status-tag" style="background:#65a30d; color:#fff;">✨ 暗闇:${window.enemyBlindTurns}T</span>`;
@@ -202,7 +199,7 @@ window.startBattle = function() {
     window.enemyBurnTurns = 0;
     window.enemyFreezeTurns = 0;
     window.enemyBlindTurns = 0;
-    window.enemyPoisonTurns = 0; // 猛毒初期化
+    window.enemyPoisonTurns = 0; 
     
     window.isAmuletActive = 0;
     window.enemyMana = 1.0;
@@ -241,7 +238,7 @@ window.startBattle = function() {
     }
     if (eSpriteGraphic) {
         eSpriteGraphic.style.removeProperty("filter");
-        eSpriteGraphic.style.removeProperty("animation-play-state"); // ❄️時空ロックの初期化
+        eSpriteGraphic.style.removeProperty("animation-play-state"); 
     }
 
     const pGraphic = document.getElementById('p-sprite-graphic');
@@ -276,6 +273,9 @@ window.startBattle = function() {
     if (effScr) {
         effScr.style.pointerEvents = "none";
         effScr.className = (data.type === 'slime') ? "anim-slime-yellow" : "";
+        // 🚨 前回の残骸を消す際に、バッジヘッダーを巻き込まないように安全お掃除
+        const oldWasp = document.getElementById('wasp-swarm-box');
+        if (oldWasp) oldWasp.remove();
     }
 
     startBGM("battle");
@@ -307,6 +307,9 @@ window.useItem = function(itemType) {
     const battleLog = document.getElementById('battle-log');
     const effScr = document.getElementById('eff-scr');
     const data = STAGES[window.curIdx];
+
+    // アイテム発動時も安全にクラスだけを書き換える
+    if (effScr) { const bBox = document.getElementById('wasp-swarm-box'); if (bBox) bBox.remove(); }
 
     if (itemType === 'potion') {
         window.pHp = Math.min(window.pMaxHp, window.pHp + 50);
@@ -535,22 +538,34 @@ window.turn = function(playerMove) {
 
     const effScr = document.getElementById('eff-scr');
     
+    // 💥【バグ修正箇所】他の魔法の時にinnerHTMLを全破壊していた処理を引き算！
+    // 以前設置したワスプボックスのみをピンポイントで消去・上書きする安全回路へリフォーム
+    if (effScr) {
+        const existingWasp = document.getElementById('wasp-swarm-box');
+        if (existingWasp) existingWasp.remove();
+        effScr.className = ""; // クラス初期化
+    }
+
     // 🐝 ② 【新ワスプA案・4連蜂波状アタック動的演出回路】
     if (playerMove === 'wasp') {
         if (effScr) {
-            effScr.innerHTML = ""; // 過去の残骸をお掃除
-            // 4つの蜂を不規則な時間差（delay）でサインカーブを描くように動的生成して撃ち出す！
+            // ヘッダーを壊さないよう、独立した「巣箱（専用コンテナ）」を作って内部へ足し算！
+            const waspBox = document.createElement('div');
+            waspBox.id = 'wasp-swarm-box';
+            waspBox.style.cssText = "position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1000;";
+            effScr.appendChild(waspBox);
+
             for (let i = 0; i < 4; i++) {
                 const bee = document.createElement('div');
                 bee.innerText = "🐝";
                 bee.style.cssText = `
-                    position: absolute; left: 10%; top: ${45 + (i * 8)}%; font-size: 2.2rem; z-index: 9999; pointer-events: none;
+                    position: absolute; left: 10%; top: ${42 + (i * 8)}%; font-size: 2.2rem; z-index: 9999; pointer-events: none;
                     animation: beeWaveAttack 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
                     animation-delay: ${i * 0.13}s;
                 `;
-                effScr.appendChild(bee);
+                waspBox.appendChild(bee);
             }
-            // 蜂が飛ぶダイナミックな波状軌道をCSSスタイルとしてヘッドに一本溶接
+
             if (!document.getElementById('wasp-temp-style')) {
                 const style = document.createElement('style');
                 style.id = 'wasp-temp-style';
@@ -567,8 +582,7 @@ window.turn = function(playerMove) {
             }
         }
     } else {
-        if (effScr) effScr.innerHTML = ""; // ワスプ以外の時はエフェクト窓のDOMをお掃除
-        if (effScr) effScr.className = magicClass;
+        if (effScr) effScr.className = magicClass; // 通常通り魔法エフェクトクラスを点火！
     }
 
     window._activeMagicTimeout = setTimeout(() => {
@@ -599,7 +613,7 @@ window.turn = function(playerMove) {
                 if (eContainer && eSpriteGraphic) {
                     eContainer.style.setProperty("filter", "brightness(3) saturate(0) drop-shadow(0 0 25px #0ea5e9)", "important");
                     eContainer.style.animationPlayState = "paused"; 
-                    eSpriteGraphic.style.animationPlayState = "paused"; // ⑥中身の画像も時空ロック！
+                    eSpriteGraphic.style.animationPlayState = "paused"; 
                     
                     if (window._freezeAnimationTimeout) clearTimeout(window._freezeAnimationTimeout);
                     window._freezeAnimationTimeout = setTimeout(() => {
@@ -624,7 +638,7 @@ window.turn = function(playerMove) {
                 if (eContainer && eSpriteGraphic) {
                     eContainer.style.setProperty("filter", "brightness(1.5) saturate(0.2) sepia(0.6) drop-shadow(0 0 20px #38bdf8)", "important");
                     eContainer.style.animationPlayState = "paused"; 
-                    eSpriteGraphic.style.animationPlayState = "paused"; // ⑥中身の画像も睡眠停止！
+                    eSpriteGraphic.style.animationPlayState = "paused"; 
                     
                     if (window._freezeAnimationTimeout) clearTimeout(window._freezeAnimationTimeout);
                     window._freezeAnimationTimeout = setTimeout(() => {
@@ -647,11 +661,10 @@ window.turn = function(playerMove) {
             else if (playerMove === 'wasp') { 
                 flavorTxt = "召喚された無数の蜂の群れが不規則なジグザグ軌道で敵を襲撃！";
                 if (Math.random() < 0.3) { 
-                    window.enemyFreezeTurns = 1; // 内部はフリーズタイマーへ流用
+                    window.enemyFreezeTurns = 1; 
                     statusLog = " (🐝麻痺毒が回り、敵の身動きを完全に止めた！)"; 
                     const eContainer = document.getElementById('e-sprite-container');
                     const eSpriteGraphic = document.getElementById('e-sprite-graphic');
-                    // ⑥ワスプ麻痺当選時も完璧に画像ごと時空フリーズロック！
                     if (eContainer) eContainer.style.animationPlayState = "paused";
                     if (eSpriteGraphic) eSpriteGraphic.style.animationPlayState = "paused";
                 } else {
@@ -675,7 +688,7 @@ window.turn = function(playerMove) {
             else if (playerMove === 'slow') { flavorTxt = "敵の周囲の時間軸を歪ませ、動きを極限まで鈍化させる！"; }
             else if (playerMove === 'flod') { flavorTxt = "画面全体を飲み込む大津波がステージを激しく押し流す！"; }
             else if (playerMove === 'bio') { 
-                window.enemyPoisonTurns = 5; // 🧪火傷カウンター誤点火バグを完全分離！
+                window.enemyPoisonTurns = 5; 
                 flavorTxt = "ドロドロとした有害なバイオバブルが敵の体表で弾ける！";
                 statusLog = " (🧪猛毒の胞子が蝕み、永続スリップダメージ開始！)"; 
             }
@@ -685,7 +698,7 @@ window.turn = function(playerMove) {
             else if (playerMove === 'aero') { flavorTxt = "真空の刃が竜巻きを起こし、敵の防壁ごと切り裂く！"; }
             else if (playerMove === 'come') { flavorTxt = "夜空から無数の星屑の雨が不規則に降り注ぐ！"; }
             else if (playerMove === 'grav') { flavorTxt = "超重力のブラックホールが出現し、中心へ敵を収縮圧縮！"; }
-            else if (playerMove === 'ulti') { flavorTxt = "宇宙創世の究極魔導が発動し、全画面の時空が反転フラッシュ！"; }
+            else if (playerMove === 'ulti') { flavorTxt = "宇宙創世 of 究極魔導が発動し、全画面の時空が反転フラッシュ！"; }
             else if (playerMove === 'ele') { flavorTxt = "火花散らす電撃が相手を貫き感電させる！"; statusLog = " (⚡高確率の防御無視雷撃が貫通！)"; }
 
             let tagPrefix = isWeak ? "【弱点！】" : "";
@@ -709,13 +722,13 @@ window.turn = function(playerMove) {
         
         setTimeout(() => { 
             if (effScr) effScr.className = "";
-            // 💀 ③ 【敵死亡時のノータイム自動進行お掃除】
-            // もしプレイヤーの魔法攻撃で敵が死んだ場合は、クリック送り待ちを挟まず、ノータイムでチェック処理へ直行させる！
+            
+            // 💀 ③ 【自動進行の配線調整】
             if (window.eHp <= 0) {
                 window.battleStepState = 'NONE';
                 window.checkBattleEnd();
             } else {
-                window.battleStepState = 'PLAYER_DONE';
+                window.battleStepState = 'PLAYER_DONE'; // プレイヤー行動完了、クリックを待つ
             }
         }, 600);
 
@@ -740,7 +753,6 @@ window.enemyTurnAction = function() {
         createDmgPop(15, false);
         if (typeof updateHpUI === 'function') updateHpUI();
         if (battleLog) battleLog.innerHTML = `🔥 追加効果の猛烈な火傷スリップが蝕む！${data.name}に【15】ダメージ！ <span>▶</span>`;
-        // 💀 ③死んだらタップなしで直行
         if (window.eHp <= 0) { 
             window.battleStepState = 'NONE'; 
             setTimeout(() => { window.checkBattleEnd(); }, 600);
@@ -748,14 +760,13 @@ window.enemyTurnAction = function() {
         }
     }
 
-    // 🧪 1-2. 猛毒スリップダメージ（独立お掃除連動回路）
+    // 🧪 1-2. 猛毒スリップダメージ
     if (window.enemyPoisonTurns > 0) {
-        window.eHp = Math.max(0, window.eHp - 10); // 猛毒は毎ターン10点スリップ
+        window.eHp = Math.max(0, window.eHp - 10); 
         window.enemyPoisonTurns--;
         createDmgPop(10, false);
         if (typeof updateHpUI === 'function') updateHpUI();
         if (battleLog) battleLog.innerHTML = `🧪 追加効果の有害な猛毒スリップが体内で弾ける！${data.name}に【10】ダメージ！ <span>▶</span>`;
-        // 💀 ③死んだらタップなしで直行
         if (window.eHp <= 0) { 
             window.battleStepState = 'NONE'; 
             setTimeout(() => { window.checkBattleEnd(); }, 600);
@@ -766,7 +777,7 @@ window.enemyTurnAction = function() {
     // 2. ❄️ 凍結・睡眠・麻痺スクリプトスキップ
     if (window.enemyFreezeTurns > 0) {
         window.enemyFreezeTurns--;
-        if (battleLog) battleLog.innerHTML = `💤 ${data.name}は凍結・睡眠・麻痺の束縛によりピクリとも動けない！行動が完全スキップされた！ <span>▶</span>`;
+        if (battleLog) battleLog.innerHTML = `💤 ${data.name}は凍結・睡眠·麻痺の束縛によりピクリとも動けない！行動が完全スキップされた！ <span>▶</span>`;
         window.battleStepState = 'ENEMY_DONE';
         window.updateStatusBadgesUI();
         return;
@@ -781,7 +792,6 @@ window.enemyTurnAction = function() {
 
     if (window.isAmuletActive > 0 && !isPlayerDefending) { dmg = Math.floor(dmg * 0.5); }
 
-    // 3. ✨ 暗闇通常攻撃ミス判定
     if (window.enemyBlindTurns > 0 && !isSpecial) {
         window.enemyBlindTurns--;
         if (Math.random() < 0.5) {
@@ -873,10 +883,17 @@ window.enemyTurnAction = function() {
         if (typeof updateHpUI === 'function') updateHpUI();
         createDmgPop(dmg, true);
         
-        setTimeout(() => { if (effScr) effScr.className = ""; }, 1100);
+        setTimeout(() => { 
+            if (effScr) effScr.className = ""; 
+            if (window.pHp <= 0) {
+                window.battleStepState = 'NONE';
+                window.checkBattleEnd();
+            } else {
+                window.battleStepState = 'ENEMY_DONE';
+            }
+        }, 1100);
     } else {
-        // 🤛 ④ 【物理体当たりテキスト＆突進突撃モーションの完全同期化】
-        // ランダム物理テキストの選定とSE点火をアニメーションタイマーの「内側」へ綺麗にお掃除引っ越し！
+        // 🤛 ④ 【バグ完全お掃除！】テキスト構築、SE再生、ダメージ付与の因果を全て「突進時（460ms後）」に足並みを完全に有線同期！
         const eContainer = document.getElementById('e-sprite-container');
         if (eContainer) {
             if (window.curIdx >= 10) {
@@ -892,7 +909,6 @@ window.enemyTurnAction = function() {
 
         setTimeout(() => { 
             if (eContainer) {
-                // ❄️ ⑥ 【凍結・麻痺ガード安全弁】敵が凍結・麻痺・睡眠の時は通常呼吸モーションを再点火させず硬直維持！
                 if (window.enemyFreezeTurns > 0) {
                     eContainer.style.animationPlayState = "paused";
                     return;
@@ -903,33 +919,31 @@ window.enemyTurnAction = function() {
                     eContainer.style.animation = "floatE 2.2s infinite alternate ease-in-out"; 
                 }
             }
+
+            // 🤜 突撃した瞬間に初めて物理ダメージとテキストがログを上書き発火する！
+            const physicalAttackTexts = [
+                `${data.name}の激しい攻撃！`,
+                `${data.name}の強烈な体当たり！`,
+                `${data.name}の凄まじい突進！`
+            ];
+            const chosenText = physicalAttackTexts[Math.floor(Math.random() * physicalAttackTexts.length)];
+            if (battleLog) battleLog.innerHTML = `${chosenText}【${dmg}】の物理ダメージを喰らった！ <span>▶</span>`;
+
+            window.pHp = Math.max(0, window.pHp - dmg);
+            if (typeof updateHpUI === 'function') updateHpUI();
+            createDmgPop(dmg, true);
+
+            if (window.pHp <= 0) {
+                window.battleStepState = 'NONE';
+                window.checkBattleEnd();
+            } else {
+                window.battleStepState = 'ENEMY_DONE'; // 突撃完了後にチケットを発行、どこでもタップを受付開始！
+            }
         }, 460);
-
-        const physicalAttackTexts = [
-            `${data.name}の激しい攻撃！`,
-            `${data.name}の強烈な体当たり！`,
-            `${data.name}の凄まじい突進！`
-        ];
-        const chosenText = physicalAttackTexts[Math.floor(Math.random() * physicalAttackTexts.length)];
-
-        if (battleLog) battleLog.innerHTML = `${chosenText}【${dmg}】の物理ダメージを喰らった！ <span>▶</span>`;
-        
-        window.pHp = Math.max(0, window.pHp - dmg);
-        if (typeof updateHpUI === 'function') updateHpUI();
-        createDmgPop(dmg, true);
     }
 
     if (window.isAmuletActive > 0) {
         window.isAmuletActive--;
-    }
-
-    window.updateStatusBadgesUI();
-    // 💀 ③ もし敵の攻撃反撃でプレイヤーが力尽きた時も、クリックを挟まずに爆速直行！
-    if (window.pHp <= 0) {
-        window.battleStepState = 'NONE';
-        window.checkBattleEnd();
-    } else {
-        window.battleStepState = 'ENEMY_DONE';
     }
 };
 
