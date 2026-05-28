@@ -1,7 +1,7 @@
 // ==========================================
 // 🕒 🔄 更新検知・タイムスタンプ刻印システム
 // ==========================================
-console.log("%c🔄 [BATTLE SYSTEMS] Ver 11.00: 全24呪文対応 ＆ 新・ライトニング(防御無視/会心35%) ＆ 複数弱点・複数耐性(0ダメ演出ログ) ＆ 4大エネミー特殊技ダメージ・吸血点火 最終完成神コード。", "color: #00ffff; font-weight: bold;");
+console.log("%c🔄 [BATTLE SYSTEMS] Ver 12.00: 全24呪文対応 ＆ 新・ライトニング(防御無視/会心35%) ＆ stages.js側マスター(ATTR/SPELLS)完全有線同期リファクタリング神コード。", "color: #00ffff; font-weight: bold;");
 
 // ==========================================
 // ⚔️ 1. グローバル戦闘ステータス管理変数の窓口開通
@@ -273,7 +273,7 @@ window.startBattle = function() {
 
     const battleLog = document.getElementById('battle-log');
     if (battleLog) {
-        let currentDisplayWeak = Array.isArray(data.weak) ? data.weak.join(', ').toUpperCase() : data.weak.toUpperCase();
+        let currentDisplayWeak = Array.isArray(data.weak) ? data.weak.map(a => a.toUpperCase()).join(', ') : data.weak.toUpperCase();
         let suffix = (window.curIdx >= 10) ? " (😈裏タワー解放：弱点【シークレット】特殊2個ドッキングAI)" : ` 弱点: ${currentDisplayWeak || "なし"}`;
         battleLog.innerHTML = `${data.name}が現れた！${suffix}`;
     }
@@ -435,7 +435,7 @@ window.turn = function(playerMove) {
     let magicClass = "anim-player-fire";
     let currentSE = SOUND_FIRE;
 
-    // ⚡ 24番目の新呪文「ライトニング（ele）」の基本スペックをネイティブ配置！
+    // ⚡ 24番目の新呪文「ライトニング（ele）」を含む基本スペックのローカル辞書
     const spellSpecs = {
         fire: { pow: 15, label: "ファイア", se: SOUND_FIRE, cls: "anim-player-fire" },
         ice:  { pow: 15, label: "アイス", se: SOUND_ICE, cls: "anim-player-ice" },
@@ -460,7 +460,7 @@ window.turn = function(playerMove) {
         grav: { pow: 25, label: "グラビデ", se: SOUND_KICK, cls: "anim-player-grav" },
         anal: { pow: 0,  label: "アナライズ", se: SOUND_HOLY, cls: "anim-player-anal" },
         ulti: { pow: 50, label: "アルテマ", se: SOUND_HOLY, cls: "anim-player-ulti" },
-        ele:  { pow: 17, label: "ライトニング", se: SOUND_FIRE, cls: "anim-player-ele" } // ⚡ライトニング追加
+        ele:  { pow: 17, label: "ライトニング", se: SOUND_FIRE, cls: "anim-player-ele" }
     };
 
     if (playerMove === 'def') {
@@ -494,25 +494,27 @@ window.turn = function(playerMove) {
         magicClass = spellSpecs[playerMove].cls;
     }
 
-    // 🛡️ 新・弱点/耐性（配列形式）のマルチ自動検知エンジン
-    let isWeak = Array.isArray(data.weak) ? data.weak.includes(playerMove) : (playerMove === data.weak);
-    let isResist = Array.isArray(data.resist) ? data.resist.includes(playerMove) : false;
+    // 🔮 【Ver 12.00 新配線】 文字列直書き(マジックナンバー)を完全排除し、stages.js側の定義オブジェクトから一発スキャン！
+    let spellAttr = (SPELLS[playerMove]) ? SPELLS[playerMove].attr : null;
+
+    // 🛡️ 弱点/耐性マスター（ATTR）配列有線判定
+    let isWeak = (spellAttr && Array.isArray(data.weak)) ? data.weak.includes(spellAttr) : false;
+    let isResist = (spellAttr && Array.isArray(data.resist)) ? data.resist.includes(spellAttr) : false;
 
     let baseDmg = Math.floor(basePower * (isWeak ? 2.2 : 1) * window.mana);
     
-    // ⚡ 骨盾カット処理（Mミサイル、エアロ、そして新呪文ライトニング（ele）は防御を100%無視！）
+    // ⚡ 骨盾カット処理（Mミサイル、エアロ、ライトニング（ele）は防御を100%無視！）
     if (window.isEnemyShieldActive && playerMove !== 'mmis' && playerMove !== 'aero' && playerMove !== 'ele') { 
         baseDmg = Math.floor(baseDmg * 0.25); 
     }
     window.isEnemyShieldActive = false;
 
-    // 耐性（ダメージ0）判定時の冷徹な引き算回路
+    // 耐性（ダメージ0）
     if (isResist) {
         baseDmg = 0;
     }
 
     let isAttackSpell = (basePower > 0);
-    // ⚡ クリティカル率計算（ライトニング（ele）は会心率が通常25%からさらに10%ハジけ飛び、35%の爆確率に！）
     let criticalChance = (playerMove === 'ele') ? 0.35 : 0.25;
     let isLuckRoll = (isAttackSpell && !isResist && Math.random() < criticalChance);                 
     let isOverkillRoll = (isAttackSpell && !isResist && isWeak && baseDmg >= window.eHp);   
@@ -540,7 +542,6 @@ window.turn = function(playerMove) {
         let statusLog = "";
         let flavorTxt = `『${spellLabel}』を詠唱！`;
 
-        // 耐性・弱点・通常の3大テキスト演出ルーティング回路
         let coreTxt = "";
         if (isResist) {
             coreTxt = `🚨【耐性】${data.name}に${spellLabel}は全く効かなかった！（${finalDmg}ダメージ）`;
@@ -645,7 +646,7 @@ window.turn = function(playerMove) {
         }
 
         if (playerMove === 'anal') {
-            let currentWeak = Array.isArray(data.weak) ? data.weak.join(', ').toUpperCase() : data.weak.toUpperCase();
+            let currentWeak = (spellAttr && Array.isArray(data.weak)) ? data.weak.map(a => a.toUpperCase()).join(', ') : "なし";
             if (window.curIdx >= 10) currentWeak = "シークレット（全属性検証せよ）";
             coreTxt = `🔮 【アナライズ】成功！敵の深層データをスキャン！ 残りHP: ${window.eHp}/${window.eMaxHp} | 弱点属性は [ ${currentWeak || "なし"} ] だ！`;
         }
@@ -668,7 +669,7 @@ window.turn = function(playerMove) {
 };
 
 // ==========================================
-// 👑 5. エネミーターン行動AI（アビリティ小ダメ ＆ 15P吸血ドッキング版）
+// 👑 5. エネミーターン行動AI
 // ==========================================
 window.enemyTurnAction = function() {
     let isPlayerDefending = window.nextTurnIsEnemySpecial;
@@ -729,10 +730,9 @@ window.enemyTurnAction = function() {
 
         let logTxt = "";
 
-        // 👹 4大アビリティに小ダメージ ＆ 吸血を完全溶接！
         if (data.type === 'slime' || isDoubleAbilityActive) {
             window.isPlayerCorroded = true;
-            let totalDmg = dmg + 5; // 🧪 溶解液 ＋ 【New】固定5ダメージ
+            let totalDmg = dmg + 5; 
             logTxt += `🚨 ${data.name}のドロッとした溶解液放射！【${totalDmg}】の強酸ダメージ！(味方の次回防御不可状態に！)`;
             if (effScr) effScr.className = "shoot-acid";
             dmg = totalDmg;
@@ -749,14 +749,14 @@ window.enemyTurnAction = function() {
         }
         else if (data.type === 'harpy') {
             window.isHarpySpeedActive = true;
-            let totalDmg = dmg + 8; // 🦅 超音波 ＋ 【New】固定8ダメージ
+            let totalDmg = dmg + 8; 
             logTxt += `🚨 ${data.name}の耳を裂く狂気の超音波！【${totalDmg}】の精神ダメージ！(敵の次回ターンスピード爆速化！)`;
             if (effScr) effScr.className = "anim-harpy-storm";
             dmg = totalDmg;
         }
         else if (data.type === 'golem') {
             window.mana = 1.0; 
-            let totalDmg = dmg + 10; // 🤖 岩石投げ ＋ 【New】固定10ダメージ
+            let totalDmg = dmg + 10; 
             logTxt += `🚨 ${data.name}の超巨大岩石大投擲！【${totalDmg}】の激突ダメージ！(味方のチャージ集中状態を粉砕！)`;
             if (effScr) effScr.className = "anim-golem-earthquake";
             dmg = totalDmg;
@@ -773,8 +773,8 @@ window.enemyTurnAction = function() {
         }
         else if (data.type === 'phantom' || data.type === 'ghost') {
             window.isItemBlocked = true;
-            let totalDmg = dmg + 15; // 👻 吸血エナジー ＋ 【New】固定15ダメージ
-            window.eHp = Math.min(window.eMaxHp, window.eHp + 15); // 敵の体力を15ポイント自動回復（吸血）
+            let totalDmg = dmg + 15; 
+            window.eHp = Math.min(window.eMaxHp, window.eHp + 15); 
             logTxt += `👻 ${data.name}のエナジードレイン！【${totalDmg}】ダメ！命を【15P】吸い取られ、道具袋も石化ロックされた！`;
             if (effScr) effScr.className = "anim-phantom-curse";
             dmg = totalDmg;
