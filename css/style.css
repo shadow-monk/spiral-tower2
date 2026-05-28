@@ -194,22 +194,18 @@
     100% { filter: brightness(1) sepia(0); }
 }
 
-/* ❄️ アイス：頭上からの氷結結晶落とし */
+/* ❄️ 【ディレクター神監修】アイス：周囲4重の氷結晶湧き上がり・内包圧縮大爆発（古い落下を完全破壊！） */
 #eff-scr.anim-player-ice::after {
-    content: "❄️"; font-size: 55px; position: absolute; z-index: 60; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 15px #38bdf8);
-    animation: dropIceCrystal 0.6s ease-in forwards;
+    content: "❄️   ❄️\A ❄️   ❄️"; white-space: pre; line-height: 1.2; font-size: 42px; color: #38bdf8 !important;
+    text-align: center; position: absolute; top: 35%; left: 66%; width: 140px; height: 140px;
+    z-index: 61; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 15px #0ea5e9);
+    animation: iceCrystalEncircleCompress 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
-@keyframes dropIceCrystal {
-    0% { top: -60px; left: 74%; transform: scale(0.3) rotate(0deg); opacity: 0; }
-    30% { top: 10%; left: 74%; transform: scale(1.4) rotate(180deg); opacity: 1; }
-    70% { top: 40%; left: 74%; transform: scale(1) rotate(360deg); opacity: 1; filter: blur(0); }
-    100% { top: 45%; left: 74%; transform: scale(2.5); opacity: 0; filter: blur(10px); }
-}
-#eff-scr.anim-player-ice #e-sprite-container { animation: enemyFreezeFreeze 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-@keyframes enemyFreezeFreeze {
-    0%, 50% { filter: brightness(1) saturate(1); }
-    65% { filter: brightness(2.5) saturate(0) hue-rotate(180deg); transform: scale(0.95); }
-    100% { filter: brightness(1) saturate(1); }
+@keyframes iceCrystalEncircleCompress {
+    0% { transform: scale(2.8) rotate(0deg); opacity: 0; }
+    40% { transform: scale(1.3) rotate(90deg); opacity: 1; }
+    70% { transform: scale(0.4) rotate(180deg); opacity: 1; filter: brightness(2.5); }
+    100% { transform: scale(0); opacity: 0; filter: blur(8px); }
 }
 
 /* ✨ ホーリー：多重聖結晶ビット */
@@ -484,7 +480,45 @@
 }
 
 /* ==========================================================================
-   📺 3. 下部コマンドエリア・スクロールグリッド構造
+   📺 3. 【新設】 『【１】効果ラベル』 ウィンドウ最上部セパレート表示大要塞
+   ========================================================================== */
+#status-badge-header {
+    position: absolute;
+    top: 5px;
+    left: 0;
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: space-between; /* 自分（左）と敵（右）を完璧にセパレート！ */
+    z-index: 999;
+    pointer-events: none; /* クリック進行の邪魔を絶対にしない完全透過 */
+}
+
+.status-row-p {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-start;
+}
+
+.status-row-e {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+.retro-status-tag {
+    font-size: 0.8rem !important;
+    font-weight: 900 !important;
+    padding: 2px 5px !important;
+    border-radius: 4px;
+    text-shadow: 1px 1px 0 #000;
+    box-shadow: 0 0 8px rgba(0,0,0,0.8);
+    animation: pulse 0.5s infinite alternate ease-in-out;
+}
+
+/* ==========================================================================
+   📺 4. 下部コマンドエリア・スクロールグリッド構造
    ========================================================================== */
 #cmd-panel {
     background-color: #020617 !important;
@@ -589,7 +623,7 @@
 }
 
 /* ==========================================================================
-   📺 4. スクロールバー・その他基本アニメーション
+   📺 5. スクロールバー・その他基本アニメーション
    ========================================================================== */
 div::-webkit-scrollbar { width: 8px; }
 div::-webkit-scrollbar-track { background: #0f172a; border-radius: 99px; }
