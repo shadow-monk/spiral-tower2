@@ -91,7 +91,7 @@ const STAGES = [
     hp: 65,  
     atk: 10, 
     weak: [ATTR.FIRE], 
-    resist: [ATTR.MAGIC, ATTR.ICE, ATTR.MIND], // 打撃・氷雪・精神を画像通りマッピング
+    resist: [ ATTR.ICE, ATTR.MIND], // 打撃・氷雪・精神を画像通りマッピング
     type: "slime",   
     glow: "rgba(34,197,94,0.4)",  
     txt: "1階【粘液族】通路を塞ぐ粘液質の魔物。火炎が有効だが、打撃・氷雪・精神魔法は一切効かない！" 
