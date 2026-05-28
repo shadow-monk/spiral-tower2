@@ -30,17 +30,68 @@ function getAssetPath(category, filename) {
 }
 
 // ==========================================
-// 📊 全10階層の敵ステータス・種族・弱点・耐性データ定義
+// 🔮 1. 属性・系統IDマスター定義（最新画像ベース）
 // ==========================================
-// ※weak（2.2倍）および resist（ダメージ0）は、複数定義を想定し配列形式へ最適化ビルド
+const ATTR = {
+    FIRE:    "fire",    // 🔥 火炎系
+    ICE:     "ice",     // ❄️ 氷雪系
+    HOLY:    "holy",    // ✨ 聖力系
+    AERO:    "aero",    // 🌪️ 風系
+    ELE:     "ele",     // ⚡ 雷系
+    WATER:   "water",   // 🌊 水系
+    EARTH:   "earth",   // 🪨 大地系
+    MAGIC:   "magic",   // 🔮 魔力系
+    MIND:    "mind",    // 🧠 精神系
+    DARK:    "dark",    // 💀 暗黒系
+    LIGHT:   "light",   // ☀️ 光系
+    POISON:  "poison",  // 🧪 猛毒系
+    TIME:    "time",    // ⏳ 時空系
+    STAR:    "star",    // ☄️ 星系
+    GRAVITY: "gravity"  // 🧬 重力系
+};
+
+// ==========================================
+// 📜 2. 全24呪文（魔法）マスター仕様定義
+// ==========================================
+const SPELLS = {
+    fire: { id: 1,  name: "ファイア",     attr: ATTR.FIRE },
+    ice:  { id: 2,  name: "アイス",       attr: ATTR.ICE },
+    holy: { id: 3,  name: "ホーリー",     attr: ATTR.HOLY },
+    wasp: { id: 4,  name: "ワスプ",       attr: ATTR.MAGIC }, // ※画像シートの分類に同期
+    scre: { id: 5,  name: "スクリーム",   attr: ATTR.MIND },
+    refl: { id: 6,  name: "リフレク",     attr: ATTR.MAGIC },
+    wisp: { id: 7,  name: "ウィスプ",     attr: ATTR.HOLY },
+    mmis: { id: 8,  name: "Ｍミサイル",   attr: ATTR.MAGIC },
+    scis: { id: 9,  name: "シザース",     attr: ATTR.MAGIC },
+    flas: { id: 10, name: "フラッシュ",   attr: ATTR.LIGHT },
+    drai: { id: 11, name: "ドレイン",     attr: ATTR.DARK },
+    slow: { id: 12, name: "スロウ",       attr: ATTR.TIME },
+    flod: { id: 13, name: "フラッド",     attr: ATTR.WATER },
+    bio:  { id: 14, name: "バイオ",       attr: ATTR.POISON },
+    quak: { id: 15, name: "クエイク",     attr: ATTR.EARTH },
+    slee: { id: 16, name: "スリープ",     attr: ATTR.MIND },
+    dead: { id: 17, name: "デス",         attr: ATTR.DARK },
+    mete: { id: 18, name: "メテオ",       attr: ATTR.FIRE },
+    aero: { id: 19, name: "エアロ",       attr: ATTR.AERO },
+    come: { id: 20, name: "コメット",     attr: ATTR.STAR },
+    grav: { id: 21, name: "グラビデ",     attr: ATTR.GRAVITY },
+    anal: { id: 22, name: "アナライズ",   attr: ATTR.MAGIC },
+    ulti: { id: 23, name: "アルテマ",     attr: ATTR.MAGIC },
+    ele:  { id: 24, name: "ライトニング", attr: ATTR.ELE }   // ⚡24番目の新呪文
+};
+
+// ==========================================
+// 📊 全10階層の敵ステータス・設定データ定義
+// ==========================================
+// ※全魔物の弱点・耐性をマスター属性定義（ATTR）へ完全有線ドッキング
 const STAGES = [
   { 
     floor: 1,  
     name: "ヘドロスライム",   
     hp: 65,  
     atk: 10, 
-    weak: ["fire"], 
-    resist: ["scis", "ice", "slee"], 
+    weak: [ATTR.FIRE], 
+    resist: [ATTR.MAGIC, ATTR.ICE, ATTR.MIND], // 打撃・氷雪・精神を画像通りマッピング
     type: "slime",   
     glow: "rgba(34,197,94,0.4)",  
     txt: "1階【粘液族】通路を塞ぐ粘液質の魔物。火炎が有効だが、打撃・氷雪・精神魔法は一切効かない！" 
@@ -61,8 +112,8 @@ const STAGES = [
     name: "スケルトンナイト",     
     hp: 100, 
     atk: 16, 
-    weak: ["fire", "holy"], 
-    resist: ["slee", "dead"], 
+    weak: [ATTR.FIRE, ATTR.HOLY], 
+    resist: [ATTR.MIND, ATTR.DARK], // 精神・即死（暗黒）を完全遮断
     type: "skelton", 
     glow: "rgba(203,213,225,0.5)", 
     txt: "3階【アンデッド族】強固な骸骨騎士。火炎と聖力が大弱点！ただし精神魔法や即死鎌は完全に遮断される。" 
@@ -72,8 +123,8 @@ const STAGES = [
     name: "ハーピィ",              
     hp: 125, 
     atk: 19, 
-    weak: ["aero", "ele"], 
-    resist: ["quak"], 
+    weak: [ATTR.AERO, ATTR.ELE], // 風・雷が2.2倍弱点
+    resist: [ATTR.EARTH],        // 飛行中のため大地無効
     type: "harpy",   
     glow: "rgba(236,72,153,0.4)",  
     txt: "4階【獣族/飛行族】大気を操る怪鳥。風と雷に脆いが、飛行しているため大地振動（クエイク）は無効！" 
@@ -83,8 +134,8 @@ const STAGES = [
     name: "ゴーレム",              
     hp: 155, 
     atk: 22, 
-    weak: ["ice", "slee", "flod"], 
-    resist: ["fire", "slee"], 
+    weak: [ATTR.ICE, ATTR.MIND, ATTR.WATER], // 氷雪・精神（スリープ）・水弱点
+    resist: [ATTR.FIRE, ATTR.MAGIC],         // 火炎・魔力（麻痺等）をシャットアウト
     type: "golem",   
     glow: "rgba(245,158,11,0.5)",  
     txt: "5階【人形族】岩石巨兵。氷雪・水に非常に弱くスリープも通るが、火炎と精神デバフ（追加麻痺等）は無効！" 
@@ -94,8 +145,8 @@ const STAGES = [
     name: "ガーゴイル",            
     hp: 190, 
     atk: 26, 
-    weak: ["aero", "ele"], 
-    resist: ["slee", "quak"], 
+    weak: [ATTR.AERO, ATTR.ELE], // 風・雷弱点
+    resist: [ATTR.MIND, ATTR.EARTH], // 精神無効・飛行のため大地無効
     type: "gargoil", 
     glow: "rgba(100,116,139,0.5)", 
     txt: "6階【魔族/飛行族】守護霊獣。風と雷が直撃するが、精神魔法は効かず、滞空しているため大地属性も通らない。" 
@@ -105,7 +156,7 @@ const STAGES = [
     name: "マイコニド",            
     hp: 230, 
     atk: 30, 
-    weak: ["fire"], 
+    weak: [ATTR.FIRE], 
     resist: [], 
     type: "mush",    
     glow: "rgba(168,85,247,0.4)",  
@@ -116,8 +167,8 @@ const STAGES = [
     name: "ファントム",            
     hp: 280, 
     atk: 35, 
-    weak: ["fire", "holy"], 
-    resist: ["slee", "dead"], 
+    weak: [ATTR.FIRE, ATTR.HOLY], 
+    resist: [ATTR.MIND, ATTR.DARK], 
     type: "phantom", 
     glow: "rgba(125,211,252,0.4)", 
     txt: "8階【アンデッド族】彷徨う狂気の亡霊。火炎と聖力で霧散するが、精神を揺さぶる催眠や即死は絶対無効。" 
@@ -127,8 +178,8 @@ const STAGES = [
     name: "イビルアイ",            
     hp: 360, 
     atk: 42, 
-    weak: ["holy"], 
-    resist: ["ice", "slee"], 
+    weak: [ATTR.HOLY], 
+    resist: [ATTR.ICE, ATTR.MIND], // 氷雪・精神無効
     type: "eyes",    
     glow: "rgba(219,39,119,0.5)",  
     txt: "9階【悪魔族】巨大魔眼。極大の聖力が弱点！しかし冷気による凍結や精神催眠は一切受け付けない。" 
@@ -139,7 +190,7 @@ const STAGES = [
     hp: 550, 
     atk: 52, 
     weak: [], 
-    resist: ["fire"], 
+    resist: [ATTR.FIRE], // 火炎無効の絶望竜
     type: "dragon",  
     glow: "rgba(15,23,42,1)",      
     txt: "10階【竜族】最上階に君臨する最終暗黒竜。なんと弱点属性なし！さらに火炎魔法を完全に無効化する絶望の盾を持つ。" 
