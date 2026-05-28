@@ -325,7 +325,7 @@
     100% { transform: scale(1) rotate(20deg); opacity: 0; filter: blur(5px); }
 }
 
-/* ☀️ 追加：フラッシュ（0.1秒ホワイトアウト強烈明滅） */
+/* ☀️ 追加：フラッシュ */
 #eff-scr.anim-player-flas {
     animation: fullScreenFlash 0.5s ease-out forwards;
 }
@@ -334,7 +334,7 @@
     100% { background-color: #0f172a !important; }
 }
 
-/* 🩸 追加：ドレイン（敵からプレイヤーへの血流オーラ） */
+/* 🩸 追加：ドレイン */
 #eff-scr.anim-player-drai::after {
     content: "🔴"; font-size: 30px; position: absolute; top: 50%; left: 70%; z-index: 60; pointer-events: none; opacity: 0;
     animation: bloodDrain 0.6s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
@@ -345,7 +345,7 @@
     100% { left: 20%; transform: scale(0.5); opacity: 0; filter: blur(6px); }
 }
 
-/* ⏳ 追加：スロウ（時空時計ネオン遅延） */
+/* ⏳ 追加：スロウ */
 #eff-scr.anim-player-slow::after {
     content: "⏳"; font-size: 50px; position: absolute; top: 40%; left: 68%; z-index: 60; pointer-events: none; opacity: 0;
     animation: timeSlow 0.6s ease-in-out forwards;
@@ -356,7 +356,7 @@
     100% { transform: scale(1) rotate(360deg); opacity: 0; filter: blur(8px); }
 }
 
-/* 🌊 追加：フラッド（激流津波ウォッシュ） */
+/* 🌊 追加：フラッド */
 #eff-scr.anim-player-flod::after {
     content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent);
@@ -368,7 +368,7 @@
     100% { transform: translateX(100%); opacity: 0; }
 }
 
-/* 🧪 追加：バイオ（毒緑泡バブル停滞） */
+/* 🧪 追加：バイオ */
 #eff-scr.anim-player-bio::after {
     content: "🫧 🫧\A 🫧"; white-space: pre; font-size: 35px; color: #22c55e !important; text-shadow: 20px 20px 0 #16a34a;
     position: absolute; top: 42%; left: 65%; z-index: 60; pointer-events: none; opacity: 0;
@@ -380,7 +380,7 @@
     100% { transform: scale(1.5) translateY(-30px); opacity: 0; filter: blur(6px); }
 }
 
-/* 🪨 追加：クエイク（大地震地割れ） */
+/* 🪨 追加：クエイク */
 #eff-scr.anim-player-quak {
     animation: quakeEarth 0.6s ease-in-out forwards;
 }
@@ -390,7 +390,7 @@
     30%, 70% { transform: translate(8px, -5px); }
 }
 
-/* 💤 追加：スリープ（精神催眠Z文字浮遊） */
+/* 💤 追加：スリープ */
 #eff-scr.anim-player-slee::after {
     content: "💤\A   💤"; white-space: pre; font-size: 40px; color: #38bdf8 !important;
     position: absolute; top: 35%; left: 70%; z-index: 60; pointer-events: none; opacity: 0;
@@ -402,7 +402,7 @@
     100% { transform: scale(1.3) translateY(-40px); opacity: 0; }
 }
 
-/* 💀 追加：デス（漆黒即死鎌フラッシュ） */
+/* 💀 追加：デス */
 #eff-scr.anim-player-dead::after {
     content: "☠"; font-size: 90px; color: #111827 !important; text-shadow: 0 0 20px #ef4444;
     position: absolute; top: 30%; left: 65%; z-index: 60; pointer-events: none; opacity: 0;
@@ -414,7 +414,7 @@
     100% { transform: scale(2) rotate(45deg); opacity: 0; filter: blur(10px); }
 }
 
-/* 🌋 追加：メテオ（極大惑星衝突大爆発） */
+/* 🌋 追加：メテオ */
 #eff-scr.anim-player-mete::after {
     content: ""; position: absolute; width: 80px; height: 80px;
     background: radial-gradient(circle, #f97316 30%, #7f1d1d 80%, transparent);
@@ -427,7 +427,7 @@
     100% { top: 45%; left: 65%; transform: scale(4); opacity: 0; filter: blur(15px); }
 }
 
-/* 🌪️ 追加：エアロ（烈風真空カッター） */
+/* 🌪️ 追加：エアロ */
 #eff-scr.anim-player-aero::after {
     content: "～～\A ～～"; white-space: pre; font-size: 45px; color: #10b981 !important; font-weight: bold;
     position: absolute; top: 40%; left: 68%; z-index: 60; pointer-events: none; opacity: 0;
@@ -439,7 +439,7 @@
     100% { transform: scale(2) rotate(360deg); opacity: 0; }
 }
 
-/* ☄️ 追加：コメット（星屑ランダム落下） */
+/* ☄️ 追加：コメット */
 #eff-scr.anim-player-come::after {
     content: "⭐ ⭐\A   ⭐"; white-space: pre; font-size: 30px; color: #a5b4fc !important; text-shadow: 0 0 15px #6366f1;
     position: absolute; z-index: 60; pointer-events: none; opacity: 0; animation: cometRain 0.5s ease-in forwards;
@@ -450,7 +450,7 @@
     100% { top: 50%; left: 70%; opacity: 0; transform: scale(1.6); }
 }
 
-/* 🧬 追加：グラビデ（紫ネオン重力球圧縮） */
+/* 🧬 追加：グラビデ */
 #eff-scr.anim-player-grav::after {
     content: ""; position: absolute; top: 35%; left: 65%; width: 100px; height: 100px;
     border: 4px dashed #6366f1; border-radius: 50%; background: rgba(99,102,241,0.2);
@@ -462,7 +462,7 @@
     100% { transform: scale(0); opacity: 0; }
 }
 
-/* 🔮 追加：アナライズ（デジタルスキャン大結界） */
+/* 🔮 追加：アナライズ */
 #eff-scr.anim-player-anal::after {
     content: "🔍 SCANNING..."; font-size: 1.1rem; color: #2dd4bf !important; font-weight: bold;
     position: absolute; top: 45%; left: 64%; z-index: 60; pointer-events: none; opacity: 0;
@@ -473,7 +473,7 @@
     20%, 80% { opacity: 1; transform: scaleY(1); border-top: 2px solid #2dd4bf; border-bottom: 2px solid #2dd4bf; }
 }
 
-/* 👑 追加：アルテマ（究極全画面ネガ反転バースト） */
+/* 👑 追加：アルテマ */
 #eff-scr.anim-player-ulti {
     animation: ultimaCosmo 0.8s ease-in-out forwards;
 }
@@ -484,7 +484,7 @@
 }
 
 /* ==========================================================================
-   📺 3. 【きつきつ完全解消】 下部コマンドエリア・スクロールグリッド構造
+   📺 3. 下部コマンドエリア・スクロールグリッド構造
    ========================================================================== */
 #cmd-panel {
     background-color: #020617 !important;
@@ -499,15 +499,25 @@
     opacity: 1 !important;
 }
 
-.btn-magic-main { background: linear-gradient(180deg, #4f46e5, #3730a3) !important; border-color: #818cf8 !important; opacity: 1 !important; color: #fff !important; }
-.btn-charge-main { background: linear-gradient(180deg, #7e22ce, #581c87) !important; border-color: #c084fc !important; opacity: 1 !important; color: #fff !important; }
-.btn-item-main { background: linear-gradient(180deg, #d97706, #92400e) !important; border-color: #fbbf24 !important; opacity: 1 !important; color: #fff !important; }
+/* 🎯【A面メインアクションボタン】パツパツを完全救出する黄金比の上下内包余白設定！ */
+.btn-magic-main,
+.btn-charge-main,
+.btn-item-main {
+    padding: 12px 0 !important; /* 👈 ギューギューだった上下を肉厚に広げ、ドッシリ押しやすく改善！ */
+    opacity: 1 !important;
+    color: #fff !important;
+    height: auto !important; /* 固定高を引き算し、余白優先でふっくら自動整形 */
+}
 
-/* 🔮 カバン内のボタンをスマートに引き算し、パツパツ感を100%解消 */
+.btn-magic-main { background: linear-gradient(180deg, #4f46e5, #3730a3) !important; border-color: #818cf8 !important; }
+.btn-charge-main { background: linear-gradient(180deg, #7e22ce, #581c87) !important; border-color: #c084fc !important; }
+.btn-item-main { background: linear-gradient(180deg, #d97706, #92400e) !important; border-color: #fbbf24 !important; }
+
+/* 🔮 カバン（B面・C面）内のスクロールボタン用のスリム設定 */
 #panel-magic-mode button,
 #item-bag-panel button {
-    padding: 8px 2px !important; /* ボタン高をスリムに圧縮 */
-    font-size: 0.9rem !important; /* 文字が綺麗に1行で収まるように微細調整 */
+    padding: 8px 2px !important;
+    font-size: 0.9rem !important;
     height: auto !important;
     min-height: 38px !important;
 }
@@ -529,13 +539,13 @@
     font-size: 0.95rem !important;
 }
 
-/* ⚡ 新・クリティカルヒット！！特攻スライドバー（🛡️前ターンFIXの top:15px を完全厳守！） */
+/* ⚡ 新・クリティカルヒット！！特攻スライドバー（上部安全配置 top:15px 厳守） */
 #cutin-bar {
     position: absolute;
     width: 100%;
     height: 48px;
     background: linear-gradient(90deg, transparent, #b45309 15%, #ef4444 50%, #b45309 85%, transparent) !important;
-    top: 15px !important; /* 👈FIXしている上部安全配置を100%維持 */
+    top: 15px !important;
     left: 0;
     z-index: 999 !important;
     display: none; 
