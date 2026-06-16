@@ -1,14 +1,35 @@
-// ==========================================
-// 🔊 3. サウンドアセットマッピング
+// ================================================================
+// 🔊 【audio.js 構造・機能メモ】
+// ================================================================
+// * 【３】サウンドアセットマッピング
+//   - 効果音 (SE)：属性魔法、キック、未定義だった毒や斬撃など全12種を定義。
+//   - 背景音楽 (BGM)：全6曲の戦闘プレイリストとエンディング曲を格納。
+//   - 再生機器：SE用・BGM用の独立したグローバルプレイヤーの初期化。
+// * 【４】オーディオ制御コアロジック
+//   - toggleMute：消音開通。戦闘中の解除時は停止位置から再生をその場で再開。
+//   - playSE：404エラーを自動回避するパス解析を挟み、音量0.5で再生。
+//   - startBGM / stopBGM：タイトル、ED、ランダム戦闘曲の選曲とループ・音量制御。
+// ================================================================
+
+// ==========================================================================================================
+// 🔊 3. サウンドアセットマッピング (過去コードGG・最高峰完全有線版・バグ修正完了版)
 // ==========================================
 const SOUND_FIRE = getAssetPath('se_clean', 'se_fire_hit.mp3'); 
 const SOUND_ICE = getAssetPath('se_clean', 'se_ice_hit.mp3');   
 const SOUND_HOLY = getAssetPath('se_clean', 'se_holy_hit.mp3'); 
 const SOUND_FREEZE_DEAD = getAssetPath('se_clean', 'se_freeze_hit.mp3'); 
 
-// 🎯【体当たり専用SE登録】
-// 他の既存アセットに一切傷をつけず、新キック音のみを最上部データベースへ安全にマッピング
-const SOUND_KICK = "https://raw.githubusercontent.com/shadow-monk/spiral-tower2/main/assets/effects/standard/others/se_lightkick.mp3";
+// 🎯【体当たり専用SE登録：絶対アドレス直書きを廃止し、正規関数へ有線直結！】
+const SOUND_KICK = getAssetPath('se_clean', 'se_lightkick.mp3');
+
+// 🛠️【大修復：battle.jsで参照される未定義SE変数をすべて開通定義！】
+const SOUND_POISON = getAssetPath('se_clean', 'se_poison01.mp3'); 
+const SOUND_EARTHQUAKE = getAssetPath('se_clean', 'se_earthquake.mp3'); 
+const SOUND_SLASH = getAssetPath('se_clean', 'se_sword01.mp3'); 
+const SOUND_WIND = getAssetPath('se_clean', 'se_wind01.mp3'); 
+const SOUND_THUNDER = getAssetPath('se_clean', 'se_lightning01.mp3'); 
+const SOUND_DRAGON_CRY = getAssetPath('se_clean', 'se_ptrano_voice.mp3'); 
+const SOUND_TENTACLE = getAssetPath('se_clean', 'se_tentacls.mp3'); 
 
 const BGM_BATTLE_PLAYLIST = [
     getAssetPath('bgm_clean', 'bgm_battle_arch03.mp3'),
@@ -22,7 +43,7 @@ const BGM_PEACE_GRAND_END = getAssetPath('bgm_clean', 'bgm_peace_fantasy14.mp3')
 
 window.isMuted = false;
 
-// ⚡ 【メモリリーク対策】音楽プレイヤーの固定の器を最上部に用意（再利用型）
+// ⚡ 音楽プレイヤーの固定の器を用意
 if (!window._globalSePlayer)  window._globalSePlayer = new Audio();
 if (!window._globalBgmPlayer) window._globalBgmPlayer = new Audio();
 
@@ -30,39 +51,35 @@ if (!window._globalBgmPlayer) window._globalBgmPlayer = new Audio();
 // 🔊 4. オーディオ制御コアロジック
 // ==========================================
 
-/**
- * ミュート（音声ON/OFF）を切り替えるグローバル有線回路
- * 他のJSファイルを一切いじらずにBGMとSEを完全コントロールします
- */
 function toggleMute() {
     isMuted = !isMuted;
-    
     const btn = document.getElementById("btn-mute");
-    if (btn) {
-        btn.innerText = isMuted ? "🔇 音声: OFF" : "🔊 音声: ON";
-    }
+    if (btn) btn.innerText = isMuted ? "🔇 音声: OFF" : "🔊 音声: ON";
     
     if (isMuted) {
-        // 🔒【ミュートバグ根できたコア】
-        // 他のファイルから流れている「すべての音源」をaudio.js側から強制的にねじ伏せ、無音化します。
-        if (window._globalBgmPlayer) {
-            window._globalBgmPlayer.pause();
-        }
-        if (window._globalSePlayer) {
-            window._globalSePlayer.pause();
-        }
+        if (window._globalBgmPlayer) window._globalBgmPlayer.pause();
+        if (window._globalSePlayer) window._globalSePlayer.pause();
     } else {
-        // ミュート解除時はタイトル画面であればBGMを安全に復帰
+        // 🌟【大開通】まだ戦闘前ならタイトル曲を、戦闘中なら一時停止していた曲をその場で再生再開！
         if (window.curIdx === -1) {
             startBGM("title");
+        } else if (window._globalBgmPlayer) {
+            window._globalBgmPlayer.play().catch(e => console.log("BGM resume blocked:", e));
         }
     }
 }
+       
 
 function playSE(url) {
     if (isMuted) return; // ミュート中は絶対に鳴らさない
     try { 
-        window._globalSePlayer.src = url; 
+        // 🌍 【環境追従型・音源404エラー完全自動回避の足し算有線】
+        let targetUrl = url;
+        if (typeof window.getCleanAssetPath === 'function' && url && !url.startsWith('http')) {
+            targetUrl = window.getCleanAssetPath(url);
+        }
+        
+        window._globalSePlayer.src = targetUrl; 
         window._globalSePlayer.volume = 0.5; 
         window._globalSePlayer.play().catch(e => console.log("SE blocked/deferred:", e)); 
     } catch(e){}
@@ -82,18 +99,22 @@ function startBGM(mode) {
     
     if (url) {
         try { 
-            window._globalBgmPlayer.src = url;
-            window._globalBgmPlayer.loop = (mode !== "grand_end"); 
+            // 🌍 BGM側にも安全のため自動パス解析ガードレールを100%足し算直結
+            let targetUrl = url;
+            if (typeof window.getCleanAssetPath === 'function' && url && !url.startsWith('http')) {
+                targetUrl = window.getCleanAssetPath(url);
+            }
+
+            window._globalBgmPlayer.src = targetUrl;
+            window._globalBgmPlayer.loop = (mode !== "grand_end"); // 過去コードGG仕様の美しいエンディング安全弁
             window._globalBgmPlayer.volume = 0.33; 
-            window._globalBgmPlayer.play().catch(e => console.log("BGM blocked/deferred:", e)); 
+            window._globalBgmPlayer.play().catch(e => console.log("BGM deferred:", e)); 
         } catch(e){}
     }
 }
 
-function stopBGM() { 
-    try { 
-        if (window._globalBgmPlayer) {
-            window._globalBgmPlayer.pause(); 
-        }
+function stopBGM() {
+    try {
+        if (window._globalBgmPlayer) window._globalBgmPlayer.pause();
     } catch(e){}
 }

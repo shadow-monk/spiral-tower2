@@ -1,6 +1,6 @@
-// ==========================================
+// ==================================================================
 // 📺 1. 画面表示切り替え・UI制御ロジック（白フリーズ・不透明度完全クリーンアップ版）
-// ==========================================
+// ==================================================================
 console.log("%c🎨 [UI SYSTEMS] Ver 7.60: コマンドの真っ白遮断バグを完全粉砕し、23呪文＆20アイテムの所持数配線を全開通しました。", "color: #00ffff; font-weight: bold;");
 
 /**
@@ -60,6 +60,9 @@ function createDmgPop(dmg, isPlayer) {
     }
 
     const currentLayer = window[layerKey];
+    
+    // ⏳ 🏆 【足し算回復：ダメージポップの多重タイマー安全破棄】
+    // 連続でポップアップが発生した際に古いタイマーを破棄し、表示時間が狂う不具合を根絶します！
     if (window[timeoutKey]) clearTimeout(window[timeoutKey]);
 
     currentLayer.innerText = isPlayer ? `-${dmg}` : dmg; 
@@ -79,10 +82,30 @@ function createDmgPop(dmg, isPlayer) {
 // ==========================================
 
 /**
- * 🔮 呪文ボタンエリアを展開（A面を隠し、B面スクロール呪文をblockでハキハキ点灯！）
+ *
+ * 🔮 呪文ボタンエリアを展開（A面を隠し、B面スクロール呪文をカバンの所持状態と同期して点灯！）
  */
 function openMagicBag() {
     if (window.isBusy || pHp <= 0 || eHp <= 0) return;
+
+    // 💡【新・11大選抜＆所持呪文フィルター】
+    // HTML上にあるすべての呪文ボタン（ボタンのonclick属性の文字）をスキャン！
+    // プレイヤーが現在実際に覚えている呪文（window.playerSpells）だけを表示させます。
+    const allSpells = ['fire', 'wasp2', 'scis', 'scre', 'wasp', 'flod', 'quak', 'drai', 'mete', 'come', 'ulti', 'ice', 'holy', 'def', 'refl', 'wisp', 'mmis', 'flas', 'slow', 'slee', 'dead', 'aero', 'grav', 'anal', 'ele'];
+    
+    allSpells.forEach(key => {
+        // 各呪文のボタンをonclickの中身からピンポイントで検知
+       const btn = document.querySelector(`button[onclick="turn('${key}')"]`);
+        if (btn) {
+            // カバンに入っている、またはデバッグロック解除中ならハキハキ表示！
+            if ((window.playerSpells && window.playerSpells.includes(key)) || window.isDebugUnlocked === true) {
+                btn.style.display = "block";
+            } else {
+                // 覚えていない呪文は跡形もなく非表示（スルー）にして詰める
+                btn.style.display = "none";
+            }
+        }
+    });
 
     const mainPanel = document.getElementById('panel-main-mode');
     const magicPanel = document.getElementById('panel-magic-mode');
@@ -107,15 +130,14 @@ function closeMagicBag() {
 // ==========================================
 
 /**
- * 🎒 最強賢者モード（全20アイテム）のテキストに所持数(9)をハキハキ同期させて開く関数
+ /**
+ * 🎒 大容量アイテムバッグUI・所持アイテム限定表示フィルター版
  */
 function openItemBag() { 
     if (window.isBusy || pHp <= 0 || eHp <= 0) return;
 
-    // 最新のアイテムバッグに並ぶ、全20スロットの文字と個数を1撃で完全連動！
-    // 賢者モードテストのため、未定義なら自動で9個（無限）としてハキハキ印字します
     const items = [
-        { id: 'potion', name: '🧪 回復薬' }, { id: 'amulet', name: '🧿 お守り' },
+        { id: 'potion', name: '🧪 治療薬' }, { id: 'amulet', name: '🧿 お守り' },
         { id: 'elix', name: '🧪 エリクサー' }, { id: 'bomb', name: '💣 魔法の爆弾' },
         { id: 'cure', name: '🧪 万能薬' }, { id: 'hour', name: '⏳ 時の砂時計' },
         { id: 'whet', name: '🗡️ 研ぎ石' }, { id: 'mirr', name: '🪞 鏡の破片' },
@@ -130,10 +152,18 @@ function openItemBag() {
     items.forEach(item => {
         const el = document.getElementById(`item-slot-${item.id}`);
         if (el) {
-            // グローバルインベントリにデータがあればそれを、無ければ初期テスト用に(9)を自動同期
+            // 🎒 現在の所持数を取得（データがなければ0個とする）
             let count = (window.itemInventory && window.itemInventory[item.id] !== undefined) 
-                        ? window.itemInventory[item.id] : 9;
-            el.innerText = `${item.name} (${count})`;
+                        ? window.itemInventory[item.id] : 0;
+            
+            // 🎯 【ここが超重要！】
+            // 所持数が「1個以上」なら画面に表示し、「0個」なら跡形もなく非表示（none）にする！
+            if (count > 0) {
+                el.innerText = `${item.name} (${count})`;
+                el.style.display = "block"; // 👈 あるものは出す！
+            } else {
+                el.style.display = "none";  // 👈 0個のものは非表示にして消し去る！
+            }
         }
     });
 
@@ -154,3 +184,10 @@ function closeItemBag() {
     if (bagPanel) bagPanel.style.display = 'none'; 
     if (mainPanel) mainPanel.style.display = 'block'; 
 }
+
+
+// 📡 【ディレクター仕様】battle.jsの4大コマンドと100%有線結線させるグローバル直結エクスポート
+window.openMagicBag = openMagicBag;
+window.openItemBag = openItemBag;
+window.closeMagicBag = closeMagicBag;
+window.closeItemBag = closeItemBag;
