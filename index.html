@@ -26,7 +26,7 @@
                         ある地域の周辺の街から民が掻き消え、不穏な静寂が訪れた。しばらくして、霧の中から姿を現した──禍々しき螺旋の古塔。凶悪な魔物どもが巣くう、その終わらぬスパイラルタワーへと潜入し、最上階の闇を討て。
                     </p>
                 </div>
-                <button onclick="nextStage();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3); box-sizing:border-box;">塔へ侵入する</button>
+              <button onclick="document.getElementById('scr-start').style.display='none'; nextStage();" style="background:linear-gradient(135deg,#4f46e5,#6366f1); color:white; border:none; border-radius:16px; padding:25px 45px; font-size:1.8rem; font-weight:900; cursor:pointer; width:100%; box-shadow:0 10px 25px rgba(79,70,229,0.3); box-sizing:border-box;">塔へ侵入する</button>
             </div>
 
             <div id="scr-intro" style="display:none; padding:20px 10px; width:100%; box-sizing:border-box;">
@@ -41,7 +41,7 @@
             <div id="scr-battle" style="display:none; width:100%; box-sizing:border-box;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:15px; gap:10px; width:100%;">
                     <div style="flex:1; text-align:left;">
-                        <div style="font-size:1.15rem; font-weight:900; color:#1e293b;">🧙‍♂️ ウィザード</div>
+                        <div id="p-name" style="font-size:1.15rem; font-weight:900; color:#1e293b;">🧙‍♂️ ウィザード</div>
                         <div style="background:#e2e8f0; border-radius:99px; height:16px; width:100%; overflow:hidden;">
                             <div id="p-hp-bar" style="background:linear-gradient(90deg,#10b981,#34d399); height:100%; width:100%; transition: width 0.2s;"></div>
                         </div>
@@ -92,31 +92,36 @@
                     </div>
 
                     <div id="panel-magic-mode" style="display:none; background:#1e293b; border:4px solid #6366f1; border-radius:16px; padding:12px; width:100%; box-sizing:border-box;">
-                        <div style="color:#facc15; font-size:0.95rem; font-weight:bold; margin-bottom:8px; text-align:center;">🔮 魔導書（上下スクロール対応・全23種）</div>
+                        <div style="color:#facc15; font-size:0.95rem; font-weight:bold; margin-bottom:8px; text-align:center;">🔮 黒革の魔導書</div>
                         
-                        <div style="max-height:105px; overflow-y:auto; padding-right:4px; margin-bottom:10px; box-sizing:border-box;">
-                            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width:100%;">
-                                <button onclick="turn('fire')" style="background:linear-gradient(135deg,#e11d48,#f43f5e); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🔥 ファイア</button>
-                                <button onclick="turn('ice')" style="background:linear-gradient(135deg,#0284c7,#38bdf8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">❄️ アイス</button>
-                                <button onclick="turn('holy')" style="background:linear-gradient(135deg,#ca8a04,#facc15); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">✨ ホーリー</button>
-                                <button onclick="turn('def')" style="background:linear-gradient(135deg,#059669,#10b981); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🛡️ シールド</button>
-                                <button onclick="turn('wasp')" style="background:linear-gradient(135deg,#b45309,#f59e0b); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🐝 ワスプ</button>
-                                <button onclick="turn('scre')" style="background:linear-gradient(135deg,#6d28d9,#a78bfa); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">📢 スクリーム</button>
-                                <button onclick="turn('refl')" style="background:linear-gradient(135deg,#0369a1,#7dd3fc); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🪞 リフレク</button>
-                                <button onclick="turn('wisp')" style="background:linear-gradient(135deg,#0d9488,#5eead4); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🧚 ウィスプ</button>
-                                <button onclick="turn('mmis')" style="background:linear-gradient(135deg,#4338ca,#818cf8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🚀 Ｍミサイル</button>
-                                <button onclick="turn('scis')" style="background:linear-gradient(135deg,#475569,#94a3b8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">✂️ シザース</button>
-                                <button onclick="turn('flas')" style="background:linear-gradient(135deg,#ea580c,#fdba74); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">☀️ フラッシュ</button>
+                        <div style="max-height:190px; overflow-y:auto; padding-right:4px; margin-bottom:10px; box-sizing:border-box;">
+    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width:100%;">
+        <button onclick="turn('fire')" style="background:linear-gradient(135deg,#e11d48,#f43f5e); color:white; border:none; border-radius:10px; padding:8px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🔥 ファイア</button>
+        <button onclick="turn('wasp2')" style="background:linear-gradient(135deg,#0284c7,#38bdf8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">❄️ フリーズ</button>
+                              <button onclick="turn('scis')" style="background:linear-gradient(135deg,#475569,#94a3b8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">✂️ シザース</button>
                                 <button onclick="turn('drai')" style="background:linear-gradient(135deg,#be123c,#fb7185); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🩸 ドレイン</button>
-                                <button onclick="turn('slow')" style="background:linear-gradient(135deg,#f59e0b,#fef08a); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">⏳ スロウ</button>
                                 <button onclick="turn('flod')" style="background:linear-gradient(135deg,#1d4ed8,#60a5fa); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🌊 フラッド</button>
-                                <button onclick="turn('bio')" style="background:linear-gradient(135deg,#15803d,#4ade80); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🧪 バイオ</button>
-                                <button onclick="turn('quak')" style="background:linear-gradient(135deg,#78350f,#b45309); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🪨 クエイク</button>
-                                <button onclick="turn('slee')" style="background:linear-gradient(135deg,#0369a1,#38bdf8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">💤 スリープ</button>
-                                <button onclick="turn('dead')" style="background:linear-gradient(135deg,#111827,#4b5563); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">💀 デス</button>
-                                <button onclick="turn('mete')" style="background:linear-gradient(135deg,#991b1b,#ef4444); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🌋 メテオ</button>
+    <button onclick="turn('mete')" style="background:linear-gradient(135deg,#991b1b,#ef4444); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🌋 メテオ</button>
                                 <button onclick="turn('aero')" style="background:linear-gradient(135deg,#047857,#34d399); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🌪️ エアロ</button>
                                 <button onclick="turn('come')" style="background:linear-gradient(135deg,#4338ca,#a5b4fc); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">☄️ コメット</button>
+                               <button onclick="turn('wasp')" style="background:linear-gradient(135deg,#b45309,#f59e0b); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🐝 ワスプ</button>
+                                <button onclick="turn('scre')" style="background:linear-gradient(135deg,#6d28d9,#a78bfa); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">📢 スクリーム</button>
+                                <button onclick="turn('quak')" style="background:linear-gradient(135deg,#78350f,#b45309); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🪨 クエイク</button>
+                                <button onclick="turn('def')" style="background:linear-gradient(135deg,#059669,#10b981); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🛡️ シールド</button>            
+                                
+
+ 
+                                <button onclick="turn('flas')" style="background:linear-gradient(135deg,#ea580c,#fdba74); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">☀️ フラッシュ</button>
+         <button onclick="turn('ice')" style="display: none; background: linear-gradient(135deg, #0284c7, #38bdf8); color: white; border: none; border-radius: 10px; padding: 14px 2px; font-size: 1rem; font-weight: 900; cursor: pointer;">❄️ アイス</button>
+                                <button onclick="turn('holy')" style="background:linear-gradient(135deg,#ca8a04,#facc15); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">✨ ホーリー</button>
+
+                                <button onclick="turn('refl')" style="background:linear-gradient(135deg,#0369a1,#7dd3fc); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🪞 リフレク</button>
+                                <button onclick="turn('wisp')" style="background:linear-gradient(135deg,#0d9488,#5eead4); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🧚 ウィスプ</button>
+                                <button onclick="turn('mmis')" style="background:linear-gradient(135deg,#4338ca,#818cf8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🚀 マジックミサイル</button>
+                                <button onclick="turn('slow')" style="background:linear-gradient(135deg,#f59e0b,#fef08a); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">⏳ スロウ</button>
+                                <button onclick="turn('bio')" style="display: none;" background:linear-gradient(135deg,#15803d,#4ade80); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🧪 バイオ</button>
+                                <button onclick="turn('slee')" style="background:linear-gradient(135deg,#0369a1,#38bdf8); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">💤 スリープ</button>
+                                <button onclick="turn('dead')" style="background:linear-gradient(135deg,#111827,#4b5563); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">💀 デス</button>
                                 <button onclick="turn('grav')" style="background:linear-gradient(135deg,#312e81,#6366f1); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🧬 グラビデ</button>
                                 <button onclick="turn('anal')" style="background:linear-gradient(135deg,#0f766e,#2dd4bf); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">🔮 アナライズ</button>
                                 <button onclick="turn('ulti')" style="background:linear-gradient(135deg,#701a75,#f472b6); color:white; border:none; border-radius:10px; padding:14px 2px; font-size:1rem; font-weight:900; cursor:pointer;">👑 アルテマ</button>
@@ -128,11 +133,11 @@
                     </div>
                     
                     <div id="item-bag-panel" style="display:none; background:#1e293b; border:4px solid #d97706; border-radius:16px; padding:12px; width:100%; flex-direction:column; box-sizing:border-box;">
-                        <div style="color:#fb923c; font-size:0.95rem; font-weight:bold; margin-bottom:8px; text-align:center;">🎒 道具袋（上下スクロール対応・全20種）</div>
+                        <div style="color:#fb923c; font-size:0.95rem; font-weight:bold; margin-bottom:8px; text-align:center;">🎒 なめし皮の道具袋</div>
                         
-                        <div style="max-height:105px; overflow-y:auto; padding-right:4px; margin-bottom:10px; box-sizing:border-box; width:100%;">
+                        <div style="max-height:190px; overflow-y:auto; padding-right:4px; margin-bottom:10px; box-sizing:border-box; width:100%;">
                             <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 8px; width:100%;">
-                                <button onclick="useItem('potion')" id="item-slot-potion" style="background:#0f172a; color:white; border:1px solid #475569; padding:14px 2px; font-weight:bold; border-radius:10px; cursor:pointer; font-size:1rem;">🧪 回復薬</button>
+                                <button onclick="useItem('potion')" id="item-slot-potion" style="background:#0f172a; color:white; border:1px solid #475569; padding:14px 2px; font-weight:bold; border-radius:10px; cursor:pointer; font-size:1rem;">🧪 ポーション</button>
                                 <button onclick="useItem('amulet')" id="item-slot-amulet" style="background:#0f172a; color:white; border:1px solid #475569; padding:14px 2px; font-weight:bold; border-radius:10px; cursor:pointer; font-size:1rem;">🧿 お守り</button>
                                 <button onclick="useItem('elix')" id="item-slot-elix" style="background:#0f172a; color:white; border:1px solid #475569; padding:14px 2px; font-weight:bold; border-radius:10px; cursor:pointer; font-size:1rem;">🧪 エリクサー</button>
                                 <button onclick="useItem('bomb')" id="item-slot-bomb" style="background:#0f172a; color:white; border:1px solid #475569; padding:14px 2px; font-weight:bold; border-radius:10px; cursor:pointer; font-size:1rem;">💣 魔法の爆弾</button>
@@ -171,12 +176,12 @@
         </div>
     </div>
 
-    <div id="dev-console-window" style="margin-top:25px; width:100%; background:#0b0f19; border:2px solid #334155; border-radius:16px; padding:15px; text-align:left; box-sizing:border-box;">
+   <div id="dev-console-window" style="margin-top:25px; width:100%; background:#0b0f19; border:2px solid #334155; border-radius:16px; padding:15px; text-align:left; box-sizing:border-box;">
         <div style="font-size:0.9rem; font-weight:800; color:#94a3b8; margin-bottom:10px; display:flex; justify-content:space-between;">
             <span>🔧 開発者コンソール (PW「1192」)</span>
             <span id="dev-status-badge" style="color:#ef4444; font-weight:900;">LOCKED</span>
-        </div>
-        <input type="password" id="dev-password-input" oninput="checkDevPassword()" placeholder="PASSWORDを入力..." style="width:100%; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; outline:none;">
+</div>
+        <input type="password" id="dev-password-input" oninput="checkDevPassword()" autocomplete="new-password" placeholder="PASSWORDを入力..." style="width:100%; background:#1e293b; color:#ffffff; border:1px solid #475569; border-radius:8px; padding:10px; font-size:1rem; box-sizing:border-box; outline:none;">
     </div>  
     
     <div style="width:100%; display:flex; justify-content:space-between; color:#64748b; font-size:0.8rem; margin-top:20px; font-weight:bold; padding:0 5px;">
@@ -193,3 +198,53 @@
 
 </body>
 </html>
+
+
+
+<!--
+* **【１】共通土台・ヘッダー**：階層表示（`#floor-indicator`）や消音ボタン（`#btn-mute`）を常時最上部に配置。
+* **【２】起動画面 (`#scr-start`)**：あらすじを読み「塔へ侵入する」ボタンで次へ進む。
+* **【３】導入画面 (`#scr-intro`)**：章題や説明を挟み、「魔物と対峙する」で戦闘へ移行。
+* **【４】戦闘画面 (`#scr-battle`)**：HPバー、画像浮遊ステージ、ログ、呪文/アイテムのコマンド群が詰まった主戦場。※自称は「ウィザード」で直書き固定。
+* **【５】結果画面 (`#scr-result`)**：勝敗を表示し、次階へ進む。
+* **【６】コンソール**：パスワード（1192）で開く開発者用の裏画面。
+＊＊＊＊＊
+🏛️ 【大項目１】ゲーム画面の土台・共通ヘッダー（最上部）
+ゲーム全体の枠組みと、戦闘中も常に一番上に表示されている共通のエリアです。
+#sq-board：ゲーム全体の白い大きなゲーム盤（コンテナ）です。
+#floor-indicator：「1階」などの現在の階層を表示するバッジです。
+#btn-mute：「🔊 音声: ON」のミュート切り替えボタンです。
+🏁 【大項目２】#scr-start：タイトル・スタート画面
+ゲーム起動時に最初にドカンと表示されている、「塔へ侵入する」ボタンがある画面です。
+世界観テキスト：スパイラルタワーのストーリーがここに直書きされています。
+ボタン：クリックすると、このスタート画面を非表示（none）にして、次の処理（nextStage()）へと進みます。
+📖 【大項目３】#scr-intro：フロア進入時の状況説明画面
+戦闘に入る一歩手前で、「章のタイトル」や「状況説明テキスト」を表示してプレイヤーの気分を盛り上げる中間画面です。
+「魔物と対峙する」ボタンを押すことで、いよいよ戦闘（startBattle()）へと移行します。
+⚔️ 【大項目４】#scr-battle：戦闘メイン画面（★現在の主戦場）
+HPバーやコマンドボタンがズラリと並ぶ、ゲームの核心部分す。この中にさらに4つの重要なパーツが仕込まれています。
+
+① ステータス＆HPバー（最上段）
+左側（プレイヤー）：ここに 🧙‍♂️ ウィザード という文字が、JavaScriptからの連動ではなく、HTMLに直接「生文字」で固定されて書き込まれている のを発見しました！
+
+右側（敵）：#e-name というIDがついており、JavaScriptから動的に「ブラッドスパイダー」などの名前が流し込める配線になっています。
+
+② #eff-scr：戦闘グラフィックステージ
+#cutin-bar：「クリティカルヒット！！」などのカットイン演出が入る黒い帯です。
+
+#p-sprite-container / #e-sprite-container：プレイヤーとモンスターのドット絵（画像）を配置し、フワフワ浮遊させるアニメーション（floatP, floatE）をさせている部屋です。
+
+③ #battle-log：バトルログ
+「コマンドを選択せよ。」などのメッセージを表示するテキストエリアです。
+
+④ #cmd-panel：コマンド操作パネル
+**メインメニュー：「🔮 呪文を詠唱する」「⚡ 魔力集中」「🎒 アイテム」の3大ボタンです。**
+
+#panel-magic-mode：全25種類の呪文ボタンが上下スクロールでギッシリ詰まった魔導書パネルです（「ワスプ」や「スリープ」もここにあります）。
+
+#item-bag-panel：全20種類のアイテムボタンが詰まった道具袋パネルです。
+
+🏆 【大項目５】#scr-result：リザルト画面
+戦闘勝利時に「VICTORY」の文字とトロフィー（🏆）を表示し、次の階層（nextStage()）へ進むための結果発表画面です。
+
+🔧 【大項目６】#dev-console-window：開発者コンソール　 -->
