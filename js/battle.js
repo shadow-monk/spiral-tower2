@@ -2378,10 +2378,12 @@ if (rBtn) {
         let _isLvUp = false;
         let _statReport = ""; 
 
-        while (window.pExp >= _reqExp) {
+ while (window.pExp >= _reqExp) {
             window.pExp -= _reqExp;
-            window.pLevel++;
-            window.pSavedLevel = window.pLevel;
+            
+            // ⭕ 偽物の pLevel ではなく、本物の window.pLv をプラスする！
+            window.pLv++; 
+            window.pSavedLevel = window.pLv;
             
             let hpGain = 0; let mpGain = 0;
             if (typeof window.growCoreStatsRandomly === 'function') {
@@ -2395,7 +2397,9 @@ if (rBtn) {
             window.pSavedMaxHp = window.pMaxHp; window.pSavedMaxMp = window.pMaxMp;
             _statReport += `<br><span style="color:#38bdf8; font-size:0.8rem;">❤️ 最大HP＋${hpGain} | 🔷 最大MP＋${mpGain}</span>`;
             _isLvUp = true;
-            _reqExp = window.getRequiredExpForNextLevel(window.pLevel);
+            
+            // ⭕ ここも本物の window.pLv を渡して、次のレベルの重い必要経験値を正しく計算させる！
+            _reqExp = window.getRequiredExpForNextLevel(window.pLv);
         }
 
         if (_isLvUp) { 
@@ -2403,8 +2407,9 @@ if (rBtn) {
         } else { window.isPlayerLevelUpPending = false; }
 
         let _bonusReport = _bonusTexts.length ? `<br><span style="color:#38bdf8; font-size:0.8rem;">✨ 評価ボーナス: ${_bonusTexts.join(' ')}</span>` : "";
+        
         window.currentBattleRewardLog = `獲得経験値: ＋${_gainedExp} EXP ${_bonusReport}${_statReport}`;
-        if (_isLvUp) { window.currentBattleRewardLog += `<br><span style="color:#eab308; font-weight:bold;">🆙 LEVEL UP! [ LV.${window.pLevel} ] 到達！HP・MP【全回復】！</span>`; }
+if (_isLvUp) { window.currentBattleRewardLog += `<br><span style="color:#eab308; font-weight:bold;">🆙 LEVEL UP! [ LV.${window.pLevel + 1} ] 到達！HP・MP【全回復】！</span>`; }
     }
 
     // ── 🔄 画面切り替えと勝利・敗北の完全ルート分離 ───────────────────────────
@@ -2570,10 +2575,10 @@ if (rBtn) {
                                 document.head.appendChild(lvStyle);
                             }
 
-                            const lvBox = document.createElement("div");
-                            lvBox.className = "lvup-box";
-                            lvBox.innerHTML = `
-                                <div class="lvup-title">🌟 LEVEL UP (LV.${window.pLevel}) 🌟</div>
+const lvBox = document.createElement("div");
+lvBox.className = "lvup-box";
+lvBox.innerHTML = `
+    <div class="lvup-title">🌟 LEVEL UP (LV.${window.pLevel + 1}) 🌟</div>
                                 <div class="lvup-row">❤️ 最大HP・最大MP 限界突破！</div>
                                 <div class="lvup-row" style="color:#10b981;">📊 基礎能力値ダイスロール完了！</div>
                                 <div style="color: #64748b; font-size: 0.8rem; margin-top: 20px; animation: pulse 1s infinite;">【 画面をクリックして呪文獲得へ 】</div>
@@ -2600,14 +2605,28 @@ if (rBtn) {
             }
         }
 
-        if (rText) {
+if (rText) {
             rText.innerHTML = `第 ${window.STAGES[window.curIdx].floor} 階層突破！ ${currentDisplayLootText}<br><div style="margin-top:10px; border-top:1px dashed #334155; padding-top:8px; text-align:left; font-family:monospace; line-height:1.6; color:#38bdf8;">${window.currentBattleRewardLog || "経験値精算完了"}</div>`;
         }
+        
         if (rBtn) {
-            rBtn.innerText = "次へ進む";
-            rBtn.onclick = function() { window.nextStage(); };
+            // 🟢 ボタンが表示された時点の初期文字を設定
+            rBtn.innerText = window.isPlayerLevelUpPending ? "呪文ドラフトへ進む ➔" : "次へ進む";
+            
+            // 🟢 ボタンがクリックされた時に毎回中身を判定する正しい配線
+            rBtn.onclick = function() {
+                if (window.isPlayerLevelUpPending) {
+                    window.isPlayerLevelUpPending = false; // フラグを消化
+                    if (typeof window.triggerCardDraft === 'function') {
+                        window.triggerCardDraft(); // ドラフト画面へ突入！
+                    }
+                } else {
+                    window.nextStage(); // レベルアップしてなければ次の階へ
+                }
+            };
         }
-    } 
+    } // 🔒 
+
     // 💀 敗北ルート（主人公のHPが0になったとき）
     else {
         if (resIcon) resIcon.innerText = "💀";
