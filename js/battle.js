@@ -1757,7 +1757,13 @@ else if (playerMove === 'bio') {
                 window.enemyStatus.poisonTurns = poisonTurns; 
                 flavorTxt = "ドロドロとした有害なバイオバブルが敵の体表で弾ける！"; statusLog = ` (🧪猛毒の細菌が肉体を蝕み、スリップダメージ開始！[${poisonTurns}ターン])`; 
             }
-            else if (playerMove === 'quak') { flavorTxt = "大地が激しく隆起し、戦場全体を大地震が襲う！"; }
+  
+else if (playerMove === 'quak') { 
+                flavorTxt = "大地が激しく隆起し、戦場全体を大地震が襲う！"; 
+                
+                }
+          
+
             else if (playerMove === 'dead') { flavorTxt = "死神の巨大な鎌が空間ごと敵の魂を刈り取る……！"; }
             else if (playerMove === 'mete') { flavorTxt = "燃え盛る巨大な巨大隕石が超高速で大気圏を突破し激突！"; }
             else if (playerMove === 'aero') { flavorTxt = "真空の刃が竜巻きを起こし、敵の防壁ごと切り裂く！"; }
@@ -1934,7 +1940,7 @@ else if (window.enemyStatus.sleepTurns > 0) {
 if (window.playerStatus && window.playerStatus.shieldTurns > 0) {
        window.enemyMana = 0.3; // ⏳ 寿命がある限り、お片付けされてもここで強制的に0.3倍に引き戻す！
    }
-   let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk; //
+let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk; //
 dmg = Math.floor(dmg * window.enemyMana); //
 window.enemyMana = 1.0; //
 
