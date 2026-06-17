@@ -222,11 +222,11 @@ window.executeEnemySpecial = function(data, dmg, logTxt, effScr, isSpecial) { //
         dmg = Math.floor(dmg * 0.5); 
     } 
 else if (data.type === 'slime') {
-        // 🟢 1. すれ違っていた偽物の配線を完全粉砕！主人公の防御を崩す本物の溶解フラグを着火！
+         // 🟢 1. すれ違っていた偽物の配線を完全粉砕！主人公の防御を崩す本物の溶解フラグを着火！
         window.isPlayerCorroded = true; 
         window.playerStatus.corrodeTurns = 3; // 画面最上部の「💦 溶解」バッジ用
         
-        let totalDmg = dmg*1.4; 
+let totalDmg = Math.round(dmg * 1.4);
         logTxt += `💦 ${data.name}のドロッとした溶解液放射！【${totalDmg}】の強酸ダメージ！`;
         
         // 🟢 2. 【後半演出・画面融解100%大開通ガードレール】
