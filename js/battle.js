@@ -1934,15 +1934,19 @@ else if (window.enemyStatus.sleepTurns > 0) {
 if (window.playerStatus && window.playerStatus.shieldTurns > 0) {
        window.enemyMana = 0.3; // ⏳ 寿命がある限り、お片付けされてもここで強制的に0.3倍に引き戻す！
    }
-   let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk;
-    dmg = Math.floor(dmg * window.enemyMana); window.enemyMana = 1.0;
+   let dmg = isPlayerDefending ? Math.max(1, Math.floor(data.atk * 0.15)) : data.atk; //
+dmg = Math.floor(dmg * window.enemyMana); //
+window.enemyMana = 1.0; //
 
-    // 🎲 【新規増設】：敵の通常攻撃にプラスマイナス10%（0.9 〜 1.1倍）の乱数を乗せる回路
-    // Math.random() は 0.0〜1.0 未満の数字が出るので、0.2 をかけると 0.0〜0.2 未満になります。
-    // そこに 0.9 を足すことで、最終的に「0.90 〜 1.10 未満」の倍率がハキハキ完成します！
-    if (!isSpecial) { 
-        dmg = Math.floor(dmg * (0.8 + Math.random() * 0.25)); 
-    }
+if (!isSpecial) {
+    // 🟢 ここを Math.round に変更して通常攻撃の小数を消滅させます
+    dmg = Math.round(dmg * (0.8 + Math.random() * 0.25)); 
+}
+
+// 🟢 【超重要：ここを追加！】
+// 通常攻撃（if）だろうが特殊技（else）だろうが、すべてのモンスターの最終ダメージ（dmg）を
+// ここで完全に四捨五入して綺麗な整数にロックします！
+dmg = Math.round(dmg);
 
     if (window.isAmuletActive > 0 && !isPlayerDefending) { dmg = Math.floor(dmg * 0.5); }
 
